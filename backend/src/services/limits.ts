@@ -1,10 +1,20 @@
 // backend/src/services/limits.ts
-import { PrismaClient, Plan } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 
-const prisma = new PrismaClient();
+// Typ Plan (zgodny z enum w Prisma schema)
+export type Plan = "FREE" | "PREMIUM" | "LIFETIME";
+
+// Typ dla limitów
+interface PlanLimits {
+  maxCharsPerCheck: number;
+  maxChecksPerDay: number;
+  maxCharsPerDay: number;
+  showExplanations: boolean;
+  saveHistory: boolean;
+}
 
 // Limity dla różnych planów
-export const LIMITS = {
+export const LIMITS: Record<Plan, PlanLimits> = {
   FREE: {
     maxCharsPerCheck: 500,
     maxChecksPerDay: 5,
@@ -26,7 +36,7 @@ export const LIMITS = {
     showExplanations: true,
     saveHistory: true,
   },
-} as const;
+};
 
 export interface UsageStatus {
   canCheck: boolean;
@@ -37,20 +47,16 @@ export interface UsageStatus {
 }
 
 export async function checkUsageLimits(
-  userId: string | null,
-  visitorId: string | null,
+  userId: string,
+  _visitorId: string | null, // Ignored - kept for compatibility
   textLength: number
 ): Promise<UsageStatus> {
   // Pobierz plan użytkownika
-  let plan: Plan = "FREE";
-  if (userId) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { plan: true },
-    });
-    plan = user?.plan || "FREE";
-  }
-
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { plan: true },
+  });
+  const plan: Plan = (user?.plan as Plan) || "FREE";
   const limits = LIMITS[plan];
 
   // Sprawdź limit znaków na jedno sprawdzenie
@@ -69,7 +75,7 @@ export async function checkUsageLimits(
   today.setHours(0, 0, 0, 0);
 
   const dailyUsage = await prisma.dailyUsage.findFirst({
-    where: userId ? { userId, date: today } : { visitorId, date: today },
+    where: { userId, date: today },
   });
 
   const usedChecks = dailyUsage?.checkCount || 0;
@@ -109,54 +115,36 @@ export async function checkUsageLimits(
     remainingChecks:
       limits.maxChecksPerDay === Infinity
         ? Infinity
-        : limits.maxChecksPerDay - usedChecks - 1,
+        : limits.maxChecksPerDay - usedChecks,
     remainingChars:
       limits.maxCharsPerDay === Infinity
         ? Infinity
-        : limits.maxCharsPerDay - usedChars - textLength,
+        : limits.maxCharsPerDay - usedChars,
     limits,
   };
 }
 
 export async function recordUsage(
-  userId: string | null,
-  visitorId: string | null,
+  userId: string,
+  _visitorId: string | null, // Ignored - kept for compatibility
   charCount: number
 ): Promise<void> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  if (userId) {
-    await prisma.dailyUsage.upsert({
-      where: {
-        userId_date: { userId, date: today },
-      },
-      update: {
-        checkCount: { increment: 1 },
-        charCount: { increment: charCount },
-      },
-      create: {
-        userId,
-        date: today,
-        checkCount: 1,
-        charCount,
-      },
-    });
-  } else if (visitorId) {
-    await prisma.dailyUsage.upsert({
-      where: {
-        visitorId_date: { visitorId, date: today },
-      },
-      update: {
-        checkCount: { increment: 1 },
-        charCount: { increment: charCount },
-      },
-      create: {
-        visitorId,
-        date: today,
-        checkCount: 1,
-        charCount,
-      },
-    });
-  }
+  await prisma.dailyUsage.upsert({
+    where: {
+      userId_date: { userId, date: today },
+    },
+    update: {
+      checkCount: { increment: 1 },
+      charCount: { increment: charCount },
+    },
+    create: {
+      userId,
+      date: today,
+      checkCount: 1,
+      charCount,
+    },
+  });
 }

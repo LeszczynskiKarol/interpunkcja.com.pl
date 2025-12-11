@@ -48,7 +48,7 @@ Jeśli tekst jest poprawny interpunkcyjnie, zwróć pustą tablicę corrections 
 
 export async function checkPunctuation(text: string): Promise<CheckResult> {
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 4096,
     messages: [
       {

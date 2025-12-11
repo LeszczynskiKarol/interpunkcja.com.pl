@@ -1,138 +1,361 @@
 // backend/src/routes/auth.ts
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import bcrypt from "bcrypt";
-import { PrismaClient } from "@prisma/client";
+import { AuthService } from "../services/auth";
 
-const prisma = new PrismaClient();
+const authService = new AuthService();
 
-const registerSchema = z.object({
+const RegisterSchema = z.object({
   email: z.string().email("Nieprawidłowy adres email"),
+  name: z.string().min(2, "Minimum 2 znaki").max(50, "Maksimum 50 znaków"),
   password: z.string().min(8, "Hasło musi mieć minimum 8 znaków"),
-  name: z.string().optional(),
 });
 
-const loginSchema = z.object({
+const LoginSchema = z.object({
   email: z.string().email("Nieprawidłowy adres email"),
-  password: z.string(),
+  password: z.string().min(1, "Hasło jest wymagane"),
+});
+
+const VerifyEmailSchema = z.object({
+  token: z.string().min(1, "Token weryfikacyjny jest wymagany"),
+});
+
+const ResendVerificationSchema = z.object({
+  email: z.string().email("Nieprawidłowy adres email"),
+});
+
+const ResetPasswordSchema = z.object({
+  token: z.string().min(1, "Token jest wymagany"),
+  password: z.string().min(8, "Hasło musi mieć minimum 8 znaków"),
+});
+
+const RequestPasswordResetSchema = z.object({
+  email: z.string().email("Nieprawidłowy adres email"),
 });
 
 export async function authRoutes(fastify: FastifyInstance) {
-  // Rejestracja
+  // REJESTRACJA
   fastify.post("/api/auth/register", async (request, reply) => {
-    const body = registerSchema.parse(request.body);
-    const { email, password, name } = body;
-
-    // Sprawdź czy email już istnieje
-    const existing = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existing) {
-      return reply.status(400).send({
-        error: "EMAIL_EXISTS",
-        message: "Użytkownik z tym adresem email już istnieje",
-      });
-    }
-
-    // Hash hasła
-    const passwordHash = await bcrypt.hash(password, 12);
-
-    // Utwórz użytkownika
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        name,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        plan: true,
-        createdAt: true,
-      },
-    });
-
-    // Wygeneruj token
-    const token = fastify.jwt.sign({ id: user.id, email: user.email });
-
-    return {
-      user,
-      token,
-    };
-  });
-
-  // Logowanie
-  fastify.post("/api/auth/login", async (request, reply) => {
-    const body = loginSchema.parse(request.body);
-    const { email, password } = body;
-
-    // Znajdź użytkownika
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return reply.status(401).send({
-        error: "INVALID_CREDENTIALS",
-        message: "Nieprawidłowy email lub hasło",
-      });
-    }
-
-    // Sprawdź hasło
-    const validPassword = await bcrypt.compare(password, user.passwordHash);
-
-    if (!validPassword) {
-      return reply.status(401).send({
-        error: "INVALID_CREDENTIALS",
-        message: "Nieprawidłowy email lub hasło",
-      });
-    }
-
-    // Wygeneruj token
-    const token = fastify.jwt.sign({ id: user.id, email: user.email });
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        plan: user.plan,
-        createdAt: user.createdAt,
-      },
-      token,
-    };
-  });
-
-  // Pobierz aktualnego użytkownika
-  fastify.get("/api/auth/me", async (request, reply) => {
     try {
-      const decoded = await request.jwtVerify<{ id: string }>();
+      const data = RegisterSchema.parse(request.body);
+      const result = await authService.register(data);
+      return reply.code(201).send(result);
+    } catch (error: any) {
+      console.error("Registration error:", error);
 
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          plan: true,
-          createdAt: true,
-        },
-      });
-
-      if (!user) {
-        return reply.status(404).send({
-          error: "USER_NOT_FOUND",
-          message: "Użytkownik nie znaleziony",
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+          errors: error.errors,
         });
       }
 
-      return { user };
-    } catch {
-      return reply.status(401).send({
+      const errorMessages: Record<string, string> = {
+        USER_EXISTS: "Użytkownik z tym adresem email już istnieje",
+        PASSWORD_TOO_SHORT: "Hasło musi mieć minimum 8 znaków",
+        PASSWORD_NO_NUMBER: "Hasło musi zawierać przynajmniej jedną cyfrę",
+        PASSWORD_NO_UPPERCASE:
+          "Hasło musi zawierać przynajmniej jedną dużą literę",
+        PASSWORD_NO_LOWERCASE:
+          "Hasło musi zawierać przynajmniej jedną małą literę",
+      };
+
+      const message =
+        errorMessages[error.message] || "Rejestracja nie powiodła się";
+
+      return reply.code(400).send({
+        error: error.message || "REGISTRATION_FAILED",
+        message,
+      });
+    }
+  });
+
+  // WERYFIKACJA EMAIL
+  fastify.post("/api/auth/verify-email", async (request, reply) => {
+    try {
+      const { token } = VerifyEmailSchema.parse(request.body);
+      const result = await authService.verifyEmail(token);
+      return reply.send(result);
+    } catch (error: any) {
+      console.error("Email verification error:", error);
+
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+        });
+      }
+
+      const errorMessages: Record<string, string> = {
+        INVALID_TOKEN: "Kod weryfikacyjny jest nieprawidłowy lub wygasł",
+      };
+
+      return reply.code(400).send({
+        error: error.message || "VERIFICATION_FAILED",
+        message: errorMessages[error.message] || "Weryfikacja nie powiodła się",
+      });
+    }
+  });
+
+  // PONOWNE WYSŁANIE EMAILA WERYFIKACYJNEGO
+  fastify.post("/api/auth/resend-verification", async (request, reply) => {
+    try {
+      const { email } = ResendVerificationSchema.parse(request.body);
+      const result = await authService.resendVerificationEmail(email);
+      return reply.send(result);
+    } catch (error: any) {
+      console.error("Resend verification error:", error);
+
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+        });
+      }
+
+      // Obsłuż rate limit
+      if (error.message.startsWith("RATE_LIMIT:")) {
+        const waitTime = error.message.split(":")[1];
+        return reply.code(429).send({
+          error: "RATE_LIMIT",
+          message: `Poczekaj ${waitTime} sekund przed ponowną wysyłką.`,
+        });
+      }
+
+      const errorMessages: Record<string, string> = {
+        USER_NOT_FOUND: "Użytkownik nie został znaleziony",
+        ALREADY_VERIFIED: "Email jest już zweryfikowany",
+      };
+
+      return reply.code(400).send({
+        error: error.message || "RESEND_FAILED",
+        message: errorMessages[error.message] || "Nie udało się wysłać emaila",
+      });
+    }
+  });
+
+  // LOGOWANIE
+  fastify.post("/api/auth/login", async (request, reply) => {
+    try {
+      const { email, password } = LoginSchema.parse(request.body);
+      const result = await authService.login(email, password);
+      return reply.send(result);
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+        });
+      }
+
+      if (error.message === "EMAIL_NOT_VERIFIED") {
+        return reply.code(403).send({
+          error: "EMAIL_NOT_VERIFIED",
+          message:
+            "Musisz potwierdzić swój email przed zalogowaniem. Sprawdź swoją skrzynkę.",
+        });
+      }
+
+      return reply.code(401).send({
+        error: "INVALID_CREDENTIALS",
+        message: "Nieprawidłowy email lub hasło",
+      });
+    }
+  });
+
+  // REFRESH TOKEN
+  fastify.post("/api/auth/refresh", async (request, reply) => {
+    try {
+      const { refreshToken } = request.body as { refreshToken: string };
+
+      if (!refreshToken) {
+        return reply.code(401).send({
+          error: "REFRESH_TOKEN_REQUIRED",
+          message: "Refresh token jest wymagany",
+        });
+      }
+
+      const tokens = await authService.refreshToken(refreshToken);
+      return reply.send(tokens);
+    } catch (error: any) {
+      console.error("Token refresh error:", error);
+      return reply.code(401).send({
+        error: "INVALID_REFRESH_TOKEN",
+        message: "Nieprawidłowy refresh token",
+      });
+    }
+  });
+
+  // WYLOGOWANIE
+  fastify.post("/api/auth/logout", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+      const userId = (request.user as any).userId;
+      await authService.logout(userId);
+      return reply.send({ success: true, message: "Wylogowano pomyślnie" });
+    } catch (error) {
+      return reply.code(401).send({
         error: "UNAUTHORIZED",
-        message: "Nie jesteś zalogowany",
+        message: "Nieautoryzowany",
+      });
+    }
+  });
+
+  // ŻĄDANIE RESETU HASŁA
+  fastify.post("/api/auth/request-password-reset", async (request, reply) => {
+    try {
+      const { email } = RequestPasswordResetSchema.parse(request.body);
+      const result = await authService.requestPasswordReset(email);
+      return reply.send(result);
+    } catch (error: any) {
+      console.error("Password reset request error:", error);
+      // Zawsze zwracaj sukces, żeby nie ujawniać czy email istnieje
+      return reply.send({
+        success: true,
+        message: "Jeśli konto istnieje, email został wysłany.",
+      });
+    }
+  });
+
+  // RESET HASŁA
+  fastify.post("/api/auth/reset-password", async (request, reply) => {
+    try {
+      const { token, password } = ResetPasswordSchema.parse(request.body);
+      const result = await authService.resetPassword(token, password);
+      return reply.send(result);
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+        });
+      }
+
+      const errorMessages: Record<string, string> = {
+        INVALID_TOKEN: "Link resetowania hasła jest nieprawidłowy lub wygasł",
+        PASSWORD_TOO_SHORT: "Hasło musi mieć minimum 8 znaków",
+        PASSWORD_NO_NUMBER: "Hasło musi zawierać przynajmniej jedną cyfrę",
+        PASSWORD_NO_UPPERCASE:
+          "Hasło musi zawierać przynajmniej jedną dużą literę",
+        PASSWORD_NO_LOWERCASE:
+          "Hasło musi zawierać przynajmniej jedną małą literę",
+      };
+
+      return reply.code(400).send({
+        error: error.message || "RESET_FAILED",
+        message: errorMessages[error.message] || "Reset hasła nie powiódł się",
+      });
+    }
+  });
+
+  // SPRAWDŹ STATUS WERYFIKACJI
+  fastify.get("/api/auth/verification-status", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+      const userId = (request.user as any).userId;
+      const user = await authService.getMe(userId);
+
+      return reply.send({
+        emailVerified: user?.emailVerified || false,
+      });
+    } catch (error) {
+      return reply.code(401).send({
+        error: "UNAUTHORIZED",
+        message: "Nieautoryzowany",
+      });
+    }
+  });
+
+  // POBIERZ DANE UŻYTKOWNIKA
+  fastify.get("/api/auth/me", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+      const userId = (request.user as any).userId;
+      const user = await authService.getMe(userId);
+      return reply.send(user);
+    } catch (error) {
+      return reply.code(401).send({
+        error: "UNAUTHORIZED",
+        message: "Nieautoryzowany",
+      });
+    }
+  });
+
+  // AKTUALIZUJ PROFIL
+  fastify.patch("/api/auth/profile", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+      const userId = (request.user as any).userId;
+
+      const schema = z.object({
+        name: z
+          .string()
+          .min(2, "Minimum 2 znaki")
+          .max(50, "Maksimum 50 znaków"),
+      });
+
+      const { name } = schema.parse(request.body);
+      const user = await authService.updateProfile(userId, { name });
+      return reply.send(user);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+        });
+      }
+      return reply.code(400).send({
+        error: "UPDATE_FAILED",
+        message: "Aktualizacja profilu nie powiodła się",
+      });
+    }
+  });
+
+  // ZMIANA HASŁA
+  fastify.post("/api/auth/change-password", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+      const userId = (request.user as any).userId;
+
+      const schema = z.object({
+        currentPassword: z.string().min(1, "Obecne hasło jest wymagane"),
+        newPassword: z.string().min(8, "Nowe hasło musi mieć minimum 8 znaków"),
+      });
+
+      const { currentPassword, newPassword } = schema.parse(request.body);
+      await authService.changePassword(userId, currentPassword, newPassword);
+
+      return reply.send({
+        success: true,
+        message: "Hasło zostało zmienione",
+      });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+        });
+      }
+
+      const errorMessages: Record<string, string> = {
+        INVALID_PASSWORD: "Obecne hasło jest nieprawidłowe",
+        PASSWORD_TOO_SHORT: "Nowe hasło musi mieć minimum 8 znaków",
+        PASSWORD_NO_NUMBER: "Nowe hasło musi zawierać przynajmniej jedną cyfrę",
+        PASSWORD_NO_UPPERCASE:
+          "Nowe hasło musi zawierać przynajmniej jedną dużą literę",
+        PASSWORD_NO_LOWERCASE:
+          "Nowe hasło musi zawierać przynajmniej jedną małą literę",
+      };
+
+      return reply.code(400).send({
+        error: error.message || "CHANGE_PASSWORD_FAILED",
+        message:
+          errorMessages[error.message] || "Zmiana hasła nie powiodła się",
       });
     }
   });

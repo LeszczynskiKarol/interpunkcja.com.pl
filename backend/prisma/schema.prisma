@@ -13,6 +13,23 @@ model User {
   passwordHash  String
   name          String?
   plan          Plan      @default(FREE)
+  
+  // Email verification
+  emailVerified           Boolean   @default(false)
+  emailVerificationToken  String?   @unique
+  emailVerificationExpiry DateTime?
+  
+  // Password reset
+  passwordResetToken      String?   @unique
+  passwordResetExpiry     DateTime?
+  
+  // Refresh token
+  refreshToken  String?
+  lastLogin     DateTime?
+  
+  // Stripe
+  stripeCustomerId String? @unique
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
