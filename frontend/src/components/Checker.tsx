@@ -215,7 +215,7 @@ export function Checker() {
           onChange={(e) => setText(e.target.value)}
           placeholder="Wklej lub wpisz tekst do sprawdzenia interpunkcji..."
           className={clsx(
-            "w-full h-64 p-4 border-2 rounded-xl resize-none transition-colors",
+            "w-full h-96 p-4 border-2 rounded-xl resize-none transition-colors",
             "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
             "placeholder-gray-400 dark:placeholder-gray-500",
             "focus:outline-none focus:border-blue-500 dark:focus:border-blue-400",

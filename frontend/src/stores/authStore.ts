@@ -7,6 +7,7 @@ interface User {
   email: string;
   name: string | null;
   plan: "FREE" | "PREMIUM" | "LIFETIME";
+  role?: "USER" | "ADMIN";
   emailVerified?: boolean;
   createdAt?: string;
 }

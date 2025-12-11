@@ -1,6 +1,7 @@
 // frontend/src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "react-hot-toast";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -19,6 +20,14 @@ import { HistoryPage } from "./pages/HistoryPage";
 import { PricingPage } from "./pages/PricingPage";
 import { PaymentPage } from "./pages/PaymentPage";
 import { PaymentSuccessPage } from "./pages/PaymentSuccessPage";
+import { AdminLayout } from "./pages/admin/AdminLayout";
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { AdminUsers } from "./pages/admin/AdminUsers";
+import { AdminChecks } from "./pages/admin/AdminChecks";
+import { AdminStats } from "./pages/admin/AdminStats";
+import { AdminArticles } from "./pages/admin/AdminArticles";
+import { ArticlePage } from "./pages/ArticlePage";
+import { CategoryPage } from "./pages/CategoryPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,97 +50,129 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Layout>
-                <Home />
-              </Layout>
-            }
-          />
-
-          {/* Protected routes - wymagają logowania */}
-          <Route
-            path="/panel"
-            element={
-              <ProtectedRoute>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/"
+              element={
                 <Layout>
-                  <Dashboard />
+                  <Home />
                 </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/konto"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AccountPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/historia"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <HistoryPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+              }
+            />
 
-          {/* Public pages with layout */}
-          <Route
-            path="/cennik"
-            element={
-              <Layout>
-                <PricingPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/platnosc/:plan"
-            element={
-              <Layout>
-                <PaymentPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/platnosc/sukces"
-            element={
-              <Layout>
-                <PaymentSuccessPage />
-              </Layout>
-            }
-          />
+            {/* Protected routes - wymagają logowania */}
+            <Route
+              path="/panel"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/konto"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AccountPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/historia"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <HistoryPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Auth routes - bez layoutu */}
-          <Route path="/logowanie" element={<LoginPage />} />
-          <Route path="/rejestracja" element={<RegisterPage />} />
-          <Route path="/sprawdz-email" element={<CheckEmailPage />} />
-          <Route path="/weryfikacja" element={<VerifyEmailPage />} />
-          <Route path="/wyslij-ponownie" element={<ResendVerificationPage />} />
-          <Route path="/przypomnij-haslo" element={<ForgotPasswordPage />} />
-          <Route path="/resetuj-haslo" element={<ResetPasswordPage />} />
-        </Routes>
-      </BrowserRouter>
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
-    </QueryClientProvider>
+            {/* Public pages with layout */}
+            <Route
+              path="/cennik"
+              element={
+                <Layout>
+                  <PricingPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/platnosc/:plan"
+              element={
+                <Layout>
+                  <PaymentPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/platnosc/sukces"
+              element={
+                <Layout>
+                  <PaymentSuccessPage />
+                </Layout>
+              }
+            />
+
+            {/* Auth routes - bez layoutu */}
+            <Route path="/logowanie" element={<LoginPage />} />
+            <Route path="/rejestracja" element={<RegisterPage />} />
+            <Route path="/sprawdz-email" element={<CheckEmailPage />} />
+            <Route path="/weryfikacja" element={<VerifyEmailPage />} />
+            <Route
+              path="/wyslij-ponownie"
+              element={<ResendVerificationPage />}
+            />
+            <Route path="/przypomnij-haslo" element={<ForgotPasswordPage />} />
+            <Route path="/resetuj-haslo" element={<ResetPasswordPage />} />
+
+            {/* Admin routes - własny layout */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="uzytkownicy" element={<AdminUsers />} />
+              <Route path="sprawdzenia" element={<AdminChecks />} />
+              <Route path="statystyki" element={<AdminStats />} />
+              <Route path="artykuly" element={<AdminArticles />} />
+            </Route>
+
+            {/* Article routes - muszą być na końcu bo używają dynamicznych parametrów */}
+            <Route
+              path="/category/:slug"
+              element={
+                <Layout>
+                  <CategoryPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/:categorySlug/:articleSlug"
+              element={
+                <Layout>
+                  <ArticlePage />
+                </Layout>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "#333",
+              color: "#fff",
+            },
+          }}
+        />
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

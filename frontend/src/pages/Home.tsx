@@ -1,5 +1,6 @@
 // frontend/src/pages/Home.tsx
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
   Zap,
@@ -7,11 +8,55 @@ import {
   Star,
   ArrowRight,
   CheckCircle,
+  ChevronRight,
 } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
+import { api } from "../lib/api";
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  articleCount: number;
+}
+
+interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  category: { name: string; slug: string };
+}
+
+const categoryDescriptions: Record<string, string> = {
+  "interpunkcyjny-slownik-wyrazow":
+    "Kiedy stawiać przecinek przed: że, który, ale, bo, gdy i innymi wyrazami",
+  "znaki-interpunkcyjne":
+    "Zasady użycia przecinka, myślnika, cudzysłowu, nawiasu i innych znaków",
+  "ogolne-zasady-interpunkcji":
+    "Podstawowe reguły interpunkcji w zdaniach złożonych i wyliczeniach",
+};
 
 export function Home() {
   const { isAuthenticated } = useAuthStore();
+
+  // Pobierz kategorie z liczbą artykułów
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await api.get("/api/categories");
+      return res.data;
+    },
+  });
+
+  // Pobierz najnowsze artykuły
+  const { data: latestArticles } = useQuery<{ articles: Article[] }>({
+    queryKey: ["latest-articles"],
+    queryFn: async () => {
+      const res = await api.get("/api/articles?limit=6");
+      return res.data;
+    },
+  });
 
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 transition-colors">
@@ -69,15 +114,92 @@ export function Home() {
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              Bez karty kredytowej
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-500" />
               Szybka rejestracja
             </div>
           </div>
         </div>
       </header>
+
+      {/* Categories Section */}
+      {categories && categories.length > 0 && (
+        <section className="py-16 px-4 bg-white dark:bg-gray-800/50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Zasady interpunkcji
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Poznaj zasady polskiej interpunkcji w naszym kompendium wiedzy
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/category/${cat.slug}/`}
+                  className="group p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg transition-all"
+                >
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {cat.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    {categoryDescriptions[cat.slug] ||
+                      `Artykuły o ${cat.name.toLowerCase()}`}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500 dark:text-gray-500">
+                      {cat.articleCount} artykułów
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Latest Articles Section */}
+      {latestArticles?.articles && latestArticles.articles.length > 0 && (
+        <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900/50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Najnowsze artykuły
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Sprawdź nasze najnowsze poradniki o interpunkcji
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {latestArticles.articles.map((article) => (
+                <Link
+                  key={article.id}
+                  to={`/${article.category.slug}/${article.slug}/`}
+                  className="group p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all"
+                >
+                  <span className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-medium rounded mb-3">
+                    {article.category.name}
+                  </span>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                    {article.title}
+                  </h3>
+                  {article.excerpt && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                      {article.excerpt}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* How it works */}
       <section className="py-16 px-4 bg-white dark:bg-gray-800/50">

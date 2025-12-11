@@ -61,8 +61,8 @@ export async function checkPunctuation(text: string): Promise<CheckResult> {
   const anthropic = getAnthropicClient();
 
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 64000,
     messages: [
       {
         role: "user",

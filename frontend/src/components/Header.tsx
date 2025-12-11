@@ -1,15 +1,44 @@
 // frontend/src/components/Header.tsx
 import { Link, useNavigate } from "react-router-dom";
-import { Moon, Sun, Menu, X, User, LogOut } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  Menu,
+  X,
+  User,
+  LogOut,
+  Shield,
+  ChevronDown,
+  BookOpen,
+} from "lucide-react";
 import { useState } from "react";
 import { useThemeStore } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
+
+const categories = [
+  {
+    name: "Interpunkcyjny słownik wyrazów",
+    slug: "interpunkcyjny-slownik-wyrazow",
+    description: "Przecinek przed: że, który, gdy...",
+  },
+  {
+    name: "Znaki interpunkcyjne",
+    slug: "znaki-interpunkcyjne",
+    description: "Przecinek, myślnik, cudzysłów...",
+  },
+  {
+    name: "Ogólne zasady interpunkcji",
+    slug: "ogolne-zasady-interpunkcji",
+    description: "Zdania złożone, wyliczenia...",
+  },
+];
 
 export function Header() {
   const { theme, toggleTheme } = useThemeStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [zasadyMenuOpen, setZasadyMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -29,7 +58,7 @@ export function Header() {
           >
             <span className="text-2xl">✏️</span>
             <span className="font-bold text-xl text-gray-900 dark:text-white">
-              Interpunkcja<span className="text-blue-600">.pl</span>
+              Interpunkcja<span className="text-blue-600">.com.pl</span>
             </span>
           </Link>
 
@@ -41,12 +70,39 @@ export function Header() {
             >
               Sprawdź tekst
             </Link>
-            <Link
-              to="/zasady"
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+
+            {/* Zasady dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setZasadyMenuOpen(true)}
+              onMouseLeave={() => setZasadyMenuOpen(false)}
             >
-              Zasady interpunkcji
-            </Link>
+              <button className="flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Zasady interpunkcji
+                <ChevronDown className="w-4 h-4" />
+              </button>
+
+              {zasadyMenuOpen && (
+                <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+                  {categories.map((cat) => (
+                    <Link
+                      key={cat.slug}
+                      to={`/category/${cat.slug}/`}
+                      className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      onClick={() => setZasadyMenuOpen(false)}
+                    >
+                      <span className="font-medium text-gray-900 dark:text-white block">
+                        {cat.name}
+                      </span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {cat.description}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link
               to="/cennik"
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -107,6 +163,16 @@ export function Header() {
                       <User className="w-4 h-4" />
                       Moje konto
                     </Link>
+                    {user.role === "ADMIN" && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <Shield className="w-4 h-4" />
+                        Panel admina
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -159,13 +225,25 @@ export function Header() {
               >
                 Sprawdź tekst
               </Link>
-              <Link
-                to="/zasady"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-              >
-                Zasady interpunkcji
-              </Link>
+
+              {/* Mobile categories */}
+              <div className="px-4 py-2">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Zasady interpunkcji
+                </span>
+              </div>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  to={`/category/${cat.slug}/`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-6 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+
               <Link
                 to="/cennik"
                 onClick={() => setMobileMenuOpen(false)}
