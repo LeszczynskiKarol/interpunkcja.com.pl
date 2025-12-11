@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  plan          Plan      @default(FREE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  checks        Check[]
+  dailyUsage    DailyUsage[]
+}
+
+model Check {
+  id              String   @id @default(uuid())
+  userId          String?
+visitorId       String?  // dla niezalogowanych - fingerprint
+  originalText    String
+  correctedText   String
+  corrections     Json     // tablica poprawek z wyjaśnieniami
+  charCount       Int
+  errorCount      Int
+  createdAt       DateTime @default(now())
+  
+  user            User?    @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([visitorId])
+  @@index([createdAt])
+}
+
+model DailyUsage {
+  id          String   @id @default(uuid())
+  userId      String?
+  visitorId   String?  // dla niezalogowanych
+  date        DateTime @db.Date
+  checkCount  Int      @default(0)
+  charCount   Int      @default(0)
+  
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  @@unique([userId, date])
+  @@unique([visitorId, date])
+  @@index([date])
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+  LIFETIME
+}

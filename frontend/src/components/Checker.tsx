@@ -1,0 +1,368 @@
+// frontend/src/components/Checker.tsx
+import { useState, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Copy,
+  RefreshCw,
+} from "lucide-react";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
+import toast from "react-hot-toast";
+import { checkPunctuation, getCheckStatus, type Correction } from "../lib/api";
+import { useAuthStore } from "../stores/authStore";
+import { clsx } from "clsx";
+
+export function Checker() {
+  const [text, setText] = useState("");
+  const [visitorId, setVisitorId] = useState<string | null>(null);
+  const [corrections, setCorrections] = useState<Correction[]>([]);
+  const [correctedText, setCorrectedText] = useState<string>("");
+  const [showResult, setShowResult] = useState(false);
+
+  const { user } = useAuthStore();
+  const maxChars = user?.plan === "FREE" || !user ? 500 : 10000;
+
+  // Fingerprint dla niezalogowanych
+  useEffect(() => {
+    if (!user) {
+      FingerprintJS.load()
+        .then((fp) => fp.get())
+        .then((result) => {
+          setVisitorId(result.visitorId);
+        });
+    }
+  }, [user]);
+
+  // Status limitów
+  const { data: status, refetch: refetchStatus } = useQuery({
+    queryKey: ["checkStatus", visitorId],
+    queryFn: () => getCheckStatus(visitorId || undefined),
+    enabled: !!visitorId || !!user,
+  });
+
+  // Mutacja sprawdzania
+  const checkMutation = useMutation({
+    mutationFn: (text: string) =>
+      checkPunctuation(text, visitorId || undefined),
+    onSuccess: (data) => {
+      setCorrections(data.corrections);
+      setCorrectedText(data.correctedText);
+      setShowResult(true);
+      refetchStatus();
+
+      if (data.errorCount === 0) {
+        toast.success("Twój tekst jest poprawny interpunkcyjnie!");
+      } else {
+        toast.success(
+          `Znaleziono ${data.errorCount} ${
+            data.errorCount === 1
+              ? "błąd"
+              : data.errorCount < 5
+              ? "błędy"
+              : "błędów"
+          }`
+        );
+      }
+    },
+    onError: (error: any) => {
+      if (error.response?.status === 429) {
+        toast.error(
+          error.response.data.message || "Przekroczono limit sprawdzeń"
+        );
+      } else {
+        toast.error("Wystąpił błąd podczas sprawdzania tekstu");
+      }
+    },
+  });
+
+  const handleCheck = () => {
+    if (!text.trim()) {
+      toast.error("Wpisz tekst do sprawdzenia");
+      return;
+    }
+    if (text.length > maxChars) {
+      toast.error(`Tekst przekracza limit ${maxChars} znaków`);
+      return;
+    }
+    checkMutation.mutate(text);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(correctedText);
+    toast.success("Skopiowano poprawiony tekst");
+  };
+
+  const handleReset = () => {
+    setText("");
+    setCorrections([]);
+    setCorrectedText("");
+    setShowResult(false);
+  };
+
+  // Renderowanie tekstu z podświetlonymi błędami
+  const renderHighlightedText = () => {
+    if (corrections.length === 0) return text;
+
+    let result = [];
+    let lastIndex = 0;
+
+    const sortedCorrections = [...corrections].sort(
+      (a, b) => a.position.start - b.position.start
+    );
+
+    for (const correction of sortedCorrections) {
+      // Tekst przed błędem
+      if (correction.position.start > lastIndex) {
+        result.push(text.slice(lastIndex, correction.position.start));
+      }
+
+      // Błędny fragment
+      result.push(
+        <span
+          key={correction.position.start}
+          className="bg-red-100 text-red-800 border-b-2 border-red-500 cursor-help"
+          title={`${correction.rule}: ${correction.explanation}`}
+        >
+          {correction.original}
+        </span>
+      );
+
+      lastIndex = correction.position.end;
+    }
+
+    // Reszta tekstu
+    if (lastIndex < text.length) {
+      result.push(text.slice(lastIndex));
+    }
+
+    return result;
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto">
+      {/* Status limitów */}
+      {status && (
+        <div className="mb-4 flex items-center justify-between text-sm text-gray-600">
+          <span>
+            Plan:{" "}
+            <strong
+              className={
+                user?.plan === "PREMIUM" ? "text-amber-600" : "text-gray-700"
+              }
+            >
+              {user?.plan || "FREE"}
+            </strong>
+          </span>
+          <span>
+            Pozostało:{" "}
+            <strong>
+              {status.remainingChecks === Infinity
+                ? "∞"
+                : status.remainingChecks}
+            </strong>{" "}
+            sprawdzeń
+            {" | "}
+            <strong>
+              {status.remainingChars === Infinity ? "∞" : status.remainingChars}
+            </strong>{" "}
+            znaków dziś
+          </span>
+        </div>
+      )}
+
+      {/* Pole tekstowe */}
+      <div className="relative">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Wklej lub wpisz tekst do sprawdzenia interpunkcji..."
+          className={clsx(
+            "w-full h-64 p-4 border-2 rounded-xl resize-none transition-colors",
+            "focus:outline-none focus:border-blue-500",
+            text.length > maxChars ? "border-red-500" : "border-gray-200"
+          )}
+          disabled={checkMutation.isPending}
+        />
+
+        {/* Licznik znaków */}
+        <div
+          className={clsx(
+            "absolute bottom-3 right-3 text-sm",
+            text.length > maxChars
+              ? "text-red-600 font-medium"
+              : "text-gray-400"
+          )}
+        >
+          {text.length} / {maxChars}
+        </div>
+      </div>
+
+      {/* Przyciski */}
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={handleCheck}
+          disabled={
+            checkMutation.isPending ||
+            text.length === 0 ||
+            text.length > maxChars
+          }
+          className={clsx(
+            "flex-1 py-3 px-6 rounded-xl font-medium transition-all",
+            "flex items-center justify-center gap-2",
+            checkMutation.isPending ||
+              text.length === 0 ||
+              text.length > maxChars
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
+          )}
+        >
+          {checkMutation.isPending ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Sprawdzam...
+            </>
+          ) : (
+            <>
+              <CheckCircle className="w-5 h-5" />
+              Sprawdź interpunkcję
+            </>
+          )}
+        </button>
+
+        {showResult && (
+          <button
+            onClick={handleReset}
+            className="py-3 px-6 rounded-xl font-medium border-2 border-gray-200 hover:border-gray-300 transition-all flex items-center gap-2"
+          >
+            <RefreshCw className="w-5 h-5" />
+            Nowy tekst
+          </button>
+        )}
+      </div>
+
+      {/* Wyniki */}
+      <AnimatePresence>
+        {showResult && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mt-8 space-y-6"
+          >
+            {/* Podsumowanie */}
+            <div
+              className={clsx(
+                "p-4 rounded-xl flex items-center gap-3",
+                corrections.length === 0
+                  ? "bg-green-50 text-green-800"
+                  : "bg-amber-50 text-amber-800"
+              )}
+            >
+              {corrections.length === 0 ? (
+                <>
+                  <CheckCircle className="w-6 h-6" />
+                  <span className="font-medium">
+                    Twój tekst jest poprawny interpunkcyjnie!
+                  </span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="w-6 h-6" />
+                  <span className="font-medium">
+                    Znaleziono {corrections.length}{" "}
+                    {corrections.length === 1
+                      ? "błąd"
+                      : corrections.length < 5
+                      ? "błędy"
+                      : "błędów"}{" "}
+                    interpunkcyjnych
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Poprawiony tekst */}
+            {corrections.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-800">
+                    Poprawiony tekst:
+                  </h3>
+                  <button
+                    onClick={handleCopy}
+                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Kopiuj
+                  </button>
+                </div>
+                <div className="p-4 bg-green-50 rounded-xl border border-green-200 whitespace-pre-wrap">
+                  {correctedText}
+                </div>
+              </div>
+            )}
+
+            {/* Lista poprawek */}
+            {corrections.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-800">
+                  Szczegóły poprawek:
+                </h3>
+                <div className="space-y-3">
+                  {corrections.map((correction, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                              {correction.rule}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <span className="line-through text-red-600 bg-red-50 px-2 py-1 rounded">
+                              {correction.original || "(brak)"}
+                            </span>
+                            <span className="text-gray-400">→</span>
+                            <span className="text-green-600 bg-green-50 px-2 py-1 rounded font-medium">
+                              {correction.corrected || "(usuń)"}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm text-gray-600">
+                            {correction.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CTA dla Free */}
+            {(!user || user.plan === "FREE") && corrections.length > 0 && (
+              <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">
+                <h3 className="text-lg font-semibold mb-2">Chcesz więcej?</h3>
+                <p className="text-blue-100 mb-4">
+                  Przejdź na Premium i odblouj pełne wyjaśnienia, brak limitów i
+                  historię sprawdzeń.
+                </p>
+                <button className="px-6 py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors">
+                  Zobacz plany →
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
