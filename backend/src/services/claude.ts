@@ -1,9 +1,20 @@
 // backend/src/services/claude.ts
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+// Lazy initialization - klient tworzony przy pierwszym użyciu (po załadowaniu dotenv)
+let anthropicClient: Anthropic | null = null;
+
+function getAnthropicClient(): Anthropic {
+  if (!anthropicClient) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    console.log("Initializing Anthropic client, API key present:", !!apiKey);
+    if (!apiKey) {
+      throw new Error("ANTHROPIC_API_KEY is not set in environment variables");
+    }
+    anthropicClient = new Anthropic({ apiKey });
+  }
+  return anthropicClient;
+}
 
 export interface Correction {
   original: string;
@@ -47,8 +58,10 @@ ODPOWIEDZ W FORMACIE JSON:
 Jeśli tekst jest poprawny interpunkcyjnie, zwróć pustą tablicę corrections i oryginalny tekst jako correctedText.`;
 
 export async function checkPunctuation(text: string): Promise<CheckResult> {
+  const anthropic = getAnthropicClient();
+
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
     messages: [
       {

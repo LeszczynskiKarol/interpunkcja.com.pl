@@ -96,35 +96,79 @@ export function Checker() {
     if (corrections.length === 0) return text;
 
     const result: ReactNode[] = [];
-    let lastIndex = 0;
+    let keyIndex = 0;
 
+    // Sortuj poprawki po długości original (od najdłuższych) żeby uniknąć nakładania się
     const sortedCorrections = [...corrections].sort(
-      (a, b) => a.position.start - b.position.start
+      (a, b) => (b.original?.length || 0) - (a.original?.length || 0)
     );
 
+    // Znajdź wszystkie wystąpienia błędów
+    interface FoundError {
+      start: number;
+      end: number;
+      correction: Correction;
+    }
+
+    const foundErrors: FoundError[] = [];
+
     for (const correction of sortedCorrections) {
+      if (!correction.original) continue;
+
+      const index = text.indexOf(correction.original);
+      if (index === -1) continue;
+
+      // Sprawdź czy ten zakres nie nakłada się z już znalezionym
+      let overlaps = false;
+      for (const found of foundErrors) {
+        if (
+          index < found.end &&
+          index + correction.original.length > found.start
+        ) {
+          overlaps = true;
+          break;
+        }
+      }
+
+      if (!overlaps) {
+        foundErrors.push({
+          start: index,
+          end: index + correction.original.length,
+          correction,
+        });
+      }
+    }
+
+    // Sortuj znalezione błędy po pozycji
+    foundErrors.sort((a, b) => a.start - b.start);
+
+    // Buduj wynik
+    let lastIndex = 0;
+    for (const error of foundErrors) {
       // Tekst przed błędem
-      if (correction.position.start > lastIndex) {
-        result.push(text.slice(lastIndex, correction.position.start));
+      if (error.start > lastIndex) {
+        result.push(
+          <span key={keyIndex++}>{text.slice(lastIndex, error.start)}</span>
+        );
       }
 
       // Błędny fragment
       result.push(
         <span
-          key={correction.position.start}
-          className="bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 border-b-2 border-red-500 cursor-help"
-          title={`${correction.rule}: ${correction.explanation}`}
+          key={keyIndex++}
+          className="bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 border-b-2 border-red-500 cursor-help px-0.5 rounded"
+          title={`${error.correction.rule}: ${error.correction.explanation}`}
         >
-          {correction.original}
+          {text.slice(error.start, error.end)}
         </span>
       );
 
-      lastIndex = correction.position.end;
+      lastIndex = error.end;
     }
 
     // Reszta tekstu
     if (lastIndex < text.length) {
-      result.push(text.slice(lastIndex));
+      result.push(<span key={keyIndex++}>{text.slice(lastIndex)}</span>);
     }
 
     return result;
