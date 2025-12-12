@@ -1,5 +1,5 @@
 // frontend/src/components/CookieBanner.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Settings, Cookie } from "lucide-react";
 import {
   useCookieConsentStore,
@@ -13,11 +13,22 @@ export function CookieBanner() {
   const [showSettings, setShowSettings] = useState(false);
   const [localConsent, setLocalConsent] = useState<CookieConsent>({
     necessary: true,
-    analytics: consent?.analytics ?? false,
-    marketing: consent?.marketing ?? false,
+    analytics: false,
+    marketing: false,
   });
 
-  // Nie pokazuj jeśli banner zamknięty lub już jest consent
+  // Synchronizuj localConsent z consent ze store gdy banner się otwiera
+  useEffect(() => {
+    if (showBanner && consent) {
+      setLocalConsent({
+        necessary: true,
+        analytics: consent.analytics,
+        marketing: consent.marketing,
+      });
+    }
+  }, [showBanner, consent]);
+
+  // Nie pokazuj jeśli banner zamknięty
   if (!showBanner) return null;
 
   const handleSaveSettings = () => {
