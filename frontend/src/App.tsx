@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { CookieBanner } from "./components/CookieBanner";
+import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { CookiePolicyPage } from "./pages/CookiePolicyPage";
 import { Toaster } from "react-hot-toast";
@@ -78,6 +79,15 @@ function App() {
               element={
                 <Layout>
                   <CookiePolicyPage />
+                </Layout>
+              }
+            />
+
+            <Route
+              path="/regulamin"
+              element={
+                <Layout>
+                  <TermsOfServicePage />
                 </Layout>
               }
             />
