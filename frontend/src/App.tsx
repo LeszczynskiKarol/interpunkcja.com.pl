@@ -2,6 +2,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
+import { CookieBanner } from "./components/CookieBanner";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { CookiePolicyPage } from "./pages/CookiePolicyPage";
 import { Toaster } from "react-hot-toast";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -59,6 +62,22 @@ function App() {
               element={
                 <Layout>
                   <Home />
+                </Layout>
+              }
+            />
+            <Route
+              path="/polityka-prywatnosci"
+              element={
+                <Layout>
+                  <PrivacyPolicyPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/polityka-cookies"
+              element={
+                <Layout>
+                  <CookiePolicyPage />
                 </Layout>
               }
             />
@@ -160,6 +179,7 @@ function App() {
               }
             />
           </Routes>
+          <CookieBanner />
         </BrowserRouter>
         <Toaster
           position="top-center"
