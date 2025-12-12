@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface CookieConsent {
-  necessary: boolean; // zawsze true
+  necessary: boolean;
   analytics: boolean;
   marketing: boolean;
 }
@@ -20,7 +20,7 @@ interface CookieConsentState {
 
 export const useCookieConsentStore = create<CookieConsentState>()(
   persist(
-    (set, _get) => ({
+    (set) => ({
       consent: null,
       showBanner: true,
 
@@ -55,7 +55,6 @@ export const useCookieConsentStore = create<CookieConsentState>()(
     {
       name: "cookie-consent",
       onRehydrateStorage: () => (state) => {
-        // Po załadowaniu z localStorage, zaktualizuj Google Consent
         if (state?.consent) {
           updateGoogleConsent(state.consent);
           state.showBanner = false;
@@ -65,19 +64,34 @@ export const useCookieConsentStore = create<CookieConsentState>()(
   )
 );
 
-// Funkcja aktualizująca Google Consent Mode v2
+// Funkcja aktualizująca Google Consent Mode v2 - użyj dataLayer bezpośrednio
 function updateGoogleConsent(consent: CookieConsent) {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("consent", "update", {
+  if (typeof window !== "undefined") {
+    window.dataLayer = window.dataLayer || [];
+
+    // Push consent update do dataLayer
+    window.dataLayer.push({
+      event: "consent_update",
+      consent_analytics: consent.analytics ? "granted" : "denied",
+      consent_marketing: consent.marketing ? "granted" : "denied",
+    });
+
+    // Użyj gtag do oficjalnego consent update
+    function gtag(..._args: any[]) {
+      window.dataLayer.push(arguments);
+    }
+
+    gtag("consent", "update", {
       analytics_storage: consent.analytics ? "granted" : "denied",
       ad_storage: consent.marketing ? "granted" : "denied",
       ad_user_data: consent.marketing ? "granted" : "denied",
       ad_personalization: consent.marketing ? "granted" : "denied",
     });
+
+    console.log("Consent updated:", consent);
   }
 }
 
-// Rozszerzenie typu Window
 declare global {
   interface Window {
     dataLayer: any[];
