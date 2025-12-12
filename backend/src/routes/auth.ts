@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { AuthService } from "../services/auth";
 import { GoogleAuthService } from "../services/googleAuth";
+import { verifyRecaptcha } from "../services/recaptcha";
 
 const authService = new AuthService();
 const googleAuthService = new GoogleAuthService();
@@ -11,11 +12,13 @@ const RegisterSchema = z.object({
   email: z.string().email("Nieprawidłowy adres email"),
   name: z.string().min(2, "Minimum 2 znaki").max(50, "Maksimum 50 znaków"),
   password: z.string().min(8, "Hasło musi mieć minimum 8 znaków"),
+  recaptchaToken: z.string().optional(),
 });
 
 const LoginSchema = z.object({
   email: z.string().email("Nieprawidłowy adres email"),
   password: z.string().min(1, "Hasło jest wymagane"),
+  recaptchaToken: z.string().optional(),
 });
 
 const VerifyEmailSchema = z.object({
@@ -33,6 +36,7 @@ const ResetPasswordSchema = z.object({
 
 const RequestPasswordResetSchema = z.object({
   email: z.string().email("Nieprawidłowy adres email"),
+  recaptchaToken: z.string().optional(),
 });
 
 export async function authRoutes(fastify: FastifyInstance) {
@@ -103,11 +107,32 @@ export async function authRoutes(fastify: FastifyInstance) {
   // STANDARD AUTH ROUTES
   // ==========================================
 
-  // REJESTRACJA
+  // REJESTRACJA (z reCAPTCHA)
   fastify.post("/api/auth/register", async (request, reply) => {
     try {
       const data = RegisterSchema.parse(request.body);
-      const result = await authService.register(data);
+
+      // Weryfikacja reCAPTCHA
+      const recaptchaResult = await verifyRecaptcha(
+        data.recaptchaToken || "",
+        "register"
+      );
+
+      if (!recaptchaResult.success) {
+        return reply.code(403).send({
+          error: "RECAPTCHA_FAILED",
+          message:
+            "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie.",
+          score: recaptchaResult.score,
+        });
+      }
+
+      const result = await authService.register({
+        email: data.email,
+        name: data.name,
+        password: data.password,
+      });
+
       return reply.code(201).send(result);
     } catch (error: any) {
       console.error("Registration error:", error);
@@ -122,6 +147,8 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const errorMessages: Record<string, string> = {
         USER_EXISTS: "Użytkownik z tym adresem email już istnieje",
+        GOOGLE_ACCOUNT_EXISTS:
+          "To konto jest już połączone z Google. Użyj logowania przez Google.",
         PASSWORD_TOO_SHORT: "Hasło musi mieć minimum 8 znaków",
         PASSWORD_NO_NUMBER: "Hasło musi zawierać przynajmniej jedną cyfrę",
         PASSWORD_NO_UPPERCASE:
@@ -204,11 +231,27 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // LOGOWANIE
+  // LOGOWANIE (z reCAPTCHA)
   fastify.post("/api/auth/login", async (request, reply) => {
     try {
-      const { email, password } = LoginSchema.parse(request.body);
-      const result = await authService.login(email, password);
+      const data = LoginSchema.parse(request.body);
+
+      // Weryfikacja reCAPTCHA
+      const recaptchaResult = await verifyRecaptcha(
+        data.recaptchaToken || "",
+        "login"
+      );
+
+      if (!recaptchaResult.success) {
+        return reply.code(403).send({
+          error: "RECAPTCHA_FAILED",
+          message:
+            "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie.",
+          score: recaptchaResult.score,
+        });
+      }
+
+      const result = await authService.login(data.email, data.password);
       return reply.send(result);
     } catch (error: any) {
       console.error("Login error:", error);
@@ -281,11 +324,26 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // ŻĄDANIE RESETU HASŁA
+  // ŻĄDANIE RESETU HASŁA (z reCAPTCHA)
   fastify.post("/api/auth/request-password-reset", async (request, reply) => {
     try {
-      const { email } = RequestPasswordResetSchema.parse(request.body);
-      const result = await authService.requestPasswordReset(email);
+      const data = RequestPasswordResetSchema.parse(request.body);
+
+      // Weryfikacja reCAPTCHA
+      const recaptchaResult = await verifyRecaptcha(
+        data.recaptchaToken || "",
+        "forgot_password"
+      );
+
+      if (!recaptchaResult.success) {
+        return reply.code(403).send({
+          error: "RECAPTCHA_FAILED",
+          message:
+            "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie.",
+        });
+      }
+
+      const result = await authService.requestPasswordReset(data.email);
       return reply.send(result);
     } catch (error: any) {
       console.error("Password reset request error:", error);

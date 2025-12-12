@@ -13,6 +13,7 @@ import {
 import toast from "react-hot-toast";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../stores/authStore";
+import { useRecaptcha } from "../../hooks/useRecaptcha";
 //import { GoogleButton } from "../../components/GoogleButton";
 
 interface LoginFormData {
@@ -34,6 +35,7 @@ export function LoginPage() {
   const [googleAccountError, setGoogleAccountError] = useState(false);
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
+  const { executeRecaptcha } = useRecaptcha();
 
   // Sprawdź czy jest błąd z Google OAuth
   useEffect(() => {
@@ -55,7 +57,18 @@ export function LoginPage() {
     setGoogleAccountError(false);
 
     try {
-      const response = await api.post("/api/auth/login", data);
+      // Wykonaj reCAPTCHA
+      let recaptchaToken = "";
+      try {
+        recaptchaToken = await executeRecaptcha("login");
+      } catch (recaptchaError) {
+        console.warn("reCAPTCHA error:", recaptchaError);
+      }
+
+      const response = await api.post("/api/auth/login", {
+        ...data,
+        recaptchaToken,
+      });
 
       if (response.data.user && response.data.token) {
         setAuth({
@@ -69,6 +82,13 @@ export function LoginPage() {
       }
     } catch (error: any) {
       console.error("Login error:", error);
+
+      if (error.response?.data?.error === "RECAPTCHA_FAILED") {
+        toast.error(
+          "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie."
+        );
+        return;
+      }
 
       if (error.response?.data?.error === "EMAIL_NOT_VERIFIED") {
         setVerificationError(data.email);
@@ -246,6 +266,29 @@ export function LoginPage() {
                 </>
               )}
             </button>
+
+            {/* reCAPTCHA notice - WYMAGANE przez Google */}
+            <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+              Strona chroniona przez reCAPTCHA.{" "}
+              <a
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Polityka prywatności
+              </a>{" "}
+              i{" "}
+              <a
+                href="https://policies.google.com/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Regulamin
+              </a>{" "}
+              Google.
+            </p>
           </form>
 
           <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">

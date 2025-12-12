@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { CheckCircle, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../lib/api";
+import { useRecaptcha } from "../../hooks/useRecaptcha";
 //import { GoogleButton } from "../../components/GoogleButton";
 
 interface RegisterForm {
@@ -12,6 +13,7 @@ interface RegisterForm {
   name: string;
   password: string;
   confirmPassword: string;
+  acceptTerms: boolean;
 }
 
 export function RegisterPage() {
@@ -22,6 +24,7 @@ export function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterForm>();
   const navigate = useNavigate();
+  const { executeRecaptcha } = useRecaptcha();
 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,19 +60,42 @@ export function RegisterPage() {
       return;
     }
 
+    if (!data.acceptTerms) {
+      toast.error("Musisz zaakceptować regulamin i politykę prywatności");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // Wykonaj reCAPTCHA
+      let recaptchaToken = "";
+      try {
+        recaptchaToken = await executeRecaptcha("register");
+      } catch (recaptchaError) {
+        console.warn("reCAPTCHA error:", recaptchaError);
+        // Kontynuuj bez tokenu - backend zdecyduje czy to akceptowalne
+      }
+
       await api.post("/api/auth/register", {
         email: data.email,
         name: data.name,
         password: data.password,
+        recaptchaToken,
       });
 
       toast.success("Konto utworzone! Sprawdź swoją skrzynkę email.");
       navigate(`/sprawdz-email?email=${encodeURIComponent(data.email)}`);
     } catch (error: any) {
       console.error("Registration error:", error);
+
+      // Błąd reCAPTCHA
+      if (error.response?.data?.error === "RECAPTCHA_FAILED") {
+        toast.error(
+          "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie."
+        );
+        return;
+      }
 
       // Specjalny komunikat dla użytkowników Google
       if (error.response?.data?.error === "GOOGLE_ACCOUNT_EXISTS") {
@@ -295,23 +321,47 @@ export function RegisterPage() {
               )}
             </div>
 
-            {/* Terms */}
-            <div className="text-xs text-gray-600 dark:text-gray-400">
-              Rejestrując się, akceptujesz{" "}
-              <Link
-                to="/regulamin"
-                className="text-blue-600 dark:text-blue-400 hover:underline"
+            {/* Terms Checkbox */}
+            <div className="flex items-start gap-3">
+              <div className="flex items-center h-5 mt-0.5">
+                <input
+                  {...register("acceptTerms", {
+                    required:
+                      "Musisz zaakceptować regulamin i politykę prywatności",
+                  })}
+                  type="checkbox"
+                  id="acceptTerms"
+                  className="w-4 h-4 text-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                />
+              </div>
+              <label
+                htmlFor="acceptTerms"
+                className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none"
               >
-                Regulamin
-              </Link>{" "}
-              i{" "}
-              <Link
-                to="/polityka-prywatnosci"
-                className="text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Politykę prywatności
-              </Link>
+                Oświadczam, że zapoznałem/am się z{" "}
+                <Link
+                  to="/regulamin"
+                  target="_blank"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Regulaminem
+                </Link>{" "}
+                oraz{" "}
+                <Link
+                  to="/polityka-prywatnosci"
+                  target="_blank"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Polityką prywatności
+                </Link>{" "}
+                i akceptuję ich postanowienia.
+              </label>
             </div>
+            {errors.acceptTerms && (
+              <p className="text-red-500 text-xs -mt-2">
+                {errors.acceptTerms.message}
+              </p>
+            )}
 
             {/* Submit */}
             <button
@@ -328,6 +378,29 @@ export function RegisterPage() {
                 "Załóż konto"
               )}
             </button>
+
+            {/* reCAPTCHA notice */}
+            <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+              Strona chroniona przez reCAPTCHA.{" "}
+              <a
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Polityka prywatności
+              </a>{" "}
+              i{" "}
+              <a
+                href="https://policies.google.com/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Regulamin
+              </a>{" "}
+              Google.
+            </p>
           </form>
 
           <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
