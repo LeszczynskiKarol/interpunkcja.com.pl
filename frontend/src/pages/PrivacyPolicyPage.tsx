@@ -23,17 +23,20 @@ Administrator nie wyznaczył Inspektora Ochrony Danych. W sprawach związanych z
         title: "2. Zakres zbieranych danych",
         content: `Zbieramy i przetwarzamy następujące kategorie danych osobowych:
 
-**Dane rejestracyjne:**
+**Dane rejestracyjne (rejestracja przez email):**
 - Adres email (wymagany do utworzenia konta)
 - Hasło (przechowywane w formie zaszyfrowanej - hash bcrypt)
 - Imię/nazwa użytkownika (opcjonalnie)
 
-**Dane z logowania przez Google (OAuth):**
-- Identyfikator użytkownika Google (Google ID)
+**Dane z logowania przez Google (OAuth 2.0):**
+Jeśli zdecydujesz się na rejestrację lub logowanie przez Google, pobieramy następujące dane z Twojego konta Google:
+- Identyfikator użytkownika Google (Google ID) - unikalny identyfikator konta
 - Adres email powiązany z kontem Google
 - Imię i nazwisko z profilu Google
 - Zdjęcie profilowe (avatar) z konta Google
-- Informacja o sposobie rejestracji (email/Google)
+- Informacja o metodzie rejestracji (email/Google)
+
+Dane te są pobierane jednorazowo podczas pierwszego logowania przez Google i przechowywane w naszej bazie danych. Nie mamy dostępu do Twojego hasła Google ani innych danych z konta Google.
 
 **Dane transakcyjne:**
 - Historia płatności (dla użytkowników Premium)
@@ -62,6 +65,7 @@ Administrator nie wyznaczył Inspektora Ochrony Danych. W sprawach związanych z
 **Na podstawie umowy (art. 6 ust. 1 lit. b RODO):**
 - Świadczenie usługi sprawdzania interpunkcji
 - Zarządzanie kontem użytkownika
+- Uwierzytelnianie użytkownika (w tym przez Google OAuth)
 - Realizacja płatności i obsługa subskrypcji
 - Obsługa reklamacji i zapytań
 
@@ -88,7 +92,9 @@ Administrator nie wyznaczył Inspektora Ochrony Danych. W sprawach związanych z
 **Dostawcy usług IT:**
 - Amazon Web Services (AWS) - hosting serwerów w UE (Frankfurt, Sztokholm)
 - Anthropic - dostawca technologii AI do sprawdzania tekstów (teksty są przetwarzane w celu świadczenia usługi, nie są przechowywane przez Anthropic)
-- Google LLC - usługa uwierzytelniania OAuth 2.0 (logowanie przez Google)
+
+**Dostawcy usług uwierzytelniania:**
+- Google LLC - usługa uwierzytelniania OAuth 2.0 (logowanie przez Google). Gdy logujesz się przez Google, Twoje dane (email, imię, zdjęcie profilowe) są pobierane z serwerów Google.
 
 **Dostawcy usług płatniczych:**
 - Stripe - obsługa płatności kartami, BLIK, Przelewy24
@@ -109,14 +115,10 @@ Nie sprzedajemy Twoich danych osobowych podmiotom trzecim.`,
 - Przekazywanie na podstawie standardowych klauzul umownych (SCC) zatwierdzonych przez Komisję Europejską
 - Dane tekstowe są przetwarzane wyłącznie w celu świadczenia usługi sprawdzania interpunkcji
 
-**Google LLC (USA):**
+**Google LLC (USA) - OAuth i Analytics:**
 - Przekazywanie na podstawie programu Data Privacy Framework (DPF)
-- Dotyczy tylko danych analitycznych zbieranych za zgodą użytkownika
-
-**Google OAuth (USA):**
-- Przekazywanie na podstawie programu Data Privacy Framework (DPF)
-- Dotyczy danych niezbędnych do uwierzytelnienia (email, imię, zdjęcie profilowe)
-- Dane są pobierane jednorazowo podczas logowania i przechowywane lokalnie
+- W przypadku logowania przez Google: dane niezbędne do uwierzytelnienia (email, imię, zdjęcie profilowe, Google ID) są pobierane jednorazowo i przechowywane w naszej bazie danych
+- W przypadku Google Analytics: dotyczy tylko danych analitycznych zbieranych za zgodą użytkownika
 
 **Stripe (USA):**
 - Przekazywanie na podstawie standardowych klauzul umownych (SCC)
@@ -128,9 +130,10 @@ W każdym przypadku zapewniamy odpowiedni poziom ochrony danych zgodny z wymogam
         title: "6. Okres przechowywania danych",
         content: `Przechowujemy Twoje dane osobowe przez następujące okresy:
 
-**Dane konta użytkownika:**
+**Dane konta użytkownika (w tym dane z Google OAuth):**
 - Do momentu usunięcia konta przez użytkownika
 - Po usunięciu konta dane są usuwane w ciągu 30 dni
+- Google ID i powiązane dane są usuwane wraz z kontem
 
 **Historia sprawdzeń (Premium/Lifetime):**
 - 90 dni od daty sprawdzenia
@@ -159,7 +162,7 @@ Masz prawo uzyskać potwierdzenie, czy przetwarzamy Twoje dane osobowe, oraz uzy
 Masz prawo żądać poprawienia nieprawidłowych lub uzupełnienia niekompletnych danych.
 
 **Prawo do usunięcia (art. 17 RODO):**
-Masz prawo żądać usunięcia swoich danych ("prawo do bycia zapomnianym") w określonych przypadkach.
+Masz prawo żądać usunięcia swoich danych ("prawo do bycia zapomnianym") w określonych przypadkach. Dotyczy to również danych pobranych z Google.
 
 **Prawo do ograniczenia przetwarzania (art. 18 RODO):**
 Masz prawo żądać ograniczenia przetwarzania danych w określonych przypadkach.
@@ -173,6 +176,9 @@ Masz prawo sprzeciwić się przetwarzaniu danych opartemu na prawnie uzasadniony
 **Prawo do wycofania zgody:**
 Jeśli przetwarzanie odbywa się na podstawie zgody, masz prawo ją wycofać w dowolnym momencie.
 
+**Prawo do odłączenia konta Google:**
+Możesz w każdej chwili odłączyć swoje konto Google od naszego serwisu i ustawić hasło do logowania przez email.
+
 **Prawo do skargi:**
 Masz prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa).
 
@@ -185,6 +191,7 @@ Aby skorzystać z powyższych praw, skontaktuj się z nami: kontakt@ecopywriting
 **Środki techniczne:**
 - Szyfrowanie połączeń SSL/TLS (HTTPS)
 - Hashowanie haseł algorytmem bcrypt
+- Bezpieczna komunikacja z Google OAuth przez protokół HTTPS
 - Regularne kopie zapasowe danych
 - Firewall i systemy wykrywania włamań
 - Automatyczne aktualizacje bezpieczeństwa
@@ -202,11 +209,39 @@ Aby skorzystać z powyższych praw, skontaktuj się z nami: kontakt@ecopywriting
 Jedyne automatyczne przetwarzanie dotyczy:
 - Weryfikacji limitów użycia (liczba sprawdzeń, liczba znaków)
 - Sprawdzania ważności subskrypcji
+- Uwierzytelniania przez Google OAuth
 
 Decyzje te mają charakter techniczny i nie wpływają istotnie na Twoje prawa.`,
       },
       {
-        title: "10. Zmiany polityki prywatności",
+        title: "10. Logowanie przez Google",
+        content: `Oferujemy możliwość rejestracji i logowania przez konto Google (Google Sign-In / OAuth 2.0).
+
+**Jak to działa:**
+1. Klikasz przycisk "Kontynuuj z Google"
+2. Jesteś przekierowywany na stronę Google, gdzie wyrażasz zgodę na udostępnienie danych
+3. Google przekazuje nam Twoje podstawowe dane profilowe
+4. Tworzymy konto lub logujemy Cię do istniejącego konta
+
+**Jakie dane pobieramy z Google:**
+- Adres email (do identyfikacji konta)
+- Imię i nazwisko (do personalizacji)
+- Zdjęcie profilowe (do wyświetlania w serwisie)
+- Unikalny identyfikator Google (do powiązania kont)
+
+**Czego NIE pobieramy:**
+- Hasła do konta Google
+- Kontaktów z konta Google
+- Plików z Google Drive
+- Żadnych innych danych z usług Google
+
+**Twoje możliwości:**
+- Możesz w każdej chwili odłączyć konto Google i ustawić hasło
+- Możesz usunąć dostęp naszej aplikacji w ustawieniach konta Google: https://myaccount.google.com/permissions
+- Usunięcie konta w naszym serwisie usuwa wszystkie dane, w tym dane pobrane z Google`,
+      },
+      {
+        title: "11. Zmiany polityki prywatności",
         content: `Zastrzegamy sobie prawo do wprowadzania zmian w niniejszej Polityce Prywatności.
 
 O istotnych zmianach poinformujemy Cię:
@@ -218,7 +253,7 @@ Zmiany wchodzą w życie w terminie wskazanym w komunikacie, nie wcześniej niż
 Dalsze korzystanie z serwisu po wprowadzeniu zmian oznacza akceptację zaktualizowanej Polityki Prywatności.`,
       },
       {
-        title: "11. Kontakt",
+        title: "12. Kontakt",
         content: `W sprawach związanych z ochroną danych osobowych możesz skontaktować się z nami:
 
 **Email:** kontakt@ecopywriting.pl
@@ -246,17 +281,20 @@ The Controller has not appointed a Data Protection Officer. For matters related 
         title: "2. Scope of Collected Data",
         content: `We collect and process the following categories of personal data:
 
-**Registration Data:**
+**Registration Data (email registration):**
 - Email address (required to create an account)
 - Password (stored in encrypted form - bcrypt hash)
 - Name/username (optional)
 
-**Data from Google Sign-In (OAuth):**
-- Google user identifier (Google ID)
-- Email address associated with Google account
-- Name from Google profile
-- Profile picture (avatar) from Google account
+**Data from Google Sign-In (OAuth 2.0):**
+If you choose to register or sign in with Google, we collect the following data from your Google account:
+- Google user identifier (Google ID) - unique account identifier
+- Email address associated with your Google account
+- Name from your Google profile
+- Profile picture (avatar) from your Google account
 - Information about registration method (email/Google)
+
+This data is fetched once during your first Google sign-in and stored in our database. We do not have access to your Google password or any other data from your Google account.
 
 **Transaction Data:**
 - Payment history (for Premium users)
@@ -285,6 +323,7 @@ The Controller has not appointed a Data Protection Officer. For matters related 
 **Based on contract (Art. 6(1)(b) GDPR):**
 - Providing punctuation checking services
 - Managing your user account
+- User authentication (including via Google OAuth)
 - Processing payments and managing subscriptions
 - Handling complaints and inquiries
 
@@ -311,12 +350,9 @@ The Controller has not appointed a Data Protection Officer. For matters related 
 **IT Service Providers:**
 - Amazon Web Services (AWS) - server hosting in EU (Frankfurt, Stockholm)
 - Anthropic - AI technology provider for text checking (texts are processed to provide the service, not stored by Anthropic)
-- Google LLC - OAuth 2.0 authentication service (Sign in with Google)
 
-**Google OAuth (USA):**
-- Transfer based on the Data Privacy Framework (DPF)
-- Applies to data necessary for authentication (email, name, profile picture)
-- Data is fetched once during login and stored locally
+**Authentication Service Providers:**
+- Google LLC - OAuth 2.0 authentication service (Sign in with Google). When you sign in with Google, your data (email, name, profile picture) is fetched from Google servers.
 
 **Payment Service Providers:**
 - Stripe - card payments, BLIK, Przelewy24
@@ -337,9 +373,10 @@ We do not sell your personal data to third parties.`,
 - Transfer based on Standard Contractual Clauses (SCC) approved by the European Commission
 - Text data is processed solely to provide the punctuation checking service
 
-**Google LLC (USA):**
+**Google LLC (USA) - OAuth and Analytics:**
 - Transfer based on the Data Privacy Framework (DPF)
-- Applies only to analytics data collected with user consent
+- For Google Sign-In: data necessary for authentication (email, name, profile picture, Google ID) is fetched once and stored in our database
+- For Google Analytics: applies only to analytics data collected with user consent
 
 **Stripe (USA):**
 - Transfer based on Standard Contractual Clauses (SCC)
@@ -351,9 +388,10 @@ In all cases, we ensure an adequate level of data protection in accordance with 
         title: "6. Data Retention Periods",
         content: `We retain your personal data for the following periods:
 
-**User Account Data:**
+**User Account Data (including Google OAuth data):**
 - Until account deletion by the user
 - After deletion, data is removed within 30 days
+- Google ID and associated data are deleted along with the account
 
 **Check History (Premium/Lifetime):**
 - 90 days from the check date
@@ -382,7 +420,7 @@ You have the right to obtain confirmation of whether we process your personal da
 You have the right to request correction of inaccurate or completion of incomplete data.
 
 **Right to Erasure (Art. 17 GDPR):**
-You have the right to request deletion of your data ("right to be forgotten") in certain cases.
+You have the right to request deletion of your data ("right to be forgotten") in certain cases. This also applies to data obtained from Google.
 
 **Right to Restriction of Processing (Art. 18 GDPR):**
 You have the right to request restriction of data processing in certain cases.
@@ -396,6 +434,9 @@ You have the right to object to processing based on legitimate interest.
 **Right to Withdraw Consent:**
 If processing is based on consent, you have the right to withdraw it at any time.
 
+**Right to Disconnect Google Account:**
+You can disconnect your Google account from our service at any time and set up a password for email login.
+
 **Right to Lodge a Complaint:**
 You have the right to lodge a complaint with the President of the Personal Data Protection Office (UODO) in Poland or your local supervisory authority.
 
@@ -408,6 +449,7 @@ To exercise these rights, contact us at: kontakt@ecopywriting.pl`,
 **Technical Measures:**
 - SSL/TLS encryption (HTTPS)
 - Password hashing using bcrypt algorithm
+- Secure communication with Google OAuth via HTTPS protocol
 - Regular data backups
 - Firewall and intrusion detection systems
 - Automatic security updates
@@ -425,11 +467,39 @@ To exercise these rights, contact us at: kontakt@ecopywriting.pl`,
 The only automated processing concerns:
 - Verification of usage limits (number of checks, character count)
 - Subscription validity checking
+- Authentication via Google OAuth
 
 These decisions are technical in nature and do not significantly affect your rights.`,
       },
       {
-        title: "10. Changes to Privacy Policy",
+        title: "10. Google Sign-In",
+        content: `We offer the option to register and sign in using your Google account (Google Sign-In / OAuth 2.0).
+
+**How it works:**
+1. You click the "Continue with Google" button
+2. You are redirected to Google's page where you consent to share data
+3. Google sends us your basic profile data
+4. We create an account or log you into an existing account
+
+**What data we collect from Google:**
+- Email address (for account identification)
+- Name (for personalization)
+- Profile picture (for display in the service)
+- Unique Google identifier (for account linking)
+
+**What we do NOT collect:**
+- Your Google account password
+- Contacts from your Google account
+- Files from Google Drive
+- Any other data from Google services
+
+**Your options:**
+- You can disconnect your Google account and set up a password at any time
+- You can remove our app's access in your Google account settings: https://myaccount.google.com/permissions
+- Deleting your account in our service removes all data, including data obtained from Google`,
+      },
+      {
+        title: "11. Changes to Privacy Policy",
         content: `We reserve the right to make changes to this Privacy Policy.
 
 We will inform you of significant changes:
@@ -441,7 +511,7 @@ Changes take effect on the date specified in the notice, no earlier than 14 days
 Continued use of the service after changes constitutes acceptance of the updated Privacy Policy.`,
       },
       {
-        title: "11. Contact",
+        title: "12. Contact",
         content: `For matters related to personal data protection, you may contact us:
 
 **Email:** kontakt@ecopywriting.pl

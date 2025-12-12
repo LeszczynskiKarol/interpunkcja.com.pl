@@ -157,7 +157,7 @@ Gdy nie wyrażasz zgody na cookies analityczne/marketingowe, odpowiednie skrypty
         title: "7. Kontakt",
         content: `W przypadku pytań dotyczących polityki cookies skontaktuj się z nami:
 
-**Email:** kontakt@ecopywriting.pl`,
+**Email:** kontakt@interpunkcja.com.pl`,
       },
     ],
     tableHeaders: {
@@ -318,7 +318,7 @@ When you don't consent to analytics/marketing cookies, the respective scripts ar
         title: "7. Contact",
         content: `For questions about the cookie policy, contact us:
 
-**Email:** kontakt@ecopywriting.pl`,
+**Email:** kontakt@interpunkcja.com.pl`,
       },
     ],
     tableHeaders: {
