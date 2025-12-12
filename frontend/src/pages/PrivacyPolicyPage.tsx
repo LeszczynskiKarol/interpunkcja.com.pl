@@ -28,6 +28,13 @@ Administrator nie wyznaczył Inspektora Ochrony Danych. W sprawach związanych z
 - Hasło (przechowywane w formie zaszyfrowanej - hash bcrypt)
 - Imię/nazwa użytkownika (opcjonalnie)
 
+**Dane z logowania przez Google (OAuth):**
+- Identyfikator użytkownika Google (Google ID)
+- Adres email powiązany z kontem Google
+- Imię i nazwisko z profilu Google
+- Zdjęcie profilowe (avatar) z konta Google
+- Informacja o sposobie rejestracji (email/Google)
+
 **Dane transakcyjne:**
 - Historia płatności (dla użytkowników Premium)
 - Identyfikator klienta Stripe
@@ -81,6 +88,7 @@ Administrator nie wyznaczył Inspektora Ochrony Danych. W sprawach związanych z
 **Dostawcy usług IT:**
 - Amazon Web Services (AWS) - hosting serwerów w UE (Frankfurt, Sztokholm)
 - Anthropic - dostawca technologii AI do sprawdzania tekstów (teksty są przetwarzane w celu świadczenia usługi, nie są przechowywane przez Anthropic)
+- Google LLC - usługa uwierzytelniania OAuth 2.0 (logowanie przez Google)
 
 **Dostawcy usług płatniczych:**
 - Stripe - obsługa płatności kartami, BLIK, Przelewy24
@@ -104,6 +112,11 @@ Nie sprzedajemy Twoich danych osobowych podmiotom trzecim.`,
 **Google LLC (USA):**
 - Przekazywanie na podstawie programu Data Privacy Framework (DPF)
 - Dotyczy tylko danych analitycznych zbieranych za zgodą użytkownika
+
+**Google OAuth (USA):**
+- Przekazywanie na podstawie programu Data Privacy Framework (DPF)
+- Dotyczy danych niezbędnych do uwierzytelnienia (email, imię, zdjęcie profilowe)
+- Dane są pobierane jednorazowo podczas logowania i przechowywane lokalnie
 
 **Stripe (USA):**
 - Przekazywanie na podstawie standardowych klauzul umownych (SCC)
@@ -238,6 +251,13 @@ The Controller has not appointed a Data Protection Officer. For matters related 
 - Password (stored in encrypted form - bcrypt hash)
 - Name/username (optional)
 
+**Data from Google Sign-In (OAuth):**
+- Google user identifier (Google ID)
+- Email address associated with Google account
+- Name from Google profile
+- Profile picture (avatar) from Google account
+- Information about registration method (email/Google)
+
 **Transaction Data:**
 - Payment history (for Premium users)
 - Stripe customer identifier
@@ -291,6 +311,12 @@ The Controller has not appointed a Data Protection Officer. For matters related 
 **IT Service Providers:**
 - Amazon Web Services (AWS) - server hosting in EU (Frankfurt, Stockholm)
 - Anthropic - AI technology provider for text checking (texts are processed to provide the service, not stored by Anthropic)
+- Google LLC - OAuth 2.0 authentication service (Sign in with Google)
+
+**Google OAuth (USA):**
+- Transfer based on the Data Privacy Framework (DPF)
+- Applies to data necessary for authentication (email, name, profile picture)
+- Data is fetched once during login and stored locally
 
 **Payment Service Providers:**
 - Stripe - card payments, BLIK, Przelewy24

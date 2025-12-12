@@ -10,10 +10,15 @@ datasource db {
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
-  passwordHash  String
+  passwordHash  String?   // ZMIANA: nullable dla użytkowników OAuth
   name          String?
   plan          Plan      @default(FREE)
   role          Role      @default(USER)
+  
+  // OAuth / Auth Provider
+  authProvider  AuthProvider @default(LOCAL)
+  googleId      String?      @unique
+  avatarUrl     String?      // Zdjęcie profilowe z Google
   
   // Email verification
   emailVerified           Boolean   @default(false)
@@ -39,6 +44,11 @@ model User {
   
   checks        Check[]
   dailyUsage    DailyUsage[]
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
 }
 
 model Check {

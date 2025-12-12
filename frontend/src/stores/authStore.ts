@@ -10,6 +10,10 @@ interface User {
   role?: "USER" | "ADMIN";
   emailVerified?: boolean;
   createdAt?: string;
+  avatarUrl?: string | null;
+  authProvider?: "LOCAL" | "GOOGLE";
+  hasPassword?: boolean;
+  hasGoogle?: boolean;
 }
 
 interface AuthState {

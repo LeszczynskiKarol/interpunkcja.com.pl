@@ -2,8 +2,10 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { AuthService } from "../services/auth";
+import { GoogleAuthService } from "../services/googleAuth";
 
 const authService = new AuthService();
+const googleAuthService = new GoogleAuthService();
 
 const RegisterSchema = z.object({
   email: z.string().email("Nieprawidłowy adres email"),
@@ -34,6 +36,73 @@ const RequestPasswordResetSchema = z.object({
 });
 
 export async function authRoutes(fastify: FastifyInstance) {
+  // ==========================================
+  // GOOGLE OAUTH ROUTES
+  // ==========================================
+
+  // Rozpocznij logowanie przez Google - przekieruj do Google
+  fastify.get("/api/auth/google", async (request, reply) => {
+    const authUrl = googleAuthService.getAuthUrl();
+    return reply.redirect(authUrl);
+  });
+
+  // Callback z Google - tu wraca użytkownik po autoryzacji
+  fastify.get("/api/auth/google/callback", async (request, reply) => {
+    const { code, error } = request.query as { code?: string; error?: string };
+
+    // Obsłuż błędy z Google
+    if (error) {
+      console.error("Google OAuth error:", error);
+      const frontendUrl =
+        process.env.FRONTEND_URL || "https://interpunkcja.com.pl";
+      return reply.redirect(
+        `${frontendUrl}/logowanie?error=google_auth_failed`
+      );
+    }
+
+    if (!code) {
+      const frontendUrl =
+        process.env.FRONTEND_URL || "https://interpunkcja.com.pl";
+      return reply.redirect(`${frontendUrl}/logowanie?error=no_code`);
+    }
+
+    try {
+      // Autoryzuj użytkownika
+      const result = await googleAuthService.authenticateWithGoogle(code);
+
+      // Przekieruj do frontendu z tokenami w URL (bezpiecznie - HTTPS)
+      const frontendUrl =
+        process.env.FRONTEND_URL || "https://interpunkcja.com.pl";
+
+      // Zakoduj dane do URL
+      const params = new URLSearchParams({
+        token: result.token,
+        refreshToken: result.refreshToken,
+        user: JSON.stringify(result.user),
+      });
+
+      return reply.redirect(
+        `${frontendUrl}/auth/callback?${params.toString()}`
+      );
+    } catch (error: any) {
+      console.error("Google authentication error:", error);
+
+      const frontendUrl =
+        process.env.FRONTEND_URL || "https://interpunkcja.com.pl";
+      let errorCode = "google_auth_failed";
+
+      if (error.message === "GOOGLE_EMAIL_NOT_VERIFIED") {
+        errorCode = "email_not_verified";
+      }
+
+      return reply.redirect(`${frontendUrl}/logowanie?error=${errorCode}`);
+    }
+  });
+
+  // ==========================================
+  // STANDARD AUTH ROUTES
+  // ==========================================
+
   // REJESTRACJA
   fastify.post("/api/auth/register", async (request, reply) => {
     try {
@@ -156,6 +225,14 @@ export async function authRoutes(fastify: FastifyInstance) {
           error: "EMAIL_NOT_VERIFIED",
           message:
             "Musisz potwierdzić swój email przed zalogowaniem. Sprawdź swoją skrzynkę.",
+        });
+      }
+
+      if (error.message === "GOOGLE_ACCOUNT") {
+        return reply.code(400).send({
+          error: "GOOGLE_ACCOUNT",
+          message:
+            "To konto jest połączone z Google. Użyj przycisku 'Zaloguj przez Google'.",
         });
       }
 
@@ -350,12 +427,58 @@ export async function authRoutes(fastify: FastifyInstance) {
           "Nowe hasło musi zawierać przynajmniej jedną dużą literę",
         PASSWORD_NO_LOWERCASE:
           "Nowe hasło musi zawierać przynajmniej jedną małą literę",
+        NO_PASSWORD_SET:
+          "To konto używa logowania przez Google. Ustaw hasło w ustawieniach.",
       };
 
       return reply.code(400).send({
         error: error.message || "CHANGE_PASSWORD_FAILED",
         message:
           errorMessages[error.message] || "Zmiana hasła nie powiodła się",
+      });
+    }
+  });
+
+  // USTAW HASŁO (dla użytkowników Google, którzy chcą też mieć hasło)
+  fastify.post("/api/auth/set-password", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+      const userId = (request.user as any).userId;
+
+      const schema = z.object({
+        password: z.string().min(8, "Hasło musi mieć minimum 8 znaków"),
+      });
+
+      const { password } = schema.parse(request.body);
+      await authService.setPassword(userId, password);
+
+      return reply.send({
+        success: true,
+        message:
+          "Hasło zostało ustawione. Możesz teraz logować się emailem i hasłem.",
+      });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: "VALIDATION_ERROR",
+          message: error.errors[0].message,
+        });
+      }
+
+      const errorMessages: Record<string, string> = {
+        PASSWORD_ALREADY_SET: "Hasło jest już ustawione. Użyj zmiany hasła.",
+        PASSWORD_TOO_SHORT: "Hasło musi mieć minimum 8 znaków",
+        PASSWORD_NO_NUMBER: "Hasło musi zawierać przynajmniej jedną cyfrę",
+        PASSWORD_NO_UPPERCASE:
+          "Hasło musi zawierać przynajmniej jedną dużą literę",
+        PASSWORD_NO_LOWERCASE:
+          "Hasło musi zawierać przynajmniej jedną małą literę",
+      };
+
+      return reply.code(400).send({
+        error: error.message || "SET_PASSWORD_FAILED",
+        message:
+          errorMessages[error.message] || "Ustawienie hasła nie powiodło się",
       });
     }
   });

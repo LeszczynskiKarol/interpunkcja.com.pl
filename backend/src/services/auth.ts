@@ -18,10 +18,20 @@ export class AuthService {
 
   async register(data: { email: string; name: string; password: string }) {
     // Sprawdź email
-    const existingEmail = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: { email: data.email.toLowerCase() },
     });
-    if (existingEmail) throw new Error("USER_EXISTS");
+
+    if (existingUser) {
+      // Jeśli użytkownik istnieje i ma konto Google bez hasła
+      if (
+        existingUser.authProvider === "GOOGLE" &&
+        !existingUser.passwordHash
+      ) {
+        throw new Error("GOOGLE_ACCOUNT_EXISTS");
+      }
+      throw new Error("USER_EXISTS");
+    }
 
     // Walidacja hasła
     this.validatePassword(data.password);
@@ -39,6 +49,7 @@ export class AuthService {
         passwordHash: hashedPassword,
         emailVerificationToken: verificationToken,
         emailVerificationExpiry: verificationExpiry,
+        authProvider: "LOCAL",
       },
     });
 
@@ -112,6 +123,7 @@ export class AuthService {
         plan: user.plan,
         role: user.role,
         emailVerified: true,
+        authProvider: user.authProvider,
       },
       token: authToken,
       refreshToken: refreshToken,
@@ -181,28 +193,33 @@ export class AuthService {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    // 2. Sprawdź hasło
+    // 2. Sprawdź czy konto ma hasło (czy nie jest tylko Google)
+    if (!user.passwordHash) {
+      throw new Error("GOOGLE_ACCOUNT");
+    }
+
+    // 3. Sprawdź hasło
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    // 3. Blokuj niezweryfikowanych
+    // 4. Blokuj niezweryfikowanych
     if (!user.emailVerified) {
       throw new Error("EMAIL_NOT_VERIFIED");
     }
 
-    // 4. Zaktualizuj ostatnie logowanie
+    // 5. Zaktualizuj ostatnie logowanie
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     });
 
-    // 5. Generuj tokeny
+    // 6. Generuj tokeny
     const token = this.generateToken(user);
     const refreshToken = this.generateRefreshToken(user);
 
-    // 6. Zapisz refresh token
+    // 7. Zapisz refresh token
     await prisma.user.update({
       where: { id: user.id },
       data: { refreshToken },
@@ -216,6 +233,8 @@ export class AuthService {
         plan: user.plan,
         role: user.role,
         emailVerified: user.emailVerified,
+        avatarUrl: user.avatarUrl,
+        authProvider: user.authProvider,
       },
       token,
       refreshToken,
@@ -325,6 +344,8 @@ export class AuthService {
         passwordResetToken: null,
         passwordResetExpiry: null,
         refreshToken: null, // Wyloguj ze wszystkich urządzeń
+        // Jeśli użytkownik miał tylko Google, teraz ma też LOCAL
+        authProvider: user.googleId ? "GOOGLE" : "LOCAL", // Zachowaj GOOGLE jeśli połączony
       },
     });
 
@@ -345,6 +366,10 @@ export class AuthService {
         role: true,
         emailVerified: true,
         createdAt: true,
+        avatarUrl: true,
+        authProvider: true,
+        googleId: true,
+        passwordHash: true, // Potrzebne do sprawdzenia czy ma hasło
       },
     });
 
@@ -352,7 +377,20 @@ export class AuthService {
       throw new Error("USER_NOT_FOUND");
     }
 
-    return user;
+    // Zwróć czy użytkownik ma ustawione hasło (bez samego hasła)
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      plan: user.plan,
+      role: user.role,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      avatarUrl: user.avatarUrl,
+      authProvider: user.authProvider,
+      hasPassword: !!user.passwordHash,
+      hasGoogle: !!user.googleId,
+    };
   }
 
   async updateProfile(userId: string, data: { name: string }) {
@@ -367,6 +405,8 @@ export class AuthService {
         role: true,
         emailVerified: true,
         createdAt: true,
+        avatarUrl: true,
+        authProvider: true,
       },
     });
 
@@ -384,6 +424,11 @@ export class AuthService {
 
     if (!user) {
       throw new Error("USER_NOT_FOUND");
+    }
+
+    // Sprawdź czy użytkownik ma hasło
+    if (!user.passwordHash) {
+      throw new Error("NO_PASSWORD_SET");
     }
 
     // Sprawdź obecne hasło
@@ -406,6 +451,37 @@ export class AuthService {
       data: {
         passwordHash: hashedPassword,
         refreshToken: null, // Wyloguj ze wszystkich urządzeń
+      },
+    });
+  }
+
+  /**
+   * Ustawia hasło dla użytkownika, który ma tylko konto Google
+   */
+  async setPassword(userId: string, password: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error("USER_NOT_FOUND");
+    }
+
+    // Sprawdź czy użytkownik już ma hasło
+    if (user.passwordHash) {
+      throw new Error("PASSWORD_ALREADY_SET");
+    }
+
+    // Walidacja hasła
+    this.validatePassword(password);
+
+    // Hash hasła
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: hashedPassword,
       },
     });
   }

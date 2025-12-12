@@ -1,11 +1,19 @@
-// frontend/src/pages/LoginPage.tsx
-import { useState } from "react";
+// frontend/src/pages/auth/LoginPage.tsx
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Loader2, Lock, Mail, ArrowLeft } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  ArrowRight,
+  Loader2,
+  Lock,
+  Mail,
+  ArrowLeft,
+  AlertCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../stores/authStore";
+//import { GoogleButton } from "../../components/GoogleButton";
 
 interface LoginFormData {
   email: string;
@@ -18,16 +26,33 @@ export function LoginPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(
     null
   );
+  const [googleAccountError, setGoogleAccountError] = useState(false);
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
+
+  // Sprawdź czy jest błąd z Google OAuth
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        google_auth_failed:
+          "Autoryzacja Google nie powiodła się. Spróbuj ponownie.",
+        email_not_verified: "Twój email Google nie jest zweryfikowany.",
+        no_code: "Nie otrzymano kodu autoryzacji z Google.",
+      };
+      toast.error(errorMessages[error] || "Wystąpił błąd podczas logowania.");
+    }
+  }, [searchParams]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setVerificationError(null);
+    setGoogleAccountError(false);
 
     try {
       const response = await api.post("/api/auth/login", data);
@@ -47,6 +72,11 @@ export function LoginPage() {
 
       if (error.response?.data?.error === "EMAIL_NOT_VERIFIED") {
         setVerificationError(data.email);
+        return;
+      }
+
+      if (error.response?.data?.error === "GOOGLE_ACCOUNT") {
+        setGoogleAccountError(true);
         return;
       }
 
@@ -96,15 +126,50 @@ export function LoginPage() {
           </div>
         )}
 
+        {/* Google account warning */}
+        {googleAccountError && (
+          <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-medium text-blue-900 dark:text-blue-200 mb-1">
+                  Konto Google
+                </h3>
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  To konto jest połączone z Google. Użyj przycisku "Kontynuuj z
+                  Google" poniżej.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-2">
             Zaloguj się
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
+          <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
             Sprawdzaj interpunkcję bez limitów
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Google Login Button 
+          <div className="mb-6">
+            <GoogleButton text="Kontynuuj z Google" disabled={isLoading} />
+          </div>*/}
+
+          {/* Divider 
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                lub zaloguj się emailem
+              </span>
+            </div>
+          </div>*/}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email

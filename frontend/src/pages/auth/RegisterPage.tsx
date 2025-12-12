@@ -1,10 +1,11 @@
-// frontend/src/pages/RegisterPage.tsx
+// frontend/src/pages/auth/RegisterPage.tsx
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { CheckCircle, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../lib/api";
+//import { GoogleButton } from "../../components/GoogleButton";
 
 interface RegisterForm {
   email: string;
@@ -69,6 +70,15 @@ export function RegisterPage() {
       navigate(`/sprawdz-email?email=${encodeURIComponent(data.email)}`);
     } catch (error: any) {
       console.error("Registration error:", error);
+
+      // Specjalny komunikat dla użytkowników Google
+      if (error.response?.data?.error === "GOOGLE_ACCOUNT_EXISTS") {
+        toast.error(
+          "To konto jest już połączone z Google. Użyj logowania przez Google."
+        );
+        return;
+      }
+
       const errorMessage =
         error.response?.data?.message || "Błąd rejestracji. Spróbuj ponownie.";
       toast.error(errorMessage);
@@ -90,7 +100,7 @@ export function RegisterPage() {
         </Link>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
               Załóż konto
             </h2>
@@ -98,6 +108,23 @@ export function RegisterPage() {
               Sprawdzaj interpunkcję bez limitów!
             </p>
           </div>
+
+          {/* Google Register Button 
+          <div className="mb-6">
+            <GoogleButton text="Zarejestruj przez Google" disabled={loading} />
+          </div>*/}
+
+          {/* Divider 
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                lub zarejestruj się emailem
+              </span>
+            </div>
+          </div>*/}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Name */}
@@ -279,7 +306,7 @@ export function RegisterPage() {
               </Link>{" "}
               i{" "}
               <Link
-                to="/prywatnosc"
+                to="/polityka-prywatnosci"
                 className="text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Politykę prywatności
