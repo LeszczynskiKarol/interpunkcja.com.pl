@@ -31,3 +31,13 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-400 dark:bg-gray-500;
 }
+
+/* Ukryj badge reCAPTCHA v3 (dozwolone gdy jest tekst o reCAPTCHA pod formularzem) */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: fixed !important;
+  right: -300px !important;
+  bottom: -300px !important;
+  z-index: -1 !important;
+}

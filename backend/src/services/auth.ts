@@ -23,23 +23,62 @@ export class AuthService {
     });
 
     if (existingUser) {
-      // Jeśli użytkownik istnieje i ma konto Google bez hasła
+      // NAPRAWIONE: Jeśli użytkownik istnieje ale NIE jest zweryfikowany - wyślij nowy kod
+      if (!existingUser.emailVerified) {
+        // Walidacja hasła
+        this.validatePassword(data.password);
+
+        const verificationToken = Math.floor(
+          100000 + Math.random() * 900000
+        ).toString();
+        const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        // Zaktualizuj dane (użytkownik może chcieć inne hasło/imię)
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            name: data.name,
+            passwordHash: hashedPassword,
+            emailVerificationToken: verificationToken,
+            emailVerificationExpiry: verificationExpiry,
+          },
+        });
+
+        // Wyślij nowy email weryfikacyjny
+        await this.emailService.sendVerificationEmail(
+          existingUser.email,
+          verificationToken,
+          data.name || "Użytkowniku"
+        );
+
+        return {
+          success: true,
+          message: "Nowy kod weryfikacyjny został wysłany na Twój email.",
+          email: existingUser.email,
+        };
+      }
+
+      // Jeśli użytkownik ma konto Google bez hasła
       if (
         existingUser.authProvider === "GOOGLE" &&
         !existingUser.passwordHash
       ) {
         throw new Error("GOOGLE_ACCOUNT_EXISTS");
       }
+
+      // Użytkownik istnieje i jest zweryfikowany
       throw new Error("USER_EXISTS");
     }
 
-    // Walidacja hasła
+    // Walidacja hasła dla nowego użytkownika
     this.validatePassword(data.password);
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const verificationToken = Math.floor(
       100000 + Math.random() * 900000
-    ).toString(); // 6-cyfrowy kod
+    ).toString();
     const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const user = await prisma.user.create({
@@ -344,8 +383,6 @@ export class AuthService {
         passwordResetToken: null,
         passwordResetExpiry: null,
         refreshToken: null, // Wyloguj ze wszystkich urządzeń
-        // Jeśli użytkownik miał tylko Google, teraz ma też LOCAL
-        authProvider: user.googleId ? "GOOGLE" : "LOCAL", // Zachowaj GOOGLE jeśli połączony
       },
     });
 
