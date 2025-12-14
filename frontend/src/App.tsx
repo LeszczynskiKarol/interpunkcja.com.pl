@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
+import { AuthCallbackPage } from "./pages/auth/AuthCallbackPage";
 import { CookieBanner } from "./components/CookieBanner";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
@@ -74,6 +75,7 @@ function App() {
                 </Layout>
               }
             />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route
               path="/polityka-cookies"
               element={
