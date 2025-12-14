@@ -6,7 +6,7 @@ import { CheckCircle, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../lib/api";
 import { useRecaptcha } from "../../hooks/useRecaptcha";
-//import { GoogleButton } from "../../components/GoogleButton";
+import { GoogleButton } from "../../components/GoogleButton";
 
 interface RegisterForm {
   email: string;
@@ -135,12 +135,12 @@ export function RegisterPage() {
             </p>
           </div>
 
-          {/* Google Register Button 
+          {/* Google Register Button */}
           <div className="mb-6">
             <GoogleButton text="Zarejestruj przez Google" disabled={loading} />
-          </div>*/}
+          </div>
 
-          {/* Divider 
+          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
@@ -150,7 +150,7 @@ export function RegisterPage() {
                 lub zarejestruj się emailem
               </span>
             </div>
-          </div>*/}
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Name */}

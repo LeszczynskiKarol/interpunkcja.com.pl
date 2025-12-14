@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../stores/authStore";
 import { useRecaptcha } from "../../hooks/useRecaptcha";
-//import { GoogleButton } from "../../components/GoogleButton";
+import { GoogleButton } from "../../components/GoogleButton";
 
 interface LoginFormData {
   email: string;
@@ -172,12 +172,12 @@ export function LoginPage() {
             Sprawdzaj interpunkcję bez limitów
           </p>
 
-          {/* Google Login Button 
+          {/* Google Login Button */}
           <div className="mb-6">
             <GoogleButton text="Kontynuuj z Google" disabled={isLoading} />
-          </div>*/}
+          </div>
 
-          {/* Divider 
+          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
@@ -187,7 +187,7 @@ export function LoginPage() {
                 lub zaloguj się emailem
               </span>
             </div>
-          </div>*/}
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
