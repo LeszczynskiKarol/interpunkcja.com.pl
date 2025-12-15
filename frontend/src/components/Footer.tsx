@@ -1,4 +1,4 @@
-// frontend/src/components/Footer.tsx
+// frontend/src/components/Footer.tsx INTERPUNKCJA
 import { Link } from "react-router-dom";
 import { useCookieConsentStore } from "../stores/cookieConsentStore";
 import { Cookie } from "lucide-react";
@@ -110,8 +110,30 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
-          © {new Date().getFullYear()} Interpunkcja.com.pl. Wszelkie prawa
-          zastrzeżone.
+          <p>
+            © {new Date().getFullYear()} Interpunkcja.com.pl. Wszelkie prawa
+            zastrzeżone.
+          </p>
+          <p className="mt-2">
+            Realizacja:{" "}
+            <a
+              href="https://www.torweb.pl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              TorWeb.pl
+            </a>{" "}
+            |{" "}
+            <a
+              href="https://smart-copy.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              Pisanie tekstów AI
+            </a>
+          </p>
         </div>
       </div>
     </footer>
