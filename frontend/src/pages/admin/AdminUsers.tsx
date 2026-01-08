@@ -14,6 +14,8 @@ import {
   Edit,
   CheckCircle,
   XCircle,
+  Gift,
+  Plus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../lib/api";
@@ -29,6 +31,8 @@ interface User {
   lastLogin: string | null;
   createdAt: string;
   checksCount: number;
+  purchasesCount: number;
+  bonusChecks: number;
 }
 
 interface UsersResponse {
@@ -46,16 +50,21 @@ export function AdminUsers() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState<string>("ALL");
+  const [bonusFilter, setBonusFilter] = useState<string>("ALL");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showBonusModal, setShowBonusModal] = useState(false);
+  const [bonusCredits, setBonusCredits] = useState(10);
+  const [bonusReason, setBonusReason] = useState("");
 
   const { data, isLoading } = useQuery<UsersResponse>({
-    queryKey: ["admin-users", page, search, planFilter],
+    queryKey: ["admin-users", page, search, planFilter, bonusFilter],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: "20",
         plan: planFilter,
+        hasBonusChecks: bonusFilter,
       });
       if (search) params.set("search", search);
       const res = await api.get(`/api/admin/users?${params}`);
@@ -75,6 +84,34 @@ export function AdminUsers() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Błąd aktualizacji");
+    },
+  });
+
+  const addBonusMutation = useMutation({
+    mutationFn: async ({
+      id,
+      credits,
+      reason,
+    }: {
+      id: string;
+      credits: number;
+      reason: string;
+    }) => {
+      const res = await api.post(`/api/admin/users/${id}/add-bonus`, {
+        credits,
+        reason,
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success(`Dodano ${data.creditsAdded} bonus sprawdzeń`);
+      setShowBonusModal(false);
+      setBonusCredits(10);
+      setBonusReason("");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Błąd dodawania kredytów");
     },
   });
 
@@ -164,6 +201,18 @@ export function AdminUsers() {
           <option value="PREMIUM">Premium</option>
           <option value="LIFETIME">Lifetime</option>
         </select>
+        <select
+          value={bonusFilter}
+          onChange={(e) => {
+            setBonusFilter(e.target.value);
+            setPage(1);
+          }}
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+        >
+          <option value="ALL">Bonus: Wszyscy</option>
+          <option value="true">Z bonus sprawdzeń</option>
+          <option value="false">Bez bonus sprawdzeń</option>
+        </select>
       </div>
 
       {/* Table */}
@@ -184,10 +233,13 @@ export function AdminUsers() {
                     Plan
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                    Bonus
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                     Status
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                    Sprawdzenia
+                    Sprawdz.
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                     Ostatnio
@@ -237,6 +289,16 @@ export function AdminUsers() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
+                      {user.bonusChecks > 0 ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
+                          <Gift className="w-3 h-3" />
+                          {user.bonusChecks}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {user.isActive ? (
                           <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm">
@@ -265,7 +327,17 @@ export function AdminUsers() {
                         : "Nigdy"}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowBonusModal(true);
+                          }}
+                          className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                          title="Dodaj bonus"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => {
                             setSelectedUser(user);
@@ -361,6 +433,8 @@ export function AdminUsers() {
                     plan: formData.get("plan"),
                     role: formData.get("role"),
                     isActive: formData.get("isActive") === "true",
+                    bonusChecks:
+                      parseInt(formData.get("bonusChecks") as string) || 0,
                   },
                 });
               }}
@@ -388,45 +462,61 @@ export function AdminUsers() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Plan
-                </label>
-                <select
-                  name="plan"
-                  defaultValue={selectedUser.plan}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  <option value="FREE">Free</option>
-                  <option value="PREMIUM">Premium</option>
-                  <option value="LIFETIME">Lifetime</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Plan
+                  </label>
+                  <select
+                    name="plan"
+                    defaultValue={selectedUser.plan}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="FREE">Free</option>
+                    <option value="PREMIUM">Premium</option>
+                    <option value="LIFETIME">Lifetime</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Rola
+                  </label>
+                  <select
+                    name="role"
+                    defaultValue={selectedUser.role}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="USER">User</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Rola
-                </label>
-                <select
-                  name="role"
-                  defaultValue={selectedUser.role}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  <option value="USER">User</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Status
-                </label>
-                <select
-                  name="isActive"
-                  defaultValue={selectedUser.isActive ? "true" : "false"}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  <option value="true">Aktywny</option>
-                  <option value="false">Nieaktywny</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Status
+                  </label>
+                  <select
+                    name="isActive"
+                    defaultValue={selectedUser.isActive ? "true" : "false"}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="true">Aktywny</option>
+                    <option value="false">Nieaktywny</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Bonus sprawdzeń
+                  </label>
+                  <input
+                    type="number"
+                    name="bonusChecks"
+                    min="0"
+                    defaultValue={selectedUser.bonusChecks}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
@@ -448,6 +538,113 @@ export function AdminUsers() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Bonus Modal */}
+      {showBonusModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <Gift className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Dodaj bonus sprawdzenia
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {selectedUser.email}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Aktualnie:{" "}
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {selectedUser.bonusChecks} bonus sprawdzeń
+                </span>
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Ile dodać?
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={bonusCredits}
+                  onChange={(e) =>
+                    setBonusCredits(parseInt(e.target.value) || 0)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
+                <div className="flex gap-2 mt-2">
+                  {[5, 10, 25, 50, 100].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setBonusCredits(n)}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        bonusCredits === n
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Powód (opcjonalnie)
+                </label>
+                <input
+                  type="text"
+                  value={bonusReason}
+                  onChange={(e) => setBonusReason(e.target.value)}
+                  placeholder="np. rekompensata za błąd, promocja..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBonusModal(false);
+                    setBonusCredits(10);
+                    setBonusReason("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={() => {
+                    addBonusMutation.mutate({
+                      id: selectedUser.id,
+                      credits: bonusCredits,
+                      reason: bonusReason,
+                    });
+                  }}
+                  disabled={addBonusMutation.isPending || bonusCredits < 1}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {addBonusMutation.isPending && (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  )}
+                  Dodaj +{bonusCredits}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

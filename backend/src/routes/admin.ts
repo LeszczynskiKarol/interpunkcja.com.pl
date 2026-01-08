@@ -69,12 +69,14 @@ export async function adminRoutes(fastify: FastifyInstance) {
       checksWeek,
       checksMonth,
       totalCharsChecked,
+      bonusChecksUsed,
     ] = await Promise.all([
       prisma.check.count(),
       prisma.check.count({ where: { createdAt: { gte: today } } }),
       prisma.check.count({ where: { createdAt: { gte: weekAgo } } }),
       prisma.check.count({ where: { createdAt: { gte: monthAgo } } }),
       prisma.check.aggregate({ _sum: { charCount: true } }),
+      prisma.check.count({ where: { usedBonusCheck: true } }),
     ]);
 
     // Statystyki błędów
@@ -85,6 +87,45 @@ export async function adminRoutes(fastify: FastifyInstance) {
     // Aktywni użytkownicy (zalogowani w ciągu tygodnia)
     const activeUsers = await prisma.user.count({
       where: { lastLogin: { gte: weekAgo } },
+    });
+
+    // Statystyki zakupów topup
+    const [
+      totalTopUpPurchases,
+      topUpPurchasesToday,
+      topUpPurchasesWeek,
+      topUpPurchasesMonth,
+      topUpRevenueTotal,
+      topUpRevenueMonth,
+      totalBonusCreditsGranted,
+    ] = await Promise.all([
+      prisma.creditPurchase.count({ where: { status: "COMPLETED" } }),
+      prisma.creditPurchase.count({
+        where: { status: "COMPLETED", completedAt: { gte: today } },
+      }),
+      prisma.creditPurchase.count({
+        where: { status: "COMPLETED", completedAt: { gte: weekAgo } },
+      }),
+      prisma.creditPurchase.count({
+        where: { status: "COMPLETED", completedAt: { gte: monthAgo } },
+      }),
+      prisma.creditPurchase.aggregate({
+        where: { status: "COMPLETED" },
+        _sum: { amount: true },
+      }),
+      prisma.creditPurchase.aggregate({
+        where: { status: "COMPLETED", completedAt: { gte: monthAgo } },
+        _sum: { amount: true },
+      }),
+      prisma.creditPurchase.aggregate({
+        where: { status: "COMPLETED" },
+        _sum: { creditsGranted: true },
+      }),
+    ]);
+
+    // Suma wszystkich bonus checks u użytkowników
+    const totalBonusChecksAvailable = await prisma.user.aggregate({
+      _sum: { bonusChecks: true },
     });
 
     return {
@@ -105,11 +146,25 @@ export async function adminRoutes(fastify: FastifyInstance) {
         month: checksMonth,
         totalChars: totalCharsChecked._sum.charCount || 0,
         totalErrors: totalErrors._sum.errorCount || 0,
+        bonusUsed: bonusChecksUsed,
+      },
+      topUp: {
+        totalPurchases: totalTopUpPurchases,
+        purchasesToday: topUpPurchasesToday,
+        purchasesWeek: topUpPurchasesWeek,
+        purchasesMonth: topUpPurchasesMonth,
+        revenueTotal: (topUpRevenueTotal._sum.amount || 0) / 100, // grosze -> PLN
+        revenueMonth: (topUpRevenueMonth._sum.amount || 0) / 100,
+        creditsGranted: totalBonusCreditsGranted._sum.creditsGranted || 0,
+        creditsAvailable: totalBonusChecksAvailable._sum.bonusChecks || 0,
       },
       revenue: {
         premiumMonthly: premiumUsers * 29, // PLN
         lifetimeTotal: lifetimeUsers * 299,
-        estimatedMRR: premiumUsers * 29,
+        topUpTotal: (topUpRevenueTotal._sum.amount || 0) / 100,
+        topUpMonth: (topUpRevenueMonth._sum.amount || 0) / 100,
+        estimatedMRR:
+          premiumUsers * 29 + (topUpRevenueMonth._sum.amount || 0) / 100,
       },
     };
   });
@@ -124,8 +179,16 @@ export async function adminRoutes(fastify: FastifyInstance) {
       search: z.string().optional(),
       plan: z.enum(["FREE", "PREMIUM", "LIFETIME", "ALL"]).default("ALL"),
       role: z.enum(["USER", "ADMIN", "ALL"]).default("ALL"),
+      hasBonusChecks: z.enum(["true", "false", "ALL"]).default("ALL"),
       sortBy: z
-        .enum(["createdAt", "email", "name", "lastLogin", "plan"])
+        .enum([
+          "createdAt",
+          "email",
+          "name",
+          "lastLogin",
+          "plan",
+          "bonusChecks",
+        ])
         .default("createdAt"),
       sortOrder: z.enum(["asc", "desc"]).default("desc"),
     });
@@ -151,6 +214,12 @@ export async function adminRoutes(fastify: FastifyInstance) {
       where.role = params.role;
     }
 
+    if (params.hasBonusChecks === "true") {
+      where.bonusChecks = { gt: 0 };
+    } else if (params.hasBonusChecks === "false") {
+      where.bonusChecks = 0;
+    }
+
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
@@ -165,8 +234,12 @@ export async function adminRoutes(fastify: FastifyInstance) {
           lastLogin: true,
           createdAt: true,
           stripeCustomerId: true,
+          bonusChecks: true,
           _count: {
-            select: { checks: true },
+            select: {
+              checks: true,
+              creditPurchases: true,
+            },
           },
         },
         orderBy: { [params.sortBy]: params.sortOrder },
@@ -180,6 +253,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
       users: users.map((u) => ({
         ...u,
         checksCount: u._count.checks,
+        purchasesCount: u._count.creditPurchases,
         _count: undefined,
       })),
       pagination: {
@@ -209,8 +283,12 @@ export async function adminRoutes(fastify: FastifyInstance) {
         createdAt: true,
         updatedAt: true,
         stripeCustomerId: true,
+        bonusChecks: true,
         _count: {
-          select: { checks: true },
+          select: {
+            checks: true,
+            creditPurchases: true,
+          },
         },
         checks: {
           orderBy: { createdAt: "desc" },
@@ -219,7 +297,20 @@ export async function adminRoutes(fastify: FastifyInstance) {
             id: true,
             charCount: true,
             errorCount: true,
+            usedBonusCheck: true,
             createdAt: true,
+          },
+        },
+        creditPurchases: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            amount: true,
+            creditsGranted: true,
+            status: true,
+            createdAt: true,
+            completedAt: true,
           },
         },
         dailyUsage: {
@@ -239,6 +330,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return {
       ...user,
       checksCount: user._count.checks,
+      purchasesCount: user._count.creditPurchases,
       _count: undefined,
     };
   });
@@ -253,6 +345,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
       role: z.enum(["USER", "ADMIN"]).optional(),
       isActive: z.boolean().optional(),
       emailVerified: z.boolean().optional(),
+      bonusChecks: z.number().min(0).optional(),
     });
 
     const data = schema.parse(request.body);
@@ -290,10 +383,57 @@ export async function adminRoutes(fastify: FastifyInstance) {
         isActive: true,
         lastLogin: true,
         createdAt: true,
+        bonusChecks: true,
       },
     });
 
     return user;
+  });
+
+  // Dodaj bonus sprawdzenia użytkownikowi
+  fastify.post("/api/admin/users/:id/add-bonus", async (request, reply) => {
+    const { id } = request.params as { id: string };
+
+    const schema = z.object({
+      credits: z.number().min(1).max(1000),
+      reason: z.string().optional(),
+    });
+
+    const { credits, reason } = schema.parse(request.body);
+
+    const existingUser = await prisma.user.findUnique({ where: { id } });
+    if (!existingUser) {
+      return reply.status(404).send({
+        error: "NOT_FOUND",
+        message: "Użytkownik nie został znaleziony",
+      });
+    }
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: {
+        bonusChecks: { increment: credits },
+      },
+      select: {
+        id: true,
+        email: true,
+        bonusChecks: true,
+      },
+    });
+
+    // Log dla audytu (opcjonalnie możesz zapisać do osobnej tabeli)
+    console.log(
+      `[ADMIN] Added ${credits} bonus checks to user ${id} (${
+        existingUser.email
+      }). Reason: ${reason || "none"}`
+    );
+
+    return {
+      success: true,
+      user,
+      creditsAdded: credits,
+      message: `Dodano ${credits} bonus sprawdzeń`,
+    };
   });
 
   // Usuń użytkownika (soft delete - dezaktywacja)
@@ -373,6 +513,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
       userId: z.string().optional(),
       dateFrom: z.string().optional(),
       dateTo: z.string().optional(),
+      usedBonusCheck: z.enum(["true", "false", "ALL"]).default("ALL"),
     });
 
     const params = schema.parse(request.query);
@@ -394,6 +535,12 @@ export async function adminRoutes(fastify: FastifyInstance) {
       }
     }
 
+    if (params.usedBonusCheck === "true") {
+      where.usedBonusCheck = true;
+    } else if (params.usedBonusCheck === "false") {
+      where.usedBonusCheck = false;
+    }
+
     const [checks, total] = await Promise.all([
       prisma.check.findMany({
         where,
@@ -403,6 +550,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           correctedText: true,
           charCount: true,
           errorCount: true,
+          usedBonusCheck: true,
           createdAt: true,
           user: {
             select: {
@@ -465,6 +613,159 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return check;
   });
 
+  // ==================== PURCHASES MANAGEMENT ====================
+
+  // Lista zakupów topup
+  fastify.get("/api/admin/purchases", async (request, reply) => {
+    const schema = z.object({
+      page: z.coerce.number().min(1).default(1),
+      limit: z.coerce.number().min(1).max(100).default(20),
+      userId: z.string().optional(),
+      status: z
+        .enum(["PENDING", "COMPLETED", "FAILED", "REFUNDED", "ALL"])
+        .default("ALL"),
+      dateFrom: z.string().optional(),
+      dateTo: z.string().optional(),
+    });
+
+    const params = schema.parse(request.query);
+    const skip = (params.page - 1) * params.limit;
+
+    const where: any = {};
+
+    if (params.userId) {
+      where.userId = params.userId;
+    }
+
+    if (params.status !== "ALL") {
+      where.status = params.status;
+    }
+
+    if (params.dateFrom || params.dateTo) {
+      where.createdAt = {};
+      if (params.dateFrom) {
+        where.createdAt.gte = new Date(params.dateFrom);
+      }
+      if (params.dateTo) {
+        where.createdAt.lte = new Date(params.dateTo);
+      }
+    }
+
+    const [purchases, total] = await Promise.all([
+      prisma.creditPurchase.findMany({
+        where,
+        select: {
+          id: true,
+          amount: true,
+          creditsGranted: true,
+          status: true,
+          stripeSessionId: true,
+          createdAt: true,
+          completedAt: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              plan: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: params.limit,
+      }),
+      prisma.creditPurchase.count({ where }),
+    ]);
+
+    // Suma przychodów z bieżącej strony
+    const pageRevenue = purchases
+      .filter((p) => p.status === "COMPLETED")
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    return {
+      purchases: purchases.map((p) => ({
+        ...p,
+        amountPLN: p.amount / 100, // grosze -> PLN
+      })),
+      pagination: {
+        page: params.page,
+        limit: params.limit,
+        total,
+        totalPages: Math.ceil(total / params.limit),
+      },
+      summary: {
+        pageRevenue: pageRevenue / 100,
+      },
+    };
+  });
+
+  // Zmień status zakupu (np. refund)
+  fastify.patch("/api/admin/purchases/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+
+    const schema = z.object({
+      status: z.enum(["PENDING", "COMPLETED", "FAILED", "REFUNDED"]),
+      refundCredits: z.boolean().optional(), // Czy odjąć kredyty przy refund
+    });
+
+    const { status, refundCredits } = schema.parse(request.body);
+
+    const purchase = await prisma.creditPurchase.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+
+    if (!purchase) {
+      return reply.status(404).send({
+        error: "NOT_FOUND",
+        message: "Zakup nie został znaleziony",
+      });
+    }
+
+    // Jeśli refund i chcemy odjąć kredyty
+    if (
+      status === "REFUNDED" &&
+      refundCredits &&
+      purchase.status === "COMPLETED"
+    ) {
+      await prisma.user.update({
+        where: { id: purchase.userId },
+        data: {
+          bonusChecks: {
+            decrement: Math.min(
+              purchase.creditsGranted,
+              purchase.user.bonusChecks
+            ),
+          },
+        },
+      });
+    }
+
+    const updatedPurchase = await prisma.creditPurchase.update({
+      where: { id },
+      data: { status },
+      select: {
+        id: true,
+        status: true,
+        amount: true,
+        creditsGranted: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            bonusChecks: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      purchase: updatedPurchase,
+    };
+  });
+
   // ==================== CHARTS DATA ====================
 
   // Dane do wykresów - użytkownicy i sprawdzenia dziennie
@@ -479,7 +780,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     startDate.setHours(0, 0, 0, 0);
 
     // Pobierz dane dzienne
-    const [dailyUsers, dailyChecks] = await Promise.all([
+    const [dailyUsers, dailyChecks, dailyPurchases] = await Promise.all([
       prisma.$queryRaw`
         SELECT DATE(created_at) as date, COUNT(*) as count
         FROM "User"
@@ -489,12 +790,23 @@ export async function adminRoutes(fastify: FastifyInstance) {
       ` as Promise<Array<{ date: Date; count: bigint }>>,
 
       prisma.$queryRaw`
-        SELECT DATE(created_at) as date, COUNT(*) as count, SUM(char_count) as chars
+        SELECT DATE(created_at) as date, COUNT(*) as count, SUM(char_count) as chars,
+               SUM(CASE WHEN used_bonus_check THEN 1 ELSE 0 END) as bonus_used
         FROM "Check"
         WHERE created_at >= ${startDate}
         GROUP BY DATE(created_at)
         ORDER BY date
-      ` as Promise<Array<{ date: Date; count: bigint; chars: bigint }>>,
+      ` as Promise<
+        Array<{ date: Date; count: bigint; chars: bigint; bonus_used: bigint }>
+      >,
+
+      prisma.$queryRaw`
+        SELECT DATE(completed_at) as date, COUNT(*) as count, SUM(amount) as revenue
+        FROM "CreditPurchase"
+        WHERE status = 'COMPLETED' AND completed_at >= ${startDate}
+        GROUP BY DATE(completed_at)
+        ORDER BY date
+      ` as Promise<Array<{ date: Date; count: bigint; revenue: bigint }>>,
     ]);
 
     // Wypełnij brakujące dni zerami
@@ -511,12 +823,18 @@ export async function adminRoutes(fastify: FastifyInstance) {
       const checkEntry = dailyChecks.find(
         (c) => c.date.toISOString().split("T")[0] === dateStr
       );
+      const purchaseEntry = dailyPurchases.find(
+        (p) => p.date && p.date.toISOString().split("T")[0] === dateStr
+      );
 
       result.push({
         date: dateStr,
         newUsers: userEntry ? Number(userEntry.count) : 0,
         checks: checkEntry ? Number(checkEntry.count) : 0,
         chars: checkEntry ? Number(checkEntry.chars) : 0,
+        bonusChecksUsed: checkEntry ? Number(checkEntry.bonus_used) : 0,
+        purchases: purchaseEntry ? Number(purchaseEntry.count) : 0,
+        revenue: purchaseEntry ? Number(purchaseEntry.revenue) / 100 : 0, // grosze -> PLN
       });
 
       currentDate.setDate(currentDate.getDate() + 1);
@@ -535,6 +853,33 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return plans.map((p) => ({
       plan: p.plan,
       count: p._count.plan,
+    }));
+  });
+
+  // Rozkład pakietów topup
+  fastify.get("/api/admin/charts/topup-packages", async (request, reply) => {
+    const packages = (await prisma.$queryRaw`
+      SELECT 
+        amount,
+        COUNT(*) as count,
+        SUM(credits_granted) as total_credits
+      FROM "CreditPurchase"
+      WHERE status = 'COMPLETED'
+      GROUP BY amount
+      ORDER BY amount
+    `) as Array<{ amount: number; count: bigint; total_credits: bigint }>;
+
+    const packageLabels: Record<number, string> = {
+      500: "5 zł (10 spr.)",
+      1000: "10 zł (25 spr.)",
+      2000: "20 zł (60 spr.)",
+    };
+
+    return packages.map((p) => ({
+      amount: p.amount / 100,
+      label: packageLabels[p.amount] || `${p.amount / 100} zł`,
+      count: Number(p.count),
+      totalCredits: Number(p.total_credits),
     }));
   });
 }

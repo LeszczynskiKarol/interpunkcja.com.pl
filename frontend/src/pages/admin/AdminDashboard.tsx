@@ -10,6 +10,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Loader2,
+  Zap,
+  Gift,
+  CreditCard,
 } from "lucide-react";
 import { api } from "../../lib/api";
 
@@ -31,10 +34,23 @@ interface Stats {
     month: number;
     totalChars: number;
     totalErrors: number;
+    bonusUsed: number;
+  };
+  topUp: {
+    totalPurchases: number;
+    purchasesToday: number;
+    purchasesWeek: number;
+    purchasesMonth: number;
+    revenueTotal: number;
+    revenueMonth: number;
+    creditsGranted: number;
+    creditsAvailable: number;
   };
   revenue: {
     premiumMonthly: number;
     lifetimeTotal: number;
+    topUpTotal: number;
+    topUpMonth: number;
     estimatedMRR: number;
   };
 }
@@ -52,7 +68,7 @@ function StatCard({
   subtitle?: string;
   icon: any;
   trend?: { value: number; label: string };
-  color?: "blue" | "green" | "amber" | "purple" | "red";
+  color?: "blue" | "green" | "amber" | "purple" | "red" | "emerald";
 }) {
   const colors = {
     blue: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
@@ -63,6 +79,8 @@ function StatCard({
     purple:
       "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
     red: "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400",
+    emerald:
+      "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
   };
 
   return (
@@ -160,18 +178,52 @@ export function AdminDashboard() {
           color="green"
         />
         <StatCard
-          title="Premium"
-          value={stats.users.premium}
-          subtitle={`+ ${stats.users.lifetime} Lifetime`}
+          title="Premium + Lifetime"
+          value={stats.users.premium + stats.users.lifetime}
+          subtitle={`${stats.users.premium} Premium, ${stats.users.lifetime} Lifetime`}
           icon={Crown}
           color="amber"
         />
         <StatCard
           title="MRR (szacunkowe)"
           value={`${stats.revenue.estimatedMRR.toLocaleString("pl-PL")} zł`}
-          subtitle="Miesięczny przychód"
+          subtitle="Subskrypcje + TopUp"
           icon={DollarSign}
           color="purple"
+        />
+      </div>
+
+      {/* TopUp stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Zakupy TopUp"
+          value={stats.topUp.totalPurchases}
+          subtitle={`+${stats.topUp.purchasesWeek} w tym tygodniu`}
+          icon={CreditCard}
+          color="emerald"
+        />
+        <StatCard
+          title="Przychód TopUp"
+          value={`${stats.topUp.revenueTotal.toLocaleString("pl-PL")} zł`}
+          subtitle={`${stats.topUp.revenueMonth.toLocaleString(
+            "pl-PL"
+          )} zł w tym miesiącu`}
+          icon={Zap}
+          color="emerald"
+        />
+        <StatCard
+          title="Kredyty przyznane"
+          value={stats.topUp.creditsGranted.toLocaleString("pl-PL")}
+          subtitle="Łącznie sprzedane"
+          icon={Gift}
+          color="green"
+        />
+        <StatCard
+          title="Kredyty dostępne"
+          value={stats.topUp.creditsAvailable.toLocaleString("pl-PL")}
+          subtitle={`${stats.checks.bonusUsed} użytych`}
+          icon={Gift}
+          color="blue"
         />
       </div>
 
@@ -270,18 +322,71 @@ export function AdminDashboard() {
             </div>
             <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Znalezione błędy
+                Bonus sprawdzeń użyto
               </p>
               <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-                {stats.checks.totalErrors.toLocaleString("pl-PL")}
+                {stats.checks.bonusUsed.toLocaleString("pl-PL")}
               </p>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Revenue breakdown */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Przychody
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+            <p className="text-amber-700 dark:text-amber-300 text-sm font-medium">
+              Premium (miesięcznie)
+            </p>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+              {stats.revenue.premiumMonthly.toLocaleString("pl-PL")} zł
+            </p>
+            <p className="text-amber-600/70 text-xs mt-1">
+              {stats.users.premium} × 29 zł
+            </p>
+          </div>
+          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <p className="text-purple-700 dark:text-purple-300 text-sm font-medium">
+              Lifetime (łącznie)
+            </p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+              {stats.revenue.lifetimeTotal.toLocaleString("pl-PL")} zł
+            </p>
+            <p className="text-purple-600/70 text-xs mt-1">
+              {stats.users.lifetime} × 299 zł
+            </p>
+          </div>
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+            <p className="text-emerald-700 dark:text-emerald-300 text-sm font-medium">
+              TopUp (miesięcznie)
+            </p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+              {stats.revenue.topUpMonth.toLocaleString("pl-PL")} zł
+            </p>
+            <p className="text-emerald-600/70 text-xs mt-1">
+              {stats.topUp.purchasesMonth} zakupów
+            </p>
+          </div>
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p className="text-blue-700 dark:text-blue-300 text-sm font-medium">
+              TopUp (łącznie)
+            </p>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+              {stats.revenue.topUpTotal.toLocaleString("pl-PL")} zł
+            </p>
+            <p className="text-blue-600/70 text-xs mt-1">
+              {stats.topUp.totalPurchases} zakupów
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Link
           to="/admin/uzytkownicy"
           className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
@@ -291,10 +396,10 @@ export function AdminDashboard() {
           </div>
           <div>
             <h3 className="font-medium text-gray-900 dark:text-white">
-              Zarządzaj użytkownikami
+              Użytkownicy
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Edytuj, blokuj, zmieniaj plany
+              Zarządzaj kontami
             </p>
           </div>
         </Link>
@@ -307,10 +412,26 @@ export function AdminDashboard() {
           </div>
           <div>
             <h3 className="font-medium text-gray-900 dark:text-white">
-              Historia sprawdzeń
+              Sprawdzenia
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Przeglądaj wszystkie sprawdzenia
+              Historia tekstów
+            </p>
+          </div>
+        </Link>
+        <Link
+          to="/admin/zakupy"
+          className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-400 transition-colors"
+        >
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+            <CreditCard className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="font-medium text-gray-900 dark:text-white">
+              Zakupy TopUp
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Historia płatności
             </p>
           </div>
         </Link>
@@ -323,7 +444,7 @@ export function AdminDashboard() {
           </div>
           <div>
             <h3 className="font-medium text-gray-900 dark:text-white">
-              Szczegółowe statystyki
+              Statystyki
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Wykresy i analityka
