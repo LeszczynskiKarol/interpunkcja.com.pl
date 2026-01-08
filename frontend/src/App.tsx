@@ -34,6 +34,9 @@ import { AdminArticles } from "./pages/admin/AdminArticles";
 import { ArticlePage } from "./pages/ArticlePage";
 import { CategoryPage } from "./pages/CategoryPage";
 
+// Landing pages SEO
+import { SprawdzanieOrtografii } from "./pages/landing/SprawdzanieOrtografii";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -67,6 +70,18 @@ function App() {
                 </Layout>
               }
             />
+
+            {/* SEO Landing Pages */}
+            <Route
+              path="/sprawdzanie-ortografii"
+              element={
+                <Layout>
+                  <SprawdzanieOrtografii />
+                </Layout>
+              }
+            />
+
+            {/* Legal pages */}
             <Route
               path="/polityka-prywatnosci"
               element={
@@ -84,7 +99,6 @@ function App() {
                 </Layout>
               }
             />
-
             <Route
               path="/regulamin"
               element={
