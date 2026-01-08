@@ -79,21 +79,20 @@ export async function checkRoutes(fastify: FastifyInstance) {
     // Limity dla planu
     const limits = LIMITS[userPlan];
 
-    // Dla premium - zapisz w historii
-    if (limits.saveHistory) {
-      await prisma.check.create({
-        data: {
-          userId,
-          visitorId: null,
-          originalText: text,
-          correctedText: result.correctedText,
-          // Cast do JSON - Prisma wymaga InputJsonValue
-          corrections: JSON.parse(JSON.stringify(result.corrections)),
-          charCount: text.length,
-          errorCount: result.errorCount,
-        },
-      });
-    }
+    // ZAWSZE zapisuj sprawdzenie do bazy - potrzebne dla panelu admina
+    // Historia dla użytkownika jest kontrolowana przez endpoint /api/check/history
+    await prisma.check.create({
+      data: {
+        userId,
+        visitorId: null,
+        originalText: text,
+        correctedText: result.correctedText,
+        // Cast do JSON - Prisma wymaga InputJsonValue
+        corrections: JSON.parse(JSON.stringify(result.corrections)),
+        charCount: text.length,
+        errorCount: result.errorCount,
+      },
+    });
 
     // Dla FREE - ukryj wyjaśnienia
     const corrections = limits.showExplanations
