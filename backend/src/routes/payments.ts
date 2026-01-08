@@ -100,7 +100,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
 
         const session = await stripe.checkout.sessions.create({
           customer: customerId,
-          payment_method_types: ["card", "p24", "blik"],
+          payment_method_types: ["card", "blik"],
           mode: "payment",
           line_items: [
             {
@@ -329,7 +329,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     try {
       const sessionConfig: Stripe.Checkout.SessionCreateParams = {
         customer: customerId,
-        payment_method_types: ["card", "p24", "blik"],
+        payment_method_types: ["card", "blik"],
         mode: selectedPlan.mode,
         success_url: `${frontendUrl}/platnosc/sukces?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${frontendUrl}/platnosc/${plan}`,
