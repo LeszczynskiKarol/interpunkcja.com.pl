@@ -63,15 +63,52 @@ export interface Correction {
   explanation: string;
 }
 
+export interface TopUpPackage {
+  id: string;
+  amount: number;
+  credits: number;
+  label: string;
+  priceLabel: string;
+  bonus?: number;
+}
+
+export interface CheckStatusResponse {
+  canCheck: boolean;
+  reason?: string;
+  remainingChecks: number;
+  remainingChars: number;
+  bonusChecks: number;
+  canUseBonusCheck: boolean;
+  plan: string;
+  topUpPackages: TopUpPackage[];
+  limits: {
+    maxCharsPerCheck: number;
+    maxChecksPerDay: number;
+    maxCharsPerDay: number;
+    showExplanations: boolean;
+    saveHistory: boolean;
+  };
+}
+
 export interface CheckResponse {
   correctedText: string;
   corrections: Correction[];
   errorCount: number;
+  usedBonusCheck?: boolean;
   usage: {
     remainingChecks: number;
     remainingChars: number;
+    bonusChecks: number;
     plan: string;
   };
+}
+
+export interface Correction {
+  original: string;
+  corrected: string;
+  position: { start: number; end: number };
+  rule: string;
+  explanation: string;
 }
 
 export interface CheckStatusResponse {
@@ -82,18 +119,54 @@ export interface CheckStatusResponse {
   plan: string;
 }
 
-// Check API Functions - wymagają autoryzacji
-export const checkPunctuation = async (
-  text: string
-): Promise<CheckResponse> => {
-  const response = await api.post("/api/check", { text });
-  return response.data;
-};
+export async function checkPunctuation(text: string): Promise<CheckResponse> {
+  const res = await api.post("/api/check", { text });
+  return res.data;
+}
 
-export const getCheckStatus = async (): Promise<CheckStatusResponse> => {
-  const response = await api.get("/api/check/status");
-  return response.data;
-};
+export async function getCheckStatus(): Promise<CheckStatusResponse> {
+  const res = await api.get("/api/check/status");
+  return res.data;
+}
+
+export async function createTopUpCheckout(
+  packageId: string
+): Promise<{ url: string }> {
+  const res = await api.post("/api/payments/create-topup-checkout", {
+    packageId,
+  });
+  return res.data;
+}
+
+export async function verifyTopUpPayment(sessionId: string): Promise<{
+  success: boolean;
+  creditsAdded: number;
+  totalBonusChecks: number;
+  alreadyProcessed?: boolean;
+}> {
+  const res = await api.post("/api/payments/verify-topup", { sessionId });
+  return res.data;
+}
+
+export async function getTopUpPackages(): Promise<{
+  packages: TopUpPackage[];
+}> {
+  const res = await api.get("/api/payments/topup-packages");
+  return res.data;
+}
+
+export async function getTopUpHistory(): Promise<{
+  purchases: Array<{
+    id: string;
+    amount: number;
+    creditsGranted: number;
+    createdAt: string;
+    completedAt: string;
+  }>;
+}> {
+  const res = await api.get("/api/payments/topup-history");
+  return res.data;
+}
 
 // Auth API Functions
 export const login = async (email: string, password: string) => {

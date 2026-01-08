@@ -10,7 +10,7 @@ datasource db {
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
-  passwordHash  String?   // ZMIANA: nullable dla użytkowników OAuth
+  passwordHash  String?
   name          String?
   plan          Plan      @default(FREE)
   role          Role      @default(USER)
@@ -18,7 +18,7 @@ model User {
   // OAuth / Auth Provider
   authProvider  AuthProvider @default(LOCAL)
   googleId      String?      @unique
-  avatarUrl     String?      // Zdjęcie profilowe z Google
+  avatarUrl     String?
   
   // Email verification
   emailVerified           Boolean   @default(false)
@@ -36,14 +36,18 @@ model User {
   // Stripe
   stripeCustomerId String? @unique
   
+  // Bonus sprawdzenia (dokupione)
+  bonusChecks   Int       @default(0)
+  
   // Status
   isActive      Boolean   @default(true)
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  checks        Check[]
-  dailyUsage    DailyUsage[]
+  checks           Check[]
+  dailyUsage       DailyUsage[]
+  creditPurchases  CreditPurchase[]
 }
 
 enum AuthProvider {
@@ -60,6 +64,7 @@ model Check {
   corrections     Json
   charCount       Int
   errorCount      Int
+  usedBonusCheck  Boolean  @default(false)  // Czy użyto bonus sprawdzenia
   createdAt       DateTime @default(now())
   
   user            User?    @relation(fields: [userId], references: [id])
@@ -82,6 +87,30 @@ model DailyUsage {
   @@unique([userId, date])
   @@unique([visitorId, date])
   @@index([date])
+}
+
+// Historia zakupów dodatkowych sprawdzeń
+model CreditPurchase {
+  id              String   @id @default(uuid())
+  userId          String
+  amount          Int      // Kwota w groszach (np. 500 = 5 PLN)
+  creditsGranted  Int      // Ile sprawdzeń przyznano
+  stripeSessionId String   @unique
+  status          PurchaseStatus @default(PENDING)
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  user            User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([stripeSessionId])
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
 
 enum Plan {
@@ -114,11 +143,9 @@ model Article {
   excerpt     String?   @db.Text
   categoryId  String
   
-  // SEO
   metaTitle       String?
   metaDescription String?
   
-  // Status
   published   Boolean   @default(true)
   publishedAt DateTime?
   

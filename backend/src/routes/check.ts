@@ -6,6 +6,8 @@ import {
   checkUsageLimits,
   recordUsage,
   LIMITS,
+  TOPUP_PACKAGES,
+  getBonusChecks,
   type Plan,
 } from "../services/limits";
 import { prisma } from "../lib/prisma";
@@ -15,6 +17,7 @@ const checkSchema = z.object({
     .string()
     .min(1, "Tekst nie może być pusty")
     .max(50000, "Tekst jest zbyt długi"),
+  useBonusCheck: z.boolean().optional().default(false),
 });
 
 export async function checkRoutes(fastify: FastifyInstance) {
@@ -33,12 +36,12 @@ export async function checkRoutes(fastify: FastifyInstance) {
     }
 
     const body = checkSchema.parse(request.body);
-    const { text } = body;
+    const { text, useBonusCheck } = body;
 
-    // Pobierz dane użytkownika - WAŻNE: emailVerified musi być w select!
+    // Pobierz dane użytkownika
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { plan: true, emailVerified: true },
+      select: { plan: true, emailVerified: true, bonusChecks: true },
     });
 
     if (!user) {
@@ -60,42 +63,51 @@ export async function checkRoutes(fastify: FastifyInstance) {
     // Sprawdź limity
     const usageStatus = await checkUsageLimits(userId, null, text.length);
 
+    // Jeśli nie można sprawdzić i nie ma bonus checks
     if (!usageStatus.canCheck) {
       return reply.status(429).send({
         error: "LIMIT_EXCEEDED",
         message: usageStatus.reason,
         remainingChecks: usageStatus.remainingChecks,
         remainingChars: usageStatus.remainingChars,
+        bonusChecks: usageStatus.bonusChecks,
+        canTopUp: true,
+        topUpPackages: TOPUP_PACKAGES,
         plan: userPlan,
       });
     }
+
+    // Określ czy używamy bonus check
+    const willUseBonusCheck = usageStatus.canUseBonusCheck;
 
     // Sprawdź interpunkcję przez Claude
     const result = await checkPunctuation(text);
 
     // Zapisz użycie
-    await recordUsage(userId, null, text.length);
+    await recordUsage(userId, null, text.length, willUseBonusCheck);
 
-    // Limity dla planu
-    const limits = LIMITS[userPlan];
+    // Limity dla planu (dla bonus check używamy PREMIUM limits dla wyjaśnień)
+    const limits = willUseBonusCheck ? LIMITS.PREMIUM : LIMITS[userPlan];
 
-    // ZAWSZE zapisuj sprawdzenie do bazy - potrzebne dla panelu admina
-    // Historia dla użytkownika jest kontrolowana przez endpoint /api/check/history
+    // ZAWSZE zapisuj sprawdzenie do bazy
     await prisma.check.create({
       data: {
         userId,
         visitorId: null,
         originalText: text,
         correctedText: result.correctedText,
-        // Cast do JSON - Prisma wymaga InputJsonValue
         corrections: JSON.parse(JSON.stringify(result.corrections)),
         charCount: text.length,
         errorCount: result.errorCount,
+        usedBonusCheck: willUseBonusCheck,
       },
     });
 
-    // Dla FREE - ukryj wyjaśnienia
-    const corrections = limits.showExplanations
+    // Dla bonus check lub premium - pokaż wyjaśnienia
+    // Dla FREE bez bonus - ukryj wyjaśnienia
+    const showExplanations = willUseBonusCheck || limits.showExplanations;
+
+    const corrections = showExplanations
       ? result.corrections
       : result.corrections.map((c) => ({
           ...c,
@@ -103,13 +115,21 @@ export async function checkRoutes(fastify: FastifyInstance) {
           rule: c.rule,
         }));
 
+    // Pobierz aktualny stan bonus checks
+    const currentBonusChecks = await getBonusChecks(userId);
+
+    // Przelicz pozostałe sprawdzenia
+    const newUsageStatus = await checkUsageLimits(userId, null, 0);
+
     return {
       correctedText: result.correctedText,
       corrections,
       errorCount: result.errorCount,
+      usedBonusCheck: willUseBonusCheck,
       usage: {
-        remainingChecks: usageStatus.remainingChecks - 1,
-        remainingChars: usageStatus.remainingChars - text.length,
+        remainingChecks: newUsageStatus.remainingChecks,
+        remainingChars: newUsageStatus.remainingChars,
+        bonusChecks: currentBonusChecks,
         plan: userPlan,
       },
     };
@@ -117,7 +137,6 @@ export async function checkRoutes(fastify: FastifyInstance) {
 
   // Endpoint do sprawdzenia statusu limitów - WYMAGA ZALOGOWANIA
   fastify.get("/api/check/status", async (request, reply) => {
-    // Wymagaj autoryzacji
     let userId: string;
     try {
       await request.jwtVerify();
@@ -131,7 +150,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { plan: true },
+      select: { plan: true, bonusChecks: true },
     });
 
     const userPlan: Plan = (user?.plan as Plan) || "FREE";
@@ -140,6 +159,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
     return {
       ...status,
       plan: userPlan,
+      topUpPackages: TOPUP_PACKAGES,
     };
   });
 
@@ -180,6 +200,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
         corrections: true,
         errorCount: true,
         charCount: true,
+        usedBonusCheck: true,
         createdAt: true,
       },
     });

@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import Stripe from "stripe";
 import { prisma } from "../lib/prisma";
+import { addBonusChecks, TOPUP_PACKAGES } from "../services/limits";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
@@ -22,9 +23,262 @@ const PLANS = {
 };
 
 export async function paymentRoutes(fastify: FastifyInstance) {
-  // Utwórz sesję checkout Stripe
+  // ==================== TOPUP - DOKUPYWANIE SPRAWDZEŃ ====================
+
+  // Utwórz sesję checkout dla dokupienia sprawdzeń
+  fastify.post(
+    "/api/payments/create-topup-checkout",
+    async (request, reply) => {
+      let userId: string;
+      try {
+        await request.jwtVerify();
+        userId = (request.user as any).userId;
+      } catch {
+        return reply.status(401).send({
+          error: "UNAUTHORIZED",
+          message: "Musisz być zalogowany",
+        });
+      }
+
+      const schema = z.object({
+        packageId: z.enum(["topup_5", "topup_10", "topup_20"]),
+      });
+
+      const { packageId } = schema.parse(request.body);
+
+      // Znajdź pakiet
+      const selectedPackage = TOPUP_PACKAGES.find((p) => p.id === packageId);
+      if (!selectedPackage) {
+        return reply.status(400).send({
+          error: "INVALID_PACKAGE",
+          message: "Nieprawidłowy pakiet",
+        });
+      }
+
+      // Pobierz użytkownika
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, stripeCustomerId: true },
+      });
+
+      if (!user) {
+        return reply.status(404).send({
+          error: "USER_NOT_FOUND",
+          message: "Użytkownik nie został znaleziony",
+        });
+      }
+
+      // Utwórz lub pobierz klienta Stripe
+      let customerId = user.stripeCustomerId;
+
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: { userId },
+        });
+        customerId = customer.id;
+
+        await prisma.user.update({
+          where: { id: userId },
+          data: { stripeCustomerId: customerId },
+        });
+      }
+
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+      try {
+        // Utwórz rekord zakupu w bazie (status PENDING)
+        const purchase = await prisma.creditPurchase.create({
+          data: {
+            userId,
+            amount: selectedPackage.amount,
+            creditsGranted: selectedPackage.credits,
+            stripeSessionId: "pending_" + Date.now(), // Tymczasowe ID
+            status: "PENDING",
+          },
+        });
+
+        const session = await stripe.checkout.sessions.create({
+          customer: customerId,
+          payment_method_types: ["card", "p24", "blik"],
+          mode: "payment",
+          line_items: [
+            {
+              price_data: {
+                currency: "pln",
+                product_data: {
+                  name: `Interpunkcja.com.pl - ${selectedPackage.label}`,
+                  description: `Dodatkowe ${selectedPackage.credits} sprawdzeń tekstu`,
+                },
+                unit_amount: selectedPackage.amount,
+              },
+              quantity: 1,
+            },
+          ],
+          success_url: `${frontendUrl}/platnosc/sukces?session_id={CHECKOUT_SESSION_ID}&type=topup`,
+          cancel_url: `${frontendUrl}/panel`,
+          metadata: {
+            userId,
+            type: "topup",
+            packageId: selectedPackage.id,
+            credits: selectedPackage.credits.toString(),
+            purchaseId: purchase.id,
+          },
+        });
+
+        // Zaktualizuj rekord zakupu z prawdziwym session ID
+        await prisma.creditPurchase.update({
+          where: { id: purchase.id },
+          data: { stripeSessionId: session.id },
+        });
+
+        return { url: session.url };
+      } catch (error: any) {
+        console.error("Stripe topup session error:", error);
+        return reply.status(500).send({
+          error: "PAYMENT_ERROR",
+          message: "Nie udało się utworzyć sesji płatności",
+        });
+      }
+    }
+  );
+
+  // Weryfikuj płatność topup po powrocie z checkout
+  fastify.post("/api/payments/verify-topup", async (request, reply) => {
+    let userId: string;
+    try {
+      await request.jwtVerify();
+      userId = (request.user as any).userId;
+    } catch {
+      return reply.status(401).send({
+        error: "UNAUTHORIZED",
+        message: "Musisz być zalogowany",
+      });
+    }
+
+    const schema = z.object({
+      sessionId: z.string(),
+    });
+
+    const { sessionId } = schema.parse(request.body);
+
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status !== "paid") {
+        return reply.status(400).send({
+          error: "PAYMENT_NOT_COMPLETED",
+          message: "Płatność nie została zakończona",
+        });
+      }
+
+      // Sprawdź czy to topup
+      if (session.metadata?.type !== "topup") {
+        return reply.status(400).send({
+          error: "INVALID_SESSION_TYPE",
+          message: "To nie jest sesja dokupienia sprawdzeń",
+        });
+      }
+
+      // Sprawdź czy sesja należy do tego użytkownika
+      if (session.metadata?.userId !== userId) {
+        return reply.status(403).send({
+          error: "FORBIDDEN",
+          message: "Ta płatność nie należy do Ciebie",
+        });
+      }
+
+      const credits = parseInt(session.metadata?.credits || "0");
+      const purchaseId = session.metadata?.purchaseId;
+
+      // Sprawdź czy już nie przyznano kredytów (idempotency)
+      const existingPurchase = await prisma.creditPurchase.findFirst({
+        where: { stripeSessionId: sessionId },
+      });
+
+      if (existingPurchase?.status === "COMPLETED") {
+        // Już przetworzone - zwróć sukces bez dodawania kredytów
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { bonusChecks: true },
+        });
+
+        return {
+          success: true,
+          creditsAdded: existingPurchase.creditsGranted,
+          totalBonusChecks: user?.bonusChecks || 0,
+          alreadyProcessed: true,
+        };
+      }
+
+      // Dodaj kredyty użytkownikowi
+      const newBonusChecks = await addBonusChecks(userId, credits);
+
+      // Zaktualizuj status zakupu
+      if (purchaseId) {
+        await prisma.creditPurchase.update({
+          where: { id: purchaseId },
+          data: {
+            status: "COMPLETED",
+            completedAt: new Date(),
+          },
+        });
+      }
+
+      return {
+        success: true,
+        creditsAdded: credits,
+        totalBonusChecks: newBonusChecks,
+      };
+    } catch (error: any) {
+      console.error("Topup verification error:", error);
+      return reply.status(500).send({
+        error: "VERIFICATION_ERROR",
+        message: "Nie udało się zweryfikować płatności",
+      });
+    }
+  });
+
+  // Pobierz dostępne pakiety topup
+  fastify.get("/api/payments/topup-packages", async (request, reply) => {
+    return {
+      packages: TOPUP_PACKAGES,
+    };
+  });
+
+  // Historia zakupów sprawdzeń
+  fastify.get("/api/payments/topup-history", async (request, reply) => {
+    let userId: string;
+    try {
+      await request.jwtVerify();
+      userId = (request.user as any).userId;
+    } catch {
+      return reply.status(401).send({
+        error: "UNAUTHORIZED",
+        message: "Musisz być zalogowany",
+      });
+    }
+
+    const purchases = await prisma.creditPurchase.findMany({
+      where: { userId, status: "COMPLETED" },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        amount: true,
+        creditsGranted: true,
+        createdAt: true,
+        completedAt: true,
+      },
+    });
+
+    return { purchases };
+  });
+
+  // ==================== PLANY SUBSKRYPCYJNE ====================
+
+  // Utwórz sesję checkout Stripe dla planów
   fastify.post("/api/payments/create-checkout", async (request, reply) => {
-    // Wymagaj autoryzacji
     let userId: string;
     try {
       await request.jwtVerify();
@@ -43,7 +297,6 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     const { plan } = schema.parse(request.body);
     const selectedPlan = PLANS[plan];
 
-    // Pobierz użytkownika
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { email: true, stripeCustomerId: true },
@@ -56,7 +309,6 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       });
     }
 
-    // Utwórz lub pobierz klienta Stripe
     let customerId = user.stripeCustomerId;
 
     if (!customerId) {
@@ -66,14 +318,12 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       });
       customerId = customer.id;
 
-      // Zapisz ID klienta Stripe
       await prisma.user.update({
         where: { id: userId },
         data: { stripeCustomerId: customerId },
       });
     }
 
-    // Utwórz sesję checkout
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
     try {
@@ -86,10 +336,10 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         metadata: {
           userId,
           plan,
+          type: "plan",
         },
       };
 
-      // Dla subskrypcji użyj price ID, dla jednorazowej płatności użyj line_items
       if (selectedPlan.mode === "subscription") {
         sessionConfig.line_items = [
           {
@@ -154,7 +404,6 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Sprawdź czy sesja należy do tego użytkownika
       if (session.metadata?.userId !== userId) {
         return reply.status(403).send({
           error: "FORBIDDEN",
@@ -162,7 +411,45 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Zaktualizuj plan użytkownika
+      // Jeśli to topup, przekieruj do verify-topup
+      if (session.metadata?.type === "topup") {
+        // Obsłuż jako topup
+        const credits = parseInt(session.metadata?.credits || "0");
+        const purchaseId = session.metadata?.purchaseId;
+
+        const existingPurchase = await prisma.creditPurchase.findFirst({
+          where: { stripeSessionId: sessionId },
+        });
+
+        if (existingPurchase?.status !== "COMPLETED") {
+          await addBonusChecks(userId, credits);
+
+          if (purchaseId) {
+            await prisma.creditPurchase.update({
+              where: { id: purchaseId },
+              data: {
+                status: "COMPLETED",
+                completedAt: new Date(),
+              },
+            });
+          }
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { bonusChecks: true, plan: true },
+        });
+
+        return {
+          success: true,
+          type: "topup",
+          creditsAdded: credits,
+          totalBonusChecks: user?.bonusChecks || 0,
+          plan: user?.plan,
+        };
+      }
+
+      // Standardowa obsługa planu
       const plan =
         session.metadata?.plan === "lifetime" ? "LIFETIME" : "PREMIUM";
 
@@ -171,7 +458,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         data: { plan },
       });
 
-      return { success: true, plan };
+      return { success: true, plan, type: "plan" };
     } catch (error: any) {
       console.error("Payment verification error:", error);
       return reply.status(500).send({
@@ -206,14 +493,46 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: "Webhook Error" });
       }
 
-      // Obsłuż różne eventy
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
           const userId = session.metadata?.userId;
-          const plan = session.metadata?.plan;
+          const type = session.metadata?.type;
 
-          if (userId && plan) {
+          if (!userId) break;
+
+          // Obsłuż topup
+          if (type === "topup") {
+            const credits = parseInt(session.metadata?.credits || "0");
+            const purchaseId = session.metadata?.purchaseId;
+
+            // Sprawdź czy już nie przetworzone
+            const existingPurchase = purchaseId
+              ? await prisma.creditPurchase.findUnique({
+                  where: { id: purchaseId },
+                })
+              : null;
+
+            if (!existingPurchase || existingPurchase.status !== "COMPLETED") {
+              await addBonusChecks(userId, credits);
+
+              if (purchaseId) {
+                await prisma.creditPurchase.update({
+                  where: { id: purchaseId },
+                  data: {
+                    status: "COMPLETED",
+                    completedAt: new Date(),
+                  },
+                });
+              }
+              console.log(`User ${userId} received ${credits} bonus checks`);
+            }
+            break;
+          }
+
+          // Obsłuż plan
+          const plan = session.metadata?.plan;
+          if (plan) {
             const newPlan = plan === "lifetime" ? "LIFETIME" : "PREMIUM";
             await prisma.user.update({
               where: { id: userId },
@@ -225,7 +544,6 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         }
 
         case "customer.subscription.deleted": {
-          // Subskrypcja anulowana - przywróć plan FREE
           const subscription = event.data.object as Stripe.Subscription;
           const customerId = subscription.customer as string;
 
@@ -244,10 +562,8 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         }
 
         case "invoice.payment_failed": {
-          // Płatność nie powiodła się
           const invoice = event.data.object as Stripe.Invoice;
           console.log(`Payment failed for invoice ${invoice.id}`);
-          // Tu można wysłać email do użytkownika
           break;
         }
       }
@@ -256,7 +572,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Anuluj subskrypcję - działa do końca okresu rozliczeniowego
+  // Anuluj subskrypcję
   fastify.post("/api/payments/cancel-subscription", async (request, reply) => {
     let userId: string;
     try {
@@ -289,7 +605,6 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      // Pobierz aktywne subskrypcje
       const subscriptions = await stripe.subscriptions.list({
         customer: user.stripeCustomerId,
         status: "active",
@@ -302,7 +617,6 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Ustaw anulowanie na koniec okresu (nie natychmiast!)
       const subscription = subscriptions.data[0];
       await stripe.subscriptions.update(subscription.id, {
         cancel_at_period_end: true,
@@ -341,13 +655,14 @@ export async function paymentRoutes(fastify: FastifyInstance) {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { stripeCustomerId: true, plan: true },
+      select: { stripeCustomerId: true, plan: true, bonusChecks: true },
     });
 
     if (!user?.stripeCustomerId || user.plan !== "PREMIUM") {
       return {
         hasSubscription: false,
         plan: user?.plan || "FREE",
+        bonusChecks: user?.bonusChecks || 0,
       };
     }
 
@@ -362,6 +677,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         return {
           hasSubscription: false,
           plan: user.plan,
+          bonusChecks: user.bonusChecks,
         };
       }
 
@@ -371,6 +687,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       return {
         hasSubscription: true,
         plan: user.plan,
+        bonusChecks: user.bonusChecks,
         status: subscription.status,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         currentPeriodEnd: periodEnd.toISOString(),
@@ -381,12 +698,13 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       return {
         hasSubscription: false,
         plan: user.plan,
+        bonusChecks: user.bonusChecks,
         error: "Nie udało się pobrać statusu subskrypcji",
       };
     }
   });
 
-  // Wznów anulowaną subskrypcję (przed końcem okresu)
+  // Wznów anulowaną subskrypcję
   fastify.post("/api/payments/resume-subscription", async (request, reply) => {
     let userId: string;
     try {
@@ -433,7 +751,6 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Wznów subskrypcję
       await stripe.subscriptions.update(subscription.id, {
         cancel_at_period_end: false,
       });

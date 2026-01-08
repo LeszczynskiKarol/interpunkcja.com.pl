@@ -1,4 +1,4 @@
-// frontend/src/pages/Checker.tsx
+// frontend/src/components/Checker.tsx
 import { useState, ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,22 +8,38 @@ import {
   Loader2,
   Copy,
   RefreshCw,
+  Zap,
+  Gift,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { checkPunctuation, getCheckStatus, type Correction } from "../lib/api";
 import { useAuthStore } from "../stores/authStore";
 import { clsx } from "clsx";
+import { TopUpModal } from "./TopUpModal";
+import { Link } from "react-router-dom";
+
+interface TopUpPackage {
+  id: string;
+  amount: number;
+  credits: number;
+  label: string;
+  priceLabel: string;
+  bonus?: number;
+}
 
 export function Checker() {
   const [text, setText] = useState("");
   const [corrections, setCorrections] = useState<Correction[]>([]);
   const [correctedText, setCorrectedText] = useState<string>("");
   const [showResult, setShowResult] = useState(false);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [topUpPackages, setTopUpPackages] = useState<TopUpPackage[]>([]);
 
   const { user } = useAuthStore();
 
   // Limity zależne od planu
-  const maxChars =
+  // Dla bonus checks limit jest jak PREMIUM (10000)
+  const baseMaxChars =
     user?.plan === "PREMIUM" || user?.plan === "LIFETIME" ? 10000 : 500;
 
   // Status limitów - tylko dla zalogowanych
@@ -32,6 +48,12 @@ export function Checker() {
     queryFn: () => getCheckStatus(),
     enabled: !!user,
   });
+
+  // Jeśli są bonus checks, zwiększ limit znaków
+  const hasBonusChecks = (status?.bonusChecks || 0) > 0;
+  const maxChars = hasBonusChecks
+    ? Math.max(baseMaxChars, 10000)
+    : baseMaxChars;
 
   // Mutacja sprawdzania - wymaga logowania
   const checkMutation = useMutation({
@@ -42,8 +64,12 @@ export function Checker() {
       setShowResult(true);
       refetchStatus();
 
+      if (data.usedBonusCheck) {
+        toast.success("Użyto dodatkowego sprawdzenia!", { icon: "🎁" });
+      }
+
       if (data.errorCount === 0) {
-        toast.success("Twój tekst jest poprawny interpunkcyjnie!");
+        toast.success("Twój tekst jest poprawny!");
       } else {
         toast.success(
           `Znaleziono ${data.errorCount} ${
@@ -58,9 +84,15 @@ export function Checker() {
     },
     onError: (error: any) => {
       if (error.response?.status === 429) {
-        toast.error(
-          error.response.data.message || "Przekroczono limit sprawdzeń"
-        );
+        // Limit wyczerpany - pokaż opcję dokupienia
+        const responseData = error.response.data;
+
+        if (responseData.canTopUp && responseData.topUpPackages) {
+          setTopUpPackages(responseData.topUpPackages);
+          setShowTopUpModal(true);
+        }
+
+        toast.error(responseData.message || "Przekroczono limit sprawdzeń");
       } else {
         toast.error("Wystąpił błąd podczas sprawdzania tekstu");
       }
@@ -98,12 +130,10 @@ export function Checker() {
     const result: ReactNode[] = [];
     let keyIndex = 0;
 
-    // Sortuj poprawki po długości original (od najdłuższych) żeby uniknąć nakładania się
     const sortedCorrections = [...corrections].sort(
       (a, b) => (b.original?.length || 0) - (a.original?.length || 0)
     );
 
-    // Znajdź wszystkie wystąpienia błędów
     interface FoundError {
       start: number;
       end: number;
@@ -118,7 +148,6 @@ export function Checker() {
       const index = text.indexOf(correction.original);
       if (index === -1) continue;
 
-      // Sprawdź czy ten zakres nie nakłada się z już znalezionym
       let overlaps = false;
       for (const found of foundErrors) {
         if (
@@ -139,20 +168,16 @@ export function Checker() {
       }
     }
 
-    // Sortuj znalezione błędy po pozycji
     foundErrors.sort((a, b) => a.start - b.start);
 
-    // Buduj wynik
     let lastIndex = 0;
     for (const error of foundErrors) {
-      // Tekst przed błędem
       if (error.start > lastIndex) {
         result.push(
           <span key={keyIndex++}>{text.slice(lastIndex, error.start)}</span>
         );
       }
 
-      // Błędny fragment
       result.push(
         <span
           key={keyIndex++}
@@ -166,7 +191,6 @@ export function Checker() {
       lastIndex = error.end;
     }
 
-    // Reszta tekstu
     if (lastIndex < text.length) {
       result.push(<span key={keyIndex++}>{text.slice(lastIndex)}</span>);
     }
@@ -178,33 +202,64 @@ export function Checker() {
     <div className="w-full max-w-4xl mx-auto">
       {/* Status limitów */}
       {status && (
-        <div className="mb-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-          <span>
-            Plan:{" "}
-            <strong
-              className={
-                user?.plan === "PREMIUM"
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-gray-700 dark:text-gray-300"
-              }
-            >
-              {user?.plan || "FREE"}
-            </strong>
-          </span>
-          <span>
-            Pozostało:{" "}
-            <strong className="text-gray-900 dark:text-white">
-              {status.remainingChecks === Infinity
-                ? "∞"
-                : status.remainingChecks}
-            </strong>{" "}
-            sprawdzeń
-            {" | "}
-            <strong className="text-gray-900 dark:text-white">
-              {status.remainingChars === Infinity ? "∞" : status.remainingChars}
-            </strong>{" "}
-            znaków dziś
-          </span>
+        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600 dark:text-gray-400">
+                Plan:{" "}
+                <strong
+                  className={
+                    user?.plan === "PREMIUM" || user?.plan === "LIFETIME"
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-gray-700 dark:text-gray-300"
+                  }
+                >
+                  {user?.plan || "FREE"}
+                </strong>
+              </span>
+
+              {/* Bonus checks badge */}
+              {status.bonusChecks > 0 && (
+                <span className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
+                  <Gift className="w-3 h-3" />
+                  {status.bonusChecks} bonus
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600 dark:text-gray-400">
+                Dziś:{" "}
+                <strong className="text-gray-900 dark:text-white">
+                  {status.remainingChecks === Infinity
+                    ? "∞"
+                    : status.remainingChecks}
+                </strong>{" "}
+                spr.
+                {" / "}
+                <strong className="text-gray-900 dark:text-white">
+                  {status.remainingChars === Infinity
+                    ? "∞"
+                    : status.remainingChars}
+                </strong>{" "}
+                zn.
+              </span>
+
+              {/* Quick topup button */}
+              {status.topUpPackages && status.topUpPackages.length > 0 && (
+                <button
+                  onClick={() => {
+                    setTopUpPackages(status.topUpPackages);
+                    setShowTopUpModal(true);
+                  }}
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+                >
+                  <Zap className="w-3 h-3" />
+                  Dokup
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -213,7 +268,7 @@ export function Checker() {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Wklej lub wpisz tekst do sprawdzenia interpunkcji..."
+          placeholder="Wklej lub wpisz tekst do sprawdzenia..."
           className={clsx(
             "w-full h-96 p-4 border-2 rounded-xl resize-none transition-colors",
             "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
@@ -236,6 +291,11 @@ export function Checker() {
           )}
         >
           {text.length} / {maxChars}
+          {hasBonusChecks && baseMaxChars < 10000 && (
+            <span className="ml-1 text-green-600 dark:text-green-400">
+              (+bonus)
+            </span>
+          )}
         </div>
       </div>
 
@@ -266,7 +326,7 @@ export function Checker() {
           ) : (
             <>
               <CheckCircle className="w-5 h-5" />
-              Sprawdź interpunkcję
+              Sprawdź tekst
             </>
           )}
         </button>
@@ -303,9 +363,7 @@ export function Checker() {
               {corrections.length === 0 ? (
                 <>
                   <CheckCircle className="w-6 h-6" />
-                  <span className="font-medium">
-                    Twój tekst jest poprawny interpunkcyjnie!
-                  </span>
+                  <span className="font-medium">Twój tekst jest poprawny!</span>
                 </>
               ) : (
                 <>
@@ -316,8 +374,7 @@ export function Checker() {
                       ? "błąd"
                       : corrections.length < 5
                       ? "błędy"
-                      : "błędów"}{" "}
-                    interpunkcyjnych
+                      : "błędów"}
                   </span>
                 </>
               )}
@@ -401,19 +458,46 @@ export function Checker() {
             {/* CTA dla Free */}
             {(!user || user.plan === "FREE") && corrections.length > 0 && (
               <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">
-                <h3 className="text-lg font-semibold mb-2">Chcesz więcej?</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Potrzebujesz więcej?
+                </h3>
                 <p className="text-blue-100 mb-4">
-                  Przejdź na Premium i odblouj pełne wyjaśnienia, brak limitów i
-                  historię sprawdzeń.
+                  Przejdź na Premium i korzystaj bez ograniczeń, lub dokup
+                  pojedyncze sprawdzenia.
                 </p>
-                <button className="px-6 py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors">
-                  Zobacz plany →
-                </button>
+                <div className="flex gap-3">
+                  <Link
+                    to="/cennik"
+                    className="px-6 py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    Zobacz plany →
+                  </Link>
+                  <button
+                    onClick={() => {
+                      if (status?.topUpPackages) {
+                        setTopUpPackages(status.topUpPackages);
+                        setShowTopUpModal(true);
+                      }
+                    }}
+                    className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-400 transition-colors flex items-center gap-2"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Dokup sprawdzenia
+                  </button>
+                </div>
               </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* TopUp Modal */}
+      <TopUpModal
+        isOpen={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        packages={topUpPackages}
+        currentBonusChecks={status?.bonusChecks || 0}
+      />
     </div>
   );
 }
