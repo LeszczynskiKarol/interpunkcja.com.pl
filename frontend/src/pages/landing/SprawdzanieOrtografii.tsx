@@ -451,8 +451,7 @@ export function SprawdzanieOrtografii() {
             )}
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Bez karty kredytowej
-              &nbsp; ✓ Rejestracja w 30 sekund
+              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
             </p>
           </div>
         </header>
@@ -1060,8 +1059,7 @@ export function SprawdzanieOrtografii() {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <p className="text-green-100 mt-6 text-sm">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Bez karty kredytowej
-              &nbsp; ✓ Lifetime 299 zł
+              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Lifetime 299 zł
             </p>
           </div>
         </section>

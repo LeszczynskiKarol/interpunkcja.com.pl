@@ -357,8 +357,7 @@ export function Home() {
 
             {/* Trust indicators */}
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ Bez karty kredytowej &nbsp; ✓ 5 sprawdzeń dziennie za darmo
-              &nbsp; ✓ Rejestracja w 30 sekund
+              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
             </p>
           </div>
         </header>
@@ -806,7 +805,7 @@ export function Home() {
             </h2>
             <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
               Dołącz do tysięcy osób, które sprawdzają interpunkcję z pomocą
-              sztucznej inteligencji. Bez zobowiązań, bez karty kredytowej.
+              sztucznej inteligencji. Bez zobowiązań.
             </p>
             <Link
               to="/rejestracja"
