@@ -36,6 +36,7 @@ import { CategoryPage } from "./pages/CategoryPage";
 
 // Landing pages SEO
 import { SprawdzanieOrtografii } from "./pages/landing/SprawdzanieOrtografii";
+import { SprawdzaniePisowni } from "./pages/landing/SprawdzaniePisowni";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,6 +78,14 @@ function App() {
               element={
                 <Layout>
                   <SprawdzanieOrtografii />
+                </Layout>
+              }
+            />
+            <Route
+              path="/sprawdzanie-pisowni"
+              element={
+                <Layout>
+                  <SprawdzaniePisowni />
                 </Layout>
               }
             />
