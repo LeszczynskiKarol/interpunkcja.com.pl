@@ -10,6 +10,8 @@ import {
   RefreshCw,
   Zap,
   Gift,
+  Crown,
+  AlertTriangle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { checkPunctuation, getCheckStatus, type Correction } from "../lib/api";
@@ -38,9 +40,8 @@ export function Checker() {
   const { user } = useAuthStore();
 
   // Limity zależne od planu
-  // Dla bonus checks limit jest jak PREMIUM (10000)
-  const baseMaxChars =
-    user?.plan === "PREMIUM" || user?.plan === "LIFETIME" ? 10000 : 500;
+  const planMaxChars =
+    user?.plan === "LIFETIME" ? 50000 : user?.plan === "PREMIUM" ? 10000 : 500;
 
   // Status limitów - tylko dla zalogowanych
   const { data: status, refetch: refetchStatus } = useQuery({
@@ -49,13 +50,21 @@ export function Checker() {
     enabled: !!user,
   });
 
-  // Jeśli są bonus checks, zwiększ limit znaków
+  // Jeśli są bonus checks, zwiększ limit znaków do 10000 (jak PREMIUM)
   const hasBonusChecks = (status?.bonusChecks || 0) > 0;
   const maxChars = hasBonusChecks
-    ? Math.max(baseMaxChars, 10000)
-    : baseMaxChars;
+    ? Math.max(planMaxChars, 10000)
+    : planMaxChars;
 
-  // Mutacja sprawdzania - wymaga logowania
+  // Sprawdź czy tekst przekracza limit
+  const textExceedsLimit = text.length > maxChars;
+  const textExceedsPlanLimit = text.length > planMaxChars;
+
+  // Czy można użyć bonus check dla tego tekstu (nawet jeśli przekracza plan limit)
+  const canUseBonusForLongerText =
+    hasBonusChecks && text.length <= 10000 && text.length > planMaxChars;
+
+  // Mutacja sprawdzania
   const checkMutation = useMutation({
     mutationFn: (text: string) => checkPunctuation(text),
     onSuccess: (data) => {
@@ -84,7 +93,6 @@ export function Checker() {
     },
     onError: (error: any) => {
       if (error.response?.status === 429) {
-        // Limit wyczerpany - pokaż opcję dokupienia
         const responseData = error.response.data;
 
         if (responseData.canTopUp && responseData.topUpPackages) {
@@ -121,6 +129,40 @@ export function Checker() {
     setCorrections([]);
     setCorrectedText("");
     setShowResult(false);
+  };
+
+  const openTopUpModal = () => {
+    if (status?.topUpPackages) {
+      setTopUpPackages(status.topUpPackages);
+    } else {
+      // Fallback packages
+      setTopUpPackages([
+        {
+          id: "topup_5",
+          amount: 500,
+          credits: 10,
+          label: "10 sprawdzeń",
+          priceLabel: "5 zł",
+        },
+        {
+          id: "topup_10",
+          amount: 1000,
+          credits: 25,
+          label: "25 sprawdzeń",
+          priceLabel: "10 zł",
+          bonus: 5,
+        },
+        {
+          id: "topup_20",
+          amount: 2000,
+          credits: 60,
+          label: "60 sprawdzeń",
+          priceLabel: "20 zł",
+          bonus: 10,
+        },
+      ]);
+    }
+    setShowTopUpModal(true);
   };
 
   // Renderowanie tekstu z podświetlonymi błędami
@@ -236,28 +278,16 @@ export function Checker() {
                     : status.remainingChecks}
                 </strong>{" "}
                 spr.
-                {" / "}
-                <strong className="text-gray-900 dark:text-white">
-                  {status.remainingChars === Infinity
-                    ? "∞"
-                    : status.remainingChars}
-                </strong>{" "}
-                zn.
               </span>
 
               {/* Quick topup button */}
-              {status.topUpPackages && status.topUpPackages.length > 0 && (
-                <button
-                  onClick={() => {
-                    setTopUpPackages(status.topUpPackages);
-                    setShowTopUpModal(true);
-                  }}
-                  className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
-                >
-                  <Zap className="w-3 h-3" />
-                  Dokup
-                </button>
-              )}
+              <button
+                onClick={openTopUpModal}
+                className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+              >
+                <Zap className="w-3 h-3" />
+                Dokup
+              </button>
             </div>
           </div>
         </div>
@@ -274,7 +304,7 @@ export function Checker() {
             "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
             "placeholder-gray-400 dark:placeholder-gray-500",
             "focus:outline-none focus:border-blue-500 dark:focus:border-blue-400",
-            text.length > maxChars
+            textExceedsLimit
               ? "border-red-500 dark:border-red-400"
               : "border-gray-200 dark:border-gray-700"
           )}
@@ -285,13 +315,13 @@ export function Checker() {
         <div
           className={clsx(
             "absolute bottom-3 right-3 text-sm",
-            text.length > maxChars
+            textExceedsLimit
               ? "text-red-600 dark:text-red-400 font-medium"
               : "text-gray-400 dark:text-gray-500"
           )}
         >
           {text.length} / {maxChars}
-          {hasBonusChecks && baseMaxChars < 10000 && (
+          {hasBonusChecks && planMaxChars < 10000 && (
             <span className="ml-1 text-green-600 dark:text-green-400">
               (+bonus)
             </span>
@@ -299,21 +329,101 @@ export function Checker() {
         </div>
       </div>
 
+      {/* Alert gdy tekst przekracza limit */}
+      {textExceedsPlanLimit && text.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4"
+        >
+          <div
+            className={clsx(
+              "p-4 rounded-xl border-2",
+              canUseBonusForLongerText
+                ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+            )}
+          >
+            <div className="flex items-start gap-3">
+              {canUseBonusForLongerText ? (
+                <Gift className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              )}
+
+              <div className="flex-1">
+                {canUseBonusForLongerText ? (
+                  <>
+                    <p className="text-green-800 dark:text-green-200 font-medium">
+                      Możesz użyć bonus sprawdzenia!
+                    </p>
+                    <p className="text-green-700 dark:text-green-300 text-sm mt-1">
+                      Twój tekst ma {text.length} znaków. Masz{" "}
+                      {status?.bonusChecks} bonus sprawdzeń z limitem do 10 000
+                      znaków.
+                    </p>
+                  </>
+                ) : text.length > 10000 ? (
+                  <>
+                    <p className="text-amber-800 dark:text-amber-200 font-medium">
+                      Tekst przekracza maksymalny limit
+                    </p>
+                    <p className="text-amber-700 dark:text-amber-300 text-sm mt-1">
+                      Maksymalny limit to 10 000 znaków (Premium) lub 50 000
+                      (Lifetime). Podziel tekst na mniejsze części.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-amber-800 dark:text-amber-200 font-medium">
+                      Tekst przekracza limit {planMaxChars} znaków dla planu{" "}
+                      {user?.plan || "FREE"}
+                    </p>
+                    <p className="text-amber-700 dark:text-amber-300 text-sm mt-1 mb-3">
+                      Twój tekst ma {text.length} znaków. Masz kilka opcji:
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={openTopUpModal}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Zap className="w-4 h-4" />
+                        Dokup sprawdzenia (od 5 zł)
+                      </button>
+
+                      <Link
+                        to="/cennik"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                      >
+                        <Crown className="w-4 h-4" />
+                        Przejdź na Premium
+                      </Link>
+                    </div>
+
+                    <p className="text-amber-600 dark:text-amber-400 text-xs mt-3">
+                      💡 Dokupione sprawdzenia mają limit 10 000 znaków i nie
+                      wygasają
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Przyciski */}
       <div className="mt-4 flex gap-3">
         <button
           onClick={handleCheck}
           disabled={
-            checkMutation.isPending ||
-            text.length === 0 ||
-            text.length > maxChars
+            checkMutation.isPending || text.length === 0 || textExceedsLimit
           }
           className={clsx(
             "flex-1 py-3 px-6 rounded-xl font-medium transition-all",
             "flex items-center justify-center gap-2",
-            checkMutation.isPending ||
-              text.length === 0 ||
-              text.length > maxChars
+            checkMutation.isPending || text.length === 0 || textExceedsLimit
               ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
               : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
           )}
@@ -455,38 +565,35 @@ export function Checker() {
               </div>
             )}
 
-            {/* CTA dla Free */}
-            {(!user || user.plan === "FREE") && corrections.length > 0 && (
-              <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">
-                <h3 className="text-lg font-semibold mb-2">
-                  Potrzebujesz więcej?
-                </h3>
-                <p className="text-blue-100 mb-4">
-                  Przejdź na Premium i korzystaj bez ograniczeń, lub dokup
-                  pojedyncze sprawdzenia.
-                </p>
-                <div className="flex gap-3">
-                  <Link
-                    to="/cennik"
-                    className="px-6 py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors"
-                  >
-                    Zobacz plany →
-                  </Link>
-                  <button
-                    onClick={() => {
-                      if (status?.topUpPackages) {
-                        setTopUpPackages(status.topUpPackages);
-                        setShowTopUpModal(true);
-                      }
-                    }}
-                    className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-400 transition-colors flex items-center gap-2"
-                  >
-                    <Zap className="w-4 h-4" />
-                    Dokup sprawdzenia
-                  </button>
+            {/* CTA dla Free gdy brak limitów */}
+            {(!user || user.plan === "FREE") &&
+              corrections.length > 0 &&
+              status?.remainingChecks === 0 && (
+                <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Potrzebujesz więcej sprawdzeń?
+                  </h3>
+                  <p className="text-blue-100 mb-4">
+                    Przejdź na Premium i korzystaj bez ograniczeń, lub dokup
+                    pojedyncze sprawdzenia.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/cennik"
+                      className="px-6 py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      Zobacz plany →
+                    </Link>
+                    <button
+                      onClick={openTopUpModal}
+                      className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-400 transition-colors flex items-center gap-2"
+                    >
+                      <Zap className="w-4 h-4" />
+                      Dokup sprawdzenia
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </motion.div>
         )}
       </AnimatePresence>
