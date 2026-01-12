@@ -1,7 +1,7 @@
 // backend/src/routes/check.ts
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { checkPunctuation } from "../services/claude";
+import { checkPunctuation, type ErrorCategory } from "../services/claude";
 import {
   checkUsageLimits,
   recordUsage,
@@ -21,7 +21,7 @@ const checkSchema = z.object({
 });
 
 export async function checkRoutes(fastify: FastifyInstance) {
-  // Główny endpoint sprawdzania interpunkcji - WYMAGA ZALOGOWANIA
+  // Główny endpoint sprawdzania tekstu - WYMAGA ZALOGOWANIA
   fastify.post("/api/check", async (request, reply) => {
     // Wymagaj autoryzacji
     let userId: string;
@@ -80,7 +80,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
     // Określ czy używamy bonus check
     const willUseBonusCheck = usageStatus.canUseBonusCheck;
 
-    // Sprawdź interpunkcję przez Claude
+    // Sprawdź tekst przez Claude (kompleksowa korekta)
     const result = await checkPunctuation(text);
 
     // Zapisz użycie
@@ -103,16 +103,17 @@ export async function checkRoutes(fastify: FastifyInstance) {
       },
     });
 
-    // Dla bonus check lub premium - pokaż wyjaśnienia
-    // Dla FREE bez bonus - ukryj wyjaśnienia
+    // Dla bonus check lub premium - pokaż pełne wyjaśnienia
+    // Dla FREE bez bonus - ukryj szczegółowe wyjaśnienia
     const showExplanations = willUseBonusCheck || limits.showExplanations;
 
     const corrections = showExplanations
       ? result.corrections
       : result.corrections.map((c) => ({
           ...c,
-          explanation: "Przejdź na Premium, aby zobaczyć wyjaśnienia",
-          rule: c.rule,
+          explanation:
+            "Przejdź na Premium, aby zobaczyć szczegółowe wyjaśnienia",
+          // Zostawiamy rule i category - to podstawowe info
         }));
 
     // Pobierz aktualny stan bonus checks
@@ -125,6 +126,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
       correctedText: result.correctedText,
       corrections,
       errorCount: result.errorCount,
+      summary: result.summary, // Dodajemy podsumowanie błędów według kategorii
       usedBonusCheck: willUseBonusCheck,
       usage: {
         remainingChecks: newUsageStatus.remainingChecks,
@@ -206,5 +208,89 @@ export async function checkRoutes(fastify: FastifyInstance) {
     });
 
     return history;
+  });
+
+  // Nowy endpoint - statystyki błędów użytkownika (dla Premium/Lifetime)
+  fastify.get("/api/check/stats", async (request, reply) => {
+    let userId: string;
+    try {
+      await request.jwtVerify();
+      userId = (request.user as any).userId;
+    } catch {
+      return reply.status(401).send({
+        error: "UNAUTHORIZED",
+        message: "Musisz być zalogowany",
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true },
+    });
+
+    if (!user || user.plan === "FREE") {
+      return reply.status(403).send({
+        error: "PREMIUM_REQUIRED",
+        message: "Statystyki błędów są dostępne tylko dla Premium i Lifetime",
+      });
+    }
+
+    // Pobierz wszystkie sprawdzenia użytkownika
+    const checks = await prisma.check.findMany({
+      where: { userId },
+      select: {
+        corrections: true,
+        errorCount: true,
+        charCount: true,
+        createdAt: true,
+      },
+    });
+
+    // Agreguj statystyki
+    const stats = {
+      totalChecks: checks.length,
+      totalErrors: 0,
+      totalChars: 0,
+      byCategory: {
+        interpunkcja: 0,
+        ortografia: 0,
+        pisownia: 0,
+        gramatyka: 0,
+        stylistyka: 0,
+      } as Record<string, number>,
+      mostCommonErrors: [] as { rule: string; count: number }[],
+    };
+
+    const ruleCounter: Record<string, number> = {};
+
+    for (const check of checks) {
+      stats.totalErrors += check.errorCount;
+      stats.totalChars += check.charCount;
+
+      const corrections = check.corrections as any[];
+      if (Array.isArray(corrections)) {
+        for (const c of corrections) {
+          // Zliczaj kategorie
+          const category = c.category as string;
+          if (category && category in stats.byCategory) {
+            stats.byCategory[category]++;
+          }
+
+          // Zliczaj reguły
+          const rule = c.rule as string;
+          if (rule) {
+            ruleCounter[rule] = (ruleCounter[rule] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    // Top 10 najczęstszych błędów
+    stats.mostCommonErrors = Object.entries(ruleCounter)
+      .map(([rule, count]) => ({ rule, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    return stats;
   });
 }

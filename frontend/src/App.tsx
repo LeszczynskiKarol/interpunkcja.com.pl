@@ -35,8 +35,11 @@ import { ArticlePage } from "./pages/ArticlePage";
 import { CategoryPage } from "./pages/CategoryPage";
 
 // Landing pages SEO
+import { PoprawianieBledow } from "./pages/landing/PoprawianieBledow";
 import { SprawdzanieOrtografii } from "./pages/landing/SprawdzanieOrtografii";
 import { SprawdzaniePisowni } from "./pages/landing/SprawdzaniePisowni";
+import { KorektorTekstu } from "./pages/landing/KorektorTekstu";
+import { KorektaTekstuOnline } from "./pages/landing/KorektaTekstuOnline";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,6 +89,33 @@ function App() {
               element={
                 <Layout>
                   <SprawdzaniePisowni />
+                </Layout>
+              }
+            />
+
+            <Route
+              path="/korektor-tekstu"
+              element={
+                <Layout>
+                  <KorektorTekstu />
+                </Layout>
+              }
+            />
+
+            <Route
+              path="/poprawianie-bledow"
+              element={
+                <Layout>
+                  <PoprawianieBledow />
+                </Layout>
+              }
+            />
+
+            <Route
+              path="/korekta-tekstu-online"
+              element={
+                <Layout>
+                  <KorektaTekstuOnline />
                 </Layout>
               }
             />
