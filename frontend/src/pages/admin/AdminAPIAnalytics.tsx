@@ -71,15 +71,15 @@ interface APIStats {
   }>;
 }
 
-const CATEGORY_COLORS = {
-  interpunkcja: "#3B82F6", // blue
-  ortografia: "#EF4444", // red
-  pisownia: "#F59E0B", // amber
-  gramatyka: "#10B981", // green
-  stylistyka: "#8B5CF6", // purple
+const CATEGORY_COLORS: Record<string, string> = {
+  interpunkcja: "#3B82F6",
+  ortografia: "#EF4444",
+  pisownia: "#F59E0B",
+  gramatyka: "#10B981",
+  stylistyka: "#8B5CF6",
 };
 
-const CATEGORY_LABELS = {
+const CATEGORY_LABELS: Record<string, string> = {
   interpunkcja: "Interpunkcja",
   ortografia: "Ortografia",
   pisownia: "Pisownia",
@@ -96,10 +96,10 @@ export function AdminAPIAnalytics() {
       const res = await api.get(`/api/admin/analytics/api?range=${timeRange}`);
       return res.data;
     },
-    refetchInterval: 60000, // Odświeżaj co minutę
+    refetchInterval: 60000,
   });
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -108,23 +108,31 @@ export function AdminAPIAnalytics() {
     }).format(value);
   };
 
-  const formatNumber = (value: number) => {
+  const formatNumber = (value: number): string => {
     return new Intl.NumberFormat("pl-PL").format(Math.round(value));
   };
 
-  const formatTime = (ms: number) => {
+  const formatTime = (ms: number): string => {
     if (ms < 1000) return `${Math.round(ms)}ms`;
     return `${(ms / 1000).toFixed(1)}s`;
   };
 
-  // Przygotuj dane do wykresu kołowego kategorii
+  const formatDateTick = (value: string): string => {
+    const date = new Date(value);
+    return `${date.getDate()}.${date.getMonth() + 1}`;
+  };
+
+  const formatDateLabel = (label: string): string => {
+    return new Date(label).toLocaleDateString("pl-PL");
+  };
+
   const categoryData = data
     ? Object.entries(data.byCategory)
-        .filter(([_, count]) => count > 0)
+        .filter(([, count]) => count > 0)
         .map(([category, count]) => ({
-          name: CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS],
+          name: CATEGORY_LABELS[category] || category,
           value: count,
-          color: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS],
+          color: CATEGORY_COLORS[category] || "#6B7280",
         }))
     : [];
 
@@ -143,7 +151,6 @@ export function AdminAPIAnalytics() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Time range selector */}
           <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             {(["7d", "30d", "90d"] as const).map((range) => (
               <button
@@ -184,7 +191,6 @@ export function AdminAPIAnalytics() {
         <>
           {/* Main Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Tokens */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
@@ -209,7 +215,6 @@ export function AdminAPIAnalytics() {
               </div>
             </div>
 
-            {/* Total Cost */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
@@ -228,7 +233,6 @@ export function AdminAPIAnalytics() {
               </div>
             </div>
 
-            {/* Avg Response Time */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
@@ -247,7 +251,6 @@ export function AdminAPIAnalytics() {
               </div>
             </div>
 
-            {/* Total Checks */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
@@ -274,7 +277,6 @@ export function AdminAPIAnalytics() {
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Daily Cost Chart */}
             <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -291,15 +293,12 @@ export function AdminAPIAnalytics() {
                     <XAxis
                       dataKey="date"
                       tick={{ fill: "#9CA3AF", fontSize: 11 }}
-                      tickFormatter={(value) => {
-                        const date = new Date(value);
-                        return `${date.getDate()}.${date.getMonth() + 1}`;
-                      }}
+                      tickFormatter={formatDateTick}
                     />
                     <YAxis
                       yAxisId="left"
                       tick={{ fill: "#9CA3AF", fontSize: 11 }}
-                      tickFormatter={(value) => `$${value.toFixed(2)}`}
+                      tickFormatter={(value: number) => `$${value.toFixed(2)}`}
                     />
                     <YAxis
                       yAxisId="right"
@@ -313,19 +312,7 @@ export function AdminAPIAnalytics() {
                         borderRadius: "8px",
                         color: "#fff",
                       }}
-                      formatter={(value, name) => {
-                        const numValue = Number(value) || 0;
-                        if (name === "costUsd")
-                          return [formatCurrency(numValue), "Koszt"];
-                        if (name === "checks")
-                          return [formatNumber(numValue), "Sprawdzeń"];
-                        if (name === "tokens")
-                          return [formatNumber(numValue), "Tokenów"];
-                        return [numValue, name];
-                      }}
-                      labelFormatter={(label) =>
-                        new Date(label).toLocaleDateString("pl-PL")
-                      }
+                      labelFormatter={formatDateLabel}
                     />
                     <Legend />
                     <Line
@@ -351,7 +338,6 @@ export function AdminAPIAnalytics() {
               </div>
             </div>
 
-            {/* Error Categories Pie Chart */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-purple-600" />
@@ -380,10 +366,6 @@ export function AdminAPIAnalytics() {
                         borderRadius: "8px",
                         color: "#fff",
                       }}
-                      formatter={(value) => [
-                        formatNumber(Number(value) || 0),
-                        "Błędów",
-                      ]}
                     />
                     <Legend
                       layout="vertical"
@@ -414,21 +396,22 @@ export function AdminAPIAnalytics() {
                   <XAxis
                     dataKey="date"
                     tick={{ fill: "#9CA3AF", fontSize: 11 }}
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getDate()}.${date.getMonth() + 1}`;
-                    }}
+                    tickFormatter={formatDateTick}
                   />
                   <YAxis
                     yAxisId="left"
                     tick={{ fill: "#9CA3AF", fontSize: 11 }}
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}s`}
+                    tickFormatter={(value: number) =>
+                      `${(value / 1000).toFixed(0)}s`
+                    }
                   />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
                     tick={{ fill: "#9CA3AF", fontSize: 11 }}
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    tickFormatter={(value: number) =>
+                      `${(value / 1000).toFixed(0)}k`
+                    }
                   />
                   <Tooltip
                     contentStyle={{
@@ -437,17 +420,7 @@ export function AdminAPIAnalytics() {
                       borderRadius: "8px",
                       color: "#fff",
                     }}
-                    formatter={(value, name) => {
-                      const numValue = Number(value) || 0;
-                      if (name === "avgTimeMs")
-                        return [formatTime(numValue), "Śr. czas"];
-                      if (name === "tokens")
-                        return [formatNumber(numValue), "Tokenów"];
-                      return [numValue, name];
-                    }}
-                    labelFormatter={(label) =>
-                      new Date(label).toLocaleDateString("pl-PL")
-                    }
+                    labelFormatter={formatDateLabel}
                   />
                   <Legend />
                   <Bar
