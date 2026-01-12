@@ -65,6 +65,10 @@ model Check {
   charCount       Int
   errorCount      Int
   usedBonusCheck  Boolean  @default(false)  // Czy użyto bonus sprawdzenia
+  
+  // Metadata z procesu korekty (tokeny, koszt, czas)
+  metadata        Json?
+  
   createdAt       DateTime @default(now())
   
   user            User?    @relation(fields: [userId], references: [id])

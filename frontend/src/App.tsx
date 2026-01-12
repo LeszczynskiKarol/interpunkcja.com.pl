@@ -34,6 +34,7 @@ import { AdminStats } from "./pages/admin/AdminStats";
 import { AdminArticles } from "./pages/admin/AdminArticles";
 import { AdminPurchases } from "./pages/admin/AdminPurchases";
 import { AdminCorrectionDebug } from "./pages/admin/AdminCorrectionDebug";
+import { AdminAPIAnalytics } from "./pages/admin/AdminAPIAnalytics";
 import { ArticlePage } from "./pages/ArticlePage";
 import { CategoryPage } from "./pages/CategoryPage";
 
@@ -231,6 +232,7 @@ function App() {
                 <Route path="sprawdzenia" element={<AdminChecks />} />
                 <Route path="zakupy" element={<AdminPurchases />} />
                 <Route path="statystyki" element={<AdminStats />} />
+                <Route path="analityka-api" element={<AdminAPIAnalytics />} />
                 <Route path="artykuly" element={<AdminArticles />} />
                 <Route path="debug" element={<AdminCorrectionDebug />} />
               </Route>

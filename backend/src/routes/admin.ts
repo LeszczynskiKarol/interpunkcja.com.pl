@@ -169,6 +169,183 @@ export async function adminRoutes(fastify: FastifyInstance) {
     };
   });
 
+  // ==================== API ANALYTICS ====================
+
+  fastify.get("/api/admin/analytics/api", async (request, reply) => {
+    const schema = z.object({
+      range: z.enum(["7d", "30d", "90d"]).default("30d"),
+    });
+
+    const { range } = schema.parse(request.query);
+
+    const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
+
+    // Pobierz wszystkie sprawdzenia z metadanymi w zadanym okresie
+    const checks = await prisma.check.findMany({
+      where: {
+        createdAt: { gte: startDate },
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        charCount: true,
+        errorCount: true,
+        corrections: true,
+        metadata: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Agreguj statystyki
+    let totalTokens = 0;
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let totalCostUsd = 0;
+    let totalResponseTimeMs = 0;
+    let checksWithMetadata = 0;
+
+    const byCategory = {
+      interpunkcja: 0,
+      ortografia: 0,
+      pisownia: 0,
+      gramatyka: 0,
+      stylistyka: 0,
+    };
+
+    // Mapa dla danych dziennych
+    const dailyMap = new Map<
+      string,
+      {
+        checks: number;
+        tokens: number;
+        costUsd: number;
+        totalTimeMs: number;
+        errors: number;
+        checksWithTime: number;
+      }
+    >();
+
+    // Inicjalizuj wszystkie dni w zakresie
+    const currentDate = new Date(startDate);
+    const today = new Date();
+    while (currentDate <= today) {
+      const dateStr = currentDate.toISOString().split("T")[0];
+      dailyMap.set(dateStr, {
+        checks: 0,
+        tokens: 0,
+        costUsd: 0,
+        totalTimeMs: 0,
+        errors: 0,
+        checksWithTime: 0,
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Przetwórz każde sprawdzenie
+    for (const check of checks) {
+      const dateStr = check.createdAt.toISOString().split("T")[0];
+      const daily = dailyMap.get(dateStr);
+
+      if (daily) {
+        daily.checks++;
+        daily.errors += check.errorCount;
+      }
+
+      // Zliczaj kategorie błędów
+      const corrections = check.corrections as any[];
+      if (Array.isArray(corrections)) {
+        for (const c of corrections) {
+          const category = c.category as string;
+          if (category && category in byCategory) {
+            byCategory[category as keyof typeof byCategory]++;
+          }
+        }
+      }
+
+      // Przetwórz metadata jeśli istnieje
+      const meta = check.metadata as any;
+      if (meta) {
+        checksWithMetadata++;
+
+        const checkInputTokens = meta.inputTokens || 0;
+        const checkOutputTokens = meta.outputTokens || 0;
+        const checkTotalTokens = meta.totalTokens || 0;
+        const checkCost = meta.estimatedCostUsd || 0;
+        const checkTime = meta.responseTimeMs || 0;
+
+        inputTokens += checkInputTokens;
+        outputTokens += checkOutputTokens;
+        totalTokens += checkTotalTokens;
+        totalCostUsd += checkCost;
+        totalResponseTimeMs += checkTime;
+
+        if (daily) {
+          daily.tokens += checkTotalTokens;
+          daily.costUsd += checkCost;
+          if (checkTime > 0) {
+            daily.totalTimeMs += checkTime;
+            daily.checksWithTime++;
+          }
+        }
+      }
+    }
+
+    // Przygotuj dane dzienne
+    const daily = Array.from(dailyMap.entries())
+      .map(([date, data]) => ({
+        date,
+        checks: data.checks,
+        tokens: data.tokens,
+        costUsd: data.costUsd,
+        avgTimeMs:
+          data.checksWithTime > 0 ? data.totalTimeMs / data.checksWithTime : 0,
+        errors: data.errors,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Ostatnie 20 sprawdzeń z metadanymi
+    const recentChecks = checks.slice(0, 20).map((check) => {
+      const meta = check.metadata as any;
+      return {
+        id: check.id,
+        createdAt: check.createdAt.toISOString(),
+        charCount: check.charCount,
+        errorCount: check.errorCount,
+        inputTokens: meta?.inputTokens || 0,
+        outputTokens: meta?.outputTokens || 0,
+        totalTokens: meta?.totalTokens || 0,
+        responseTimeMs: meta?.responseTimeMs || 0,
+        costUsd: meta?.estimatedCostUsd || 0,
+        userEmail: check.user?.email || null,
+      };
+    });
+
+    return {
+      totals: {
+        totalChecks: checks.length,
+        totalTokens,
+        inputTokens,
+        outputTokens,
+        totalCostUsd,
+        avgResponseTimeMs:
+          checksWithMetadata > 0 ? totalResponseTimeMs / checksWithMetadata : 0,
+        avgTokensPerCheck: checks.length > 0 ? totalTokens / checks.length : 0,
+        avgCostPerCheck: checks.length > 0 ? totalCostUsd / checks.length : 0,
+      },
+      byCategory,
+      daily,
+      recentChecks,
+    };
+  });
+
   // ==================== USERS MANAGEMENT ====================
 
   // Lista użytkowników z paginacją i filtrami
@@ -551,6 +728,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           charCount: true,
           errorCount: true,
           usedBonusCheck: true,
+          metadata: true,
           createdAt: true,
           user: {
             select: {
@@ -568,14 +746,24 @@ export async function adminRoutes(fastify: FastifyInstance) {
     ]);
 
     return {
-      checks: checks.map((c) => ({
-        ...c,
-        originalTextPreview:
-          c.originalText.substring(0, 100) +
-          (c.originalText.length > 100 ? "..." : ""),
-        originalText: undefined, // Nie wysyłaj pełnego tekstu w liście
-        correctedText: undefined,
-      })),
+      checks: checks.map((c) => {
+        const meta = c.metadata as any;
+        return {
+          ...c,
+          originalTextPreview:
+            c.originalText.substring(0, 100) +
+            (c.originalText.length > 100 ? "..." : ""),
+          originalText: undefined, // Nie wysyłaj pełnego tekstu w liście
+          correctedText: undefined,
+          // Dodaj metadane jeśli istnieją
+          inputTokens: meta?.inputTokens || null,
+          outputTokens: meta?.outputTokens || null,
+          totalTokens: meta?.totalTokens || null,
+          responseTimeMs: meta?.responseTimeMs || null,
+          costUsd: meta?.estimatedCostUsd || null,
+          metadata: undefined,
+        };
+      }),
       pagination: {
         page: params.page,
         limit: params.limit,
@@ -610,7 +798,25 @@ export async function adminRoutes(fastify: FastifyInstance) {
       });
     }
 
-    return check;
+    // Rozpakuj metadata
+    const meta = check.metadata as any;
+
+    return {
+      ...check,
+      // Dodaj rozpakowane metadata
+      apiMetadata: meta
+        ? {
+            model: meta.model,
+            inputTokens: meta.inputTokens,
+            outputTokens: meta.outputTokens,
+            totalTokens: meta.totalTokens,
+            responseTimeMs: meta.responseTimeMs,
+            stopReason: meta.stopReason,
+            estimatedCostUsd: meta.estimatedCostUsd,
+            summary: meta.summary,
+          }
+        : null,
+    };
   });
 
   // ==================== PURCHASES MANAGEMENT ====================

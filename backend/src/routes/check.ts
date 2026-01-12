@@ -1,7 +1,7 @@
 // backend/src/routes/check.ts
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { checkPunctuation, type ErrorCategory } from "../services/claude";
+import { checkPunctuation } from "../services/claude";
 import {
   checkUsageLimits,
   recordUsage,
@@ -36,7 +36,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
     }
 
     const body = checkSchema.parse(request.body);
-    const { text, useBonusCheck } = body;
+    const { text } = body;
 
     // Pobierz dane użytkownika
     const user = await prisma.user.findUnique({
@@ -89,7 +89,24 @@ export async function checkRoutes(fastify: FastifyInstance) {
     // Limity dla planu (dla bonus check używamy PREMIUM limits dla wyjaśnień)
     const limits = willUseBonusCheck ? LIMITS.PREMIUM : LIMITS[userPlan];
 
-    // ZAWSZE zapisuj sprawdzenie do bazy
+    // Przygotuj metadata do zapisania
+    const metadata = result._debug
+      ? {
+          model: result._debug.model,
+          inputTokens: result._debug.inputTokens,
+          outputTokens: result._debug.outputTokens,
+          totalTokens: result._debug.totalTokens,
+          responseTimeMs: result._debug.responseTimeMs,
+          stopReason: result._debug.stopReason,
+          // Szacunkowy koszt (Claude Sonnet 4.5: $3/1M input, $15/1M output)
+          estimatedCostUsd:
+            (result._debug.inputTokens / 1_000_000) * 3 +
+            (result._debug.outputTokens / 1_000_000) * 15,
+          summary: result.summary,
+        }
+      : null;
+
+    // ZAWSZE zapisuj sprawdzenie do bazy z metadata
     await prisma.check.create({
       data: {
         userId,
@@ -100,6 +117,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
         charCount: text.length,
         errorCount: result.errorCount,
         usedBonusCheck: willUseBonusCheck,
+        metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : null,
       },
     });
 
@@ -113,7 +131,6 @@ export async function checkRoutes(fastify: FastifyInstance) {
           ...c,
           explanation:
             "Przejdź na Premium, aby zobaczyć szczegółowe wyjaśnienia",
-          // Zostawiamy rule i category - to podstawowe info
         }));
 
     // Pobierz aktualny stan bonus checks
@@ -126,7 +143,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
       correctedText: result.correctedText,
       corrections,
       errorCount: result.errorCount,
-      summary: result.summary, // Dodajemy podsumowanie błędów według kategorii
+      summary: result.summary,
       usedBonusCheck: willUseBonusCheck,
       usage: {
         remainingChecks: newUsageStatus.remainingChecks,
@@ -203,6 +220,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
         errorCount: true,
         charCount: true,
         usedBonusCheck: true,
+        metadata: true,
         createdAt: true,
       },
     });
@@ -242,6 +260,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
         corrections: true,
         errorCount: true,
         charCount: true,
+        metadata: true,
         createdAt: true,
       },
     });
@@ -251,6 +270,8 @@ export async function checkRoutes(fastify: FastifyInstance) {
       totalChecks: checks.length,
       totalErrors: 0,
       totalChars: 0,
+      totalTokens: 0,
+      totalCostUsd: 0,
       byCategory: {
         interpunkcja: 0,
         ortografia: 0,
@@ -267,16 +288,21 @@ export async function checkRoutes(fastify: FastifyInstance) {
       stats.totalErrors += check.errorCount;
       stats.totalChars += check.charCount;
 
+      // Agreguj dane z metadata
+      const meta = check.metadata as any;
+      if (meta) {
+        stats.totalTokens += meta.totalTokens || 0;
+        stats.totalCostUsd += meta.estimatedCostUsd || 0;
+      }
+
       const corrections = check.corrections as any[];
       if (Array.isArray(corrections)) {
         for (const c of corrections) {
-          // Zliczaj kategorie
           const category = c.category as string;
           if (category && category in stats.byCategory) {
             stats.byCategory[category]++;
           }
 
-          // Zliczaj reguły
           const rule = c.rule as string;
           if (rule) {
             ruleCounter[rule] = (ruleCounter[rule] || 0) + 1;
@@ -285,7 +311,6 @@ export async function checkRoutes(fastify: FastifyInstance) {
       }
     }
 
-    // Top 10 najczęstszych błędów
     stats.mostCommonErrors = Object.entries(ruleCounter)
       .map(([rule, count]) => ({ rule, count }))
       .sort((a, b) => b.count - a.count)

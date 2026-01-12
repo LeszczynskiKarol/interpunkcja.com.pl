@@ -8,6 +8,8 @@ import {
   CreditCard,
   ArrowLeft,
   Bug,
+  Activity,
+  FileText,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -45,6 +47,16 @@ export function AdminLayout() {
       to: "/admin/statystyki",
       icon: BarChart3,
       label: "Statystyki",
+    },
+    {
+      to: "/admin/analityka-api",
+      icon: Activity,
+      label: "Analityka API",
+    },
+    {
+      to: "/admin/artykuly",
+      icon: FileText,
+      label: "Artykuły",
     },
     {
       to: "/admin/debug",
