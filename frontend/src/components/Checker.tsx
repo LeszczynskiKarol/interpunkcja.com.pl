@@ -1,6 +1,6 @@
 // frontend/src/components/Checker.tsx
-import { useState, ReactNode } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect, ReactNode } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
@@ -37,9 +37,17 @@ export function Checker() {
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpPackages, setTopUpPackages] = useState<TopUpPackage[]>([]);
 
-  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const { user, isAuthenticated, refreshUser } = useAuthStore();
 
-  // Limity zależne od planu
+  // ⭐ Odśwież dane użytkownika przy montowaniu komponentu
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUser();
+    }
+  }, [isAuthenticated, refreshUser]);
+
+  // Limity zależne od planu (używamy aktualnego user.plan)
   const planMaxChars =
     user?.plan === "LIFETIME" ? 50000 : user?.plan === "PREMIUM" ? 10000 : 500;
 
@@ -48,7 +56,22 @@ export function Checker() {
     queryKey: ["checkStatus", user?.id],
     queryFn: () => getCheckStatus(),
     enabled: !!user,
+    // ⭐ Odświeżaj status co 30 sekund
+    refetchInterval: 30000,
+    // ⭐ Odświeżaj przy powrocie do okna
+    refetchOnWindowFocus: true,
   });
+
+  // ⭐ Synchronizuj plan z odpowiedzi API (jako backup)
+  useEffect(() => {
+    if (status?.plan && user && status.plan !== user.plan) {
+      console.log(
+        `[Checker] Plan mismatch detected: local=${user.plan}, server=${status.plan}`
+      );
+      // Wymuś odświeżenie danych użytkownika
+      refreshUser();
+    }
+  }, [status?.plan, user, refreshUser]);
 
   // Jeśli są bonus checks, zwiększ limit znaków do 10000 (jak PREMIUM)
   const hasBonusChecks = (status?.bonusChecks || 0) > 0;
@@ -72,6 +95,9 @@ export function Checker() {
       setCorrectedText(data.correctedText);
       setShowResult(true);
       refetchStatus();
+
+      // ⭐ Odśwież też queryClient dla innych komponentów
+      queryClient.invalidateQueries({ queryKey: ["checkStatus"] });
 
       if (data.usedBonusCheck) {
         toast.success("Użyto dodatkowego sprawdzenia!", { icon: "🎁" });
@@ -240,6 +266,9 @@ export function Checker() {
     return result;
   };
 
+  // ⭐ Użyj planu z API status jako źródła prawdy (bo jest świeży z bazy)
+  const displayPlan = status?.plan || user?.plan || "FREE";
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Status limitów */}
@@ -251,12 +280,12 @@ export function Checker() {
                 Plan:{" "}
                 <strong
                   className={
-                    user?.plan === "PREMIUM" || user?.plan === "LIFETIME"
+                    displayPlan === "PREMIUM" || displayPlan === "LIFETIME"
                       ? "text-amber-600 dark:text-amber-400"
                       : "text-gray-700 dark:text-gray-300"
                   }
                 >
-                  {user?.plan || "FREE"}
+                  {displayPlan}
                 </strong>
               </span>
 
@@ -280,14 +309,16 @@ export function Checker() {
                 spr.
               </span>
 
-              {/* Quick topup button */}
-              <button
-                onClick={openTopUpModal}
-                className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
-              >
-                <Zap className="w-3 h-3" />
-                Dokup
-              </button>
+              {/* Quick topup button - ukryj dla Premium/Lifetime */}
+              {displayPlan === "FREE" && (
+                <button
+                  onClick={openTopUpModal}
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+                >
+                  <Zap className="w-3 h-3" />
+                  Dokup
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -377,7 +408,7 @@ export function Checker() {
                   <>
                     <p className="text-amber-800 dark:text-amber-200 font-medium">
                       Tekst przekracza limit {planMaxChars} znaków dla planu{" "}
-                      {user?.plan || "FREE"}
+                      {displayPlan}
                     </p>
                     <p className="text-amber-700 dark:text-amber-300 text-sm mt-1 mb-3">
                       Twój tekst ma {text.length} znaków. Masz kilka opcji:
@@ -566,7 +597,7 @@ export function Checker() {
             )}
 
             {/* CTA dla Free gdy brak limitów */}
-            {(!user || user.plan === "FREE") &&
+            {displayPlan === "FREE" &&
               corrections.length > 0 &&
               status?.remainingChecks === 0 && (
                 <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">

@@ -16,6 +16,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import { CheckEmailPage } from "./pages/auth/CheckEmailPage";
+import { AuthProvider } from "./components/AuthProvider";
 import { VerifyEmailPage } from "./pages/auth/VerifyEmailPage";
 import { ResendVerificationPage } from "./pages/auth/ResendVerificationPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
@@ -31,6 +32,8 @@ import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminChecks } from "./pages/admin/AdminChecks";
 import { AdminStats } from "./pages/admin/AdminStats";
 import { AdminArticles } from "./pages/admin/AdminArticles";
+import { AdminPurchases } from "./pages/admin/AdminPurchases";
+import { AdminCorrectionDebug } from "./pages/admin/AdminCorrectionDebug";
 import { ArticlePage } from "./pages/ArticlePage";
 import { CategoryPage } from "./pages/CategoryPage";
 
@@ -65,186 +68,193 @@ function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Layout>
-                  <Home />
-                </Layout>
-              }
-            />
-
-            {/* SEO Landing Pages */}
-            <Route
-              path="/sprawdzanie-ortografii"
-              element={
-                <Layout>
-                  <SprawdzanieOrtografii />
-                </Layout>
-              }
-            />
-            <Route
-              path="/sprawdzanie-pisowni"
-              element={
-                <Layout>
-                  <SprawdzaniePisowni />
-                </Layout>
-              }
-            />
-
-            <Route
-              path="/korektor-tekstu"
-              element={
-                <Layout>
-                  <KorektorTekstu />
-                </Layout>
-              }
-            />
-
-            <Route
-              path="/poprawianie-bledow"
-              element={
-                <Layout>
-                  <PoprawianieBledow />
-                </Layout>
-              }
-            />
-
-            <Route
-              path="/korekta-tekstu-online"
-              element={
-                <Layout>
-                  <KorektaTekstuOnline />
-                </Layout>
-              }
-            />
-
-            {/* Legal pages */}
-            <Route
-              path="/polityka-prywatnosci"
-              element={
-                <Layout>
-                  <PrivacyPolicyPage />
-                </Layout>
-              }
-            />
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            <Route
-              path="/polityka-cookies"
-              element={
-                <Layout>
-                  <CookiePolicyPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/regulamin"
-              element={
-                <Layout>
-                  <TermsOfServicePage />
-                </Layout>
-              }
-            />
-
-            {/* Protected routes - wymagają logowania */}
-            <Route
-              path="/panel"
-              element={
-                <ProtectedRoute>
+          <AuthProvider>
+            <Routes>
+              <Route
+                path="/"
+                element={
                   <Layout>
-                    <Dashboard />
+                    <Home />
                   </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/konto"
-              element={
-                <ProtectedRoute>
+                }
+              />
+
+              {/* SEO Landing Pages */}
+              <Route
+                path="/sprawdzanie-ortografii"
+                element={
                   <Layout>
-                    <AccountPage />
+                    <SprawdzanieOrtografii />
                   </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/historia"
-              element={
-                <ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sprawdzanie-pisowni"
+                element={
                   <Layout>
-                    <HistoryPage />
+                    <SprawdzaniePisowni />
                   </Layout>
-                </ProtectedRoute>
-              }
-            />
+                }
+              />
 
-            {/* Public pages with layout */}
-            <Route
-              path="/cennik"
-              element={
-                <Layout>
-                  <PricingPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/platnosc/:plan"
-              element={
-                <Layout>
-                  <PaymentPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/platnosc/sukces"
-              element={
-                <Layout>
-                  <PaymentSuccessPage />
-                </Layout>
-              }
-            />
+              <Route
+                path="/korektor-tekstu"
+                element={
+                  <Layout>
+                    <KorektorTekstu />
+                  </Layout>
+                }
+              />
 
-            {/* Auth routes - bez layoutu */}
-            <Route path="/logowanie" element={<LoginPage />} />
-            <Route path="/rejestracja" element={<RegisterPage />} />
-            <Route path="/sprawdz-email" element={<CheckEmailPage />} />
-            <Route path="/weryfikacja" element={<VerifyEmailPage />} />
-            <Route
-              path="/wyslij-ponownie"
-              element={<ResendVerificationPage />}
-            />
-            <Route path="/przypomnij-haslo" element={<ForgotPasswordPage />} />
-            <Route path="/resetuj-haslo" element={<ResetPasswordPage />} />
+              <Route
+                path="/poprawianie-bledow"
+                element={
+                  <Layout>
+                    <PoprawianieBledow />
+                  </Layout>
+                }
+              />
 
-            {/* Admin routes - własny layout */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="uzytkownicy" element={<AdminUsers />} />
-              <Route path="sprawdzenia" element={<AdminChecks />} />
-              <Route path="statystyki" element={<AdminStats />} />
-              <Route path="artykuly" element={<AdminArticles />} />
-            </Route>
+              <Route
+                path="/korekta-tekstu-online"
+                element={
+                  <Layout>
+                    <KorektaTekstuOnline />
+                  </Layout>
+                }
+              />
 
-            {/* Article routes - muszą być na końcu bo używają dynamicznych parametrów */}
-            <Route
-              path="/category/:slug"
-              element={
-                <Layout>
-                  <CategoryPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/:categorySlug/:articleSlug"
-              element={
-                <Layout>
-                  <ArticlePage />
-                </Layout>
-              }
-            />
-          </Routes>
-          <CookieBanner />
+              {/* Legal pages */}
+              <Route
+                path="/polityka-prywatnosci"
+                element={
+                  <Layout>
+                    <PrivacyPolicyPage />
+                  </Layout>
+                }
+              />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route
+                path="/polityka-cookies"
+                element={
+                  <Layout>
+                    <CookiePolicyPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/regulamin"
+                element={
+                  <Layout>
+                    <TermsOfServicePage />
+                  </Layout>
+                }
+              />
+
+              {/* Protected routes - wymagają logowania */}
+              <Route
+                path="/panel"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/konto"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <AccountPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/historia"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <HistoryPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Public pages with layout */}
+              <Route
+                path="/cennik"
+                element={
+                  <Layout>
+                    <PricingPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/platnosc/:plan"
+                element={
+                  <Layout>
+                    <PaymentPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/platnosc/sukces"
+                element={
+                  <Layout>
+                    <PaymentSuccessPage />
+                  </Layout>
+                }
+              />
+
+              {/* Auth routes - bez layoutu */}
+              <Route path="/logowanie" element={<LoginPage />} />
+              <Route path="/rejestracja" element={<RegisterPage />} />
+              <Route path="/sprawdz-email" element={<CheckEmailPage />} />
+              <Route path="/weryfikacja" element={<VerifyEmailPage />} />
+              <Route
+                path="/wyslij-ponownie"
+                element={<ResendVerificationPage />}
+              />
+              <Route
+                path="/przypomnij-haslo"
+                element={<ForgotPasswordPage />}
+              />
+              <Route path="/resetuj-haslo" element={<ResetPasswordPage />} />
+
+              {/* Admin routes - własny layout */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="uzytkownicy" element={<AdminUsers />} />
+                <Route path="sprawdzenia" element={<AdminChecks />} />
+                <Route path="zakupy" element={<AdminPurchases />} />
+                <Route path="statystyki" element={<AdminStats />} />
+                <Route path="artykuly" element={<AdminArticles />} />
+                <Route path="debug" element={<AdminCorrectionDebug />} />
+              </Route>
+
+              {/* Article routes - muszą być na końcu bo używają dynamicznych parametrów */}
+              <Route
+                path="/category/:slug"
+                element={
+                  <Layout>
+                    <CategoryPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/:categorySlug/:articleSlug"
+                element={
+                  <Layout>
+                    <ArticlePage />
+                  </Layout>
+                }
+              />
+            </Routes>
+            <CookieBanner />
+          </AuthProvider>
         </BrowserRouter>
         <Toaster
           position="top-center"

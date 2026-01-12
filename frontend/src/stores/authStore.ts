@@ -21,20 +21,26 @@ interface AuthState {
   token: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  isRefreshing: boolean;
 
   setUser: (user: User) => void;
   setTokens: (tokens: { token: string; refreshToken: string }) => void;
   setAuth: (data: { user: User; token: string; refreshToken: string }) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
+
+// API URL - musi być taki sam jak w api.ts
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       refreshToken: null,
       isAuthenticated: false,
+      isRefreshing: false,
 
       setUser: (user) => {
         set({ user, isAuthenticated: true });
@@ -65,6 +71,51 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
         });
         localStorage.removeItem("interpunkcja-auth");
+      },
+
+      // Odśwież dane użytkownika z serwera
+      refreshUser: async () => {
+        const { token, isRefreshing } = get();
+
+        // Nie odświeżaj jeśli nie ma tokena lub już trwa odświeżanie
+        if (!token || isRefreshing) return;
+
+        set({ isRefreshing: true });
+
+        try {
+          const response = await fetch(`${API_URL}/api/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            set({
+              user: {
+                id: userData.id,
+                email: userData.email,
+                name: userData.name,
+                plan: userData.plan,
+                role: userData.role,
+                emailVerified: userData.emailVerified,
+                createdAt: userData.createdAt,
+                avatarUrl: userData.avatarUrl,
+                authProvider: userData.authProvider,
+                hasPassword: userData.hasPassword,
+                hasGoogle: userData.hasGoogle,
+              },
+            });
+          } else if (response.status === 401) {
+            // Token wygasł - wyloguj
+            get().logout();
+          }
+        } catch (error) {
+          console.error("Failed to refresh user data:", error);
+        } finally {
+          set({ isRefreshing: false });
+        }
       },
     }),
     {

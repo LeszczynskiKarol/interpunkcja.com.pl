@@ -7,6 +7,7 @@ import {
   BarChart3,
   CreditCard,
   ArrowLeft,
+  Bug,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -44,6 +45,11 @@ export function AdminLayout() {
       to: "/admin/statystyki",
       icon: BarChart3,
       label: "Statystyki",
+    },
+    {
+      to: "/admin/debug",
+      icon: Bug,
+      label: "Debug Korekty",
     },
   ];
 

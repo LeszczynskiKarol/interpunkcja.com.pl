@@ -51,15 +51,20 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo z claimem */}
           <Link
             to={isAuthenticated ? "/panel" : "/"}
             className="flex items-center gap-2"
           >
             <span className="text-2xl">✏️</span>
-            <span className="font-bold text-xl text-gray-900 dark:text-white">
-              Interpunkcja<span className="text-blue-600">.com.pl</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl text-gray-900 dark:text-white leading-tight">
+                Interpunkcja<span className="text-blue-600">.com.pl</span>
+              </span>
+              <span className="text-[10px] text-gray-500 dark:text-gray-400 tracking-wide uppercase hidden sm:block">
+                Sprawdzanie pisowni online
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -149,7 +154,7 @@ export function Header() {
                   </span>
                 </button>
 
-                {/* Dropdown menu - NAPRAWIONY OVERFLOW */}
+                {/* Dropdown menu */}
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 overflow-hidden">
                     <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
