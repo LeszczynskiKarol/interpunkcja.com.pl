@@ -988,29 +988,29 @@ export async function adminRoutes(fastify: FastifyInstance) {
     // Pobierz dane dzienne
     const [dailyUsers, dailyChecks, dailyPurchases] = await Promise.all([
       prisma.$queryRaw`
-        SELECT DATE(created_at) as date, COUNT(*) as count
+        SELECT DATE("createdAt") as date, COUNT(*) as count
         FROM "User"
-        WHERE created_at >= ${startDate}
-        GROUP BY DATE(created_at)
+        WHERE "createdAt" >= ${startDate}
+        GROUP BY DATE("createdAt")
         ORDER BY date
       ` as Promise<Array<{ date: Date; count: bigint }>>,
 
       prisma.$queryRaw`
-        SELECT DATE(created_at) as date, COUNT(*) as count, SUM(char_count) as chars,
-               SUM(CASE WHEN used_bonus_check THEN 1 ELSE 0 END) as bonus_used
+        SELECT DATE("createdAt") as date, COUNT(*) as count, SUM("charCount") as chars,
+               SUM(CASE WHEN "usedBonusCheck" THEN 1 ELSE 0 END) as bonus_used
         FROM "Check"
-        WHERE created_at >= ${startDate}
-        GROUP BY DATE(created_at)
+        WHERE "createdAt" >= ${startDate}
+        GROUP BY DATE("createdAt")
         ORDER BY date
       ` as Promise<
         Array<{ date: Date; count: bigint; chars: bigint; bonus_used: bigint }>
       >,
 
       prisma.$queryRaw`
-        SELECT DATE(completed_at) as date, COUNT(*) as count, SUM(amount) as revenue
+        SELECT DATE("completedAt") as date, COUNT(*) as count, SUM(amount) as revenue
         FROM "CreditPurchase"
-        WHERE status = 'COMPLETED' AND completed_at >= ${startDate}
-        GROUP BY DATE(completed_at)
+        WHERE status = 'COMPLETED' AND "completedAt" >= ${startDate}
+        GROUP BY DATE("completedAt")
         ORDER BY date
       ` as Promise<Array<{ date: Date; count: bigint; revenue: bigint }>>,
     ]);
@@ -1068,7 +1068,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
       SELECT 
         amount,
         COUNT(*) as count,
-        SUM(credits_granted) as total_credits
+        SUM("creditsGranted") as total_credits
       FROM "CreditPurchase"
       WHERE status = 'COMPLETED'
       GROUP BY amount
