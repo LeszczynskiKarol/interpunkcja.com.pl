@@ -254,7 +254,7 @@ export function Home() {
           name="keywords"
           content="interpunkcja, sprawdzanie interpunkcji, korektor przecinków, sprawdzanie pisowni, sprawdzanie błędów, przecinek przed że, zasady interpunkcji, korektor tekstu online, sprawdzanie tekstu"
         />
-        <link rel="canonical" href="https://interpunkcja.com.pl" />
+        <link rel="canonical" href="https://www.interpunkcja.com.pl" />
         <meta
           property="og:title"
           content="Sprawdzanie Interpunkcji Online | Korektor AI"
@@ -264,7 +264,7 @@ export function Home() {
           content="Sprawdź interpunkcję w tekście za darmo! AI wykrywa brakujące przecinki i wyjaśnia zasady polskiej interpunkcji."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://interpunkcja.com.pl" />
+        <meta property="og:url" content="https://www.interpunkcja.com.pl" />
         <meta property="og:locale" content="pl_PL" />
         <meta property="og:site_name" content="Interpunkcja.com.pl" />
         <meta name="robots" content="index, follow" />

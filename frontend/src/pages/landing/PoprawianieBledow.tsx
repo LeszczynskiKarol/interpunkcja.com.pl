@@ -332,7 +332,7 @@ export function PoprawianieBledow() {
         />
         <link
           rel="canonical"
-          href="https://interpunkcja.com.pl/poprawianie-bledow"
+          href="https://www.interpunkcja.com.pl/poprawianie-bledow"
         />
 
         <meta
@@ -346,7 +346,7 @@ export function PoprawianieBledow() {
         <meta property="og:type" content="website" />
         <meta
           property="og:url"
-          content="https://interpunkcja.com.pl/poprawianie-bledow"
+          content="https://www.interpunkcja.com.pl/poprawianie-bledow"
         />
         <meta property="og:locale" content="pl_PL" />
         <meta property="og:site_name" content="Interpunkcja.com.pl" />
@@ -512,14 +512,14 @@ export function PoprawianieBledow() {
                       type.color === "red"
                         ? "bg-red-100 dark:bg-red-900/50"
                         : type.color === "orange"
-                        ? "bg-orange-100 dark:bg-orange-900/50"
-                        : type.color === "blue"
-                        ? "bg-blue-100 dark:bg-blue-900/50"
-                        : type.color === "purple"
-                        ? "bg-purple-100 dark:bg-purple-900/50"
-                        : type.color === "pink"
-                        ? "bg-pink-100 dark:bg-pink-900/50"
-                        : "bg-cyan-100 dark:bg-cyan-900/50"
+                          ? "bg-orange-100 dark:bg-orange-900/50"
+                          : type.color === "blue"
+                            ? "bg-blue-100 dark:bg-blue-900/50"
+                            : type.color === "purple"
+                              ? "bg-purple-100 dark:bg-purple-900/50"
+                              : type.color === "pink"
+                                ? "bg-pink-100 dark:bg-pink-900/50"
+                                : "bg-cyan-100 dark:bg-cyan-900/50"
                     }`}
                   >
                     <type.icon
@@ -527,14 +527,14 @@ export function PoprawianieBledow() {
                         type.color === "red"
                           ? "text-red-600 dark:text-red-400"
                           : type.color === "orange"
-                          ? "text-orange-600 dark:text-orange-400"
-                          : type.color === "blue"
-                          ? "text-blue-600 dark:text-blue-400"
-                          : type.color === "purple"
-                          ? "text-purple-600 dark:text-purple-400"
-                          : type.color === "pink"
-                          ? "text-pink-600 dark:text-pink-400"
-                          : "text-cyan-600 dark:text-cyan-400"
+                            ? "text-orange-600 dark:text-orange-400"
+                            : type.color === "blue"
+                              ? "text-blue-600 dark:text-blue-400"
+                              : type.color === "purple"
+                                ? "text-purple-600 dark:text-purple-400"
+                                : type.color === "pink"
+                                  ? "text-pink-600 dark:text-pink-400"
+                                  : "text-cyan-600 dark:text-cyan-400"
                       }`}
                     />
                   </div>
@@ -733,8 +733,8 @@ export function PoprawianieBledow() {
                             error.frequency === "bardzo często"
                               ? "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300"
                               : error.frequency === "często"
-                              ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                                ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                           }`}
                         >
                           {error.frequency}

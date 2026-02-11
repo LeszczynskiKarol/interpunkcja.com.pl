@@ -287,7 +287,7 @@ export function SprawdzaniePisowni() {
         />
         <link
           rel="canonical"
-          href="https://interpunkcja.com.pl/sprawdzanie-pisowni"
+          href="https://www.interpunkcja.com.pl/sprawdzanie-pisowni"
         />
 
         <meta
@@ -301,7 +301,7 @@ export function SprawdzaniePisowni() {
         <meta property="og:type" content="website" />
         <meta
           property="og:url"
-          content="https://interpunkcja.com.pl/sprawdzanie-pisowni"
+          content="https://www.interpunkcja.com.pl/sprawdzanie-pisowni"
         />
         <meta property="og:locale" content="pl_PL" />
         <meta property="og:site_name" content="Interpunkcja.com.pl" />
@@ -529,14 +529,14 @@ export function SprawdzaniePisowni() {
                       feature.color === "blue"
                         ? "bg-blue-100 dark:bg-blue-900/50"
                         : feature.color === "green"
-                        ? "bg-green-100 dark:bg-green-900/50"
-                        : feature.color === "purple"
-                        ? "bg-purple-100 dark:bg-purple-900/50"
-                        : feature.color === "orange"
-                        ? "bg-orange-100 dark:bg-orange-900/50"
-                        : feature.color === "pink"
-                        ? "bg-pink-100 dark:bg-pink-900/50"
-                        : "bg-cyan-100 dark:bg-cyan-900/50"
+                          ? "bg-green-100 dark:bg-green-900/50"
+                          : feature.color === "purple"
+                            ? "bg-purple-100 dark:bg-purple-900/50"
+                            : feature.color === "orange"
+                              ? "bg-orange-100 dark:bg-orange-900/50"
+                              : feature.color === "pink"
+                                ? "bg-pink-100 dark:bg-pink-900/50"
+                                : "bg-cyan-100 dark:bg-cyan-900/50"
                     }`}
                   >
                     <feature.icon
@@ -544,14 +544,14 @@ export function SprawdzaniePisowni() {
                         feature.color === "blue"
                           ? "text-blue-600 dark:text-blue-400"
                           : feature.color === "green"
-                          ? "text-green-600 dark:text-green-400"
-                          : feature.color === "purple"
-                          ? "text-purple-600 dark:text-purple-400"
-                          : feature.color === "orange"
-                          ? "text-orange-600 dark:text-orange-400"
-                          : feature.color === "pink"
-                          ? "text-pink-600 dark:text-pink-400"
-                          : "text-cyan-600 dark:text-cyan-400"
+                            ? "text-green-600 dark:text-green-400"
+                            : feature.color === "purple"
+                              ? "text-purple-600 dark:text-purple-400"
+                              : feature.color === "orange"
+                                ? "text-orange-600 dark:text-orange-400"
+                                : feature.color === "pink"
+                                  ? "text-pink-600 dark:text-pink-400"
+                                  : "text-cyan-600 dark:text-cyan-400"
                       }`}
                     />
                   </div>

@@ -307,7 +307,7 @@ export function KorektaTekstuOnline() {
         />
         <link
           rel="canonical"
-          href="https://interpunkcja.com.pl/korekta-tekstu-online"
+          href="https://www.interpunkcja.com.pl/korekta-tekstu-online"
         />
 
         <meta
@@ -321,7 +321,7 @@ export function KorektaTekstuOnline() {
         <meta property="og:type" content="website" />
         <meta
           property="og:url"
-          content="https://interpunkcja.com.pl/korekta-tekstu-online"
+          content="https://www.interpunkcja.com.pl/korekta-tekstu-online"
         />
         <meta property="og:locale" content="pl_PL" />
         <meta property="og:site_name" content="Interpunkcja.com.pl" />
@@ -486,14 +486,14 @@ export function KorektaTekstuOnline() {
                       advantage.color === "blue"
                         ? "bg-blue-100 dark:bg-blue-900/50"
                         : advantage.color === "green"
-                        ? "bg-green-100 dark:bg-green-900/50"
-                        : advantage.color === "purple"
-                        ? "bg-purple-100 dark:bg-purple-900/50"
-                        : advantage.color === "orange"
-                        ? "bg-orange-100 dark:bg-orange-900/50"
-                        : advantage.color === "pink"
-                        ? "bg-pink-100 dark:bg-pink-900/50"
-                        : "bg-amber-100 dark:bg-amber-900/50"
+                          ? "bg-green-100 dark:bg-green-900/50"
+                          : advantage.color === "purple"
+                            ? "bg-purple-100 dark:bg-purple-900/50"
+                            : advantage.color === "orange"
+                              ? "bg-orange-100 dark:bg-orange-900/50"
+                              : advantage.color === "pink"
+                                ? "bg-pink-100 dark:bg-pink-900/50"
+                                : "bg-amber-100 dark:bg-amber-900/50"
                     }`}
                   >
                     <advantage.icon
@@ -501,14 +501,14 @@ export function KorektaTekstuOnline() {
                         advantage.color === "blue"
                           ? "text-blue-600 dark:text-blue-400"
                           : advantage.color === "green"
-                          ? "text-green-600 dark:text-green-400"
-                          : advantage.color === "purple"
-                          ? "text-purple-600 dark:text-purple-400"
-                          : advantage.color === "orange"
-                          ? "text-orange-600 dark:text-orange-400"
-                          : advantage.color === "pink"
-                          ? "text-pink-600 dark:text-pink-400"
-                          : "text-amber-600 dark:text-amber-400"
+                            ? "text-green-600 dark:text-green-400"
+                            : advantage.color === "purple"
+                              ? "text-purple-600 dark:text-purple-400"
+                              : advantage.color === "orange"
+                                ? "text-orange-600 dark:text-orange-400"
+                                : advantage.color === "pink"
+                                  ? "text-pink-600 dark:text-pink-400"
+                                  : "text-amber-600 dark:text-amber-400"
                       }`}
                     />
                   </div>

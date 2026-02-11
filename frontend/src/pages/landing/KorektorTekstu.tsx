@@ -339,7 +339,7 @@ export function KorektorTekstu() {
         />
         <link
           rel="canonical"
-          href="https://interpunkcja.com.pl/korektor-tekstu"
+          href="https://www.interpunkcja.com.pl/korektor-tekstu"
         />
 
         <meta
@@ -353,7 +353,7 @@ export function KorektorTekstu() {
         <meta property="og:type" content="website" />
         <meta
           property="og:url"
-          content="https://interpunkcja.com.pl/korektor-tekstu"
+          content="https://www.interpunkcja.com.pl/korektor-tekstu"
         />
         <meta property="og:locale" content="pl_PL" />
         <meta property="og:site_name" content="Interpunkcja.com.pl" />
@@ -610,14 +610,14 @@ export function KorektorTekstu() {
                       feature.color === "purple"
                         ? "bg-purple-100 dark:bg-purple-900/50"
                         : feature.color === "blue"
-                        ? "bg-blue-100 dark:bg-blue-900/50"
-                        : feature.color === "green"
-                        ? "bg-green-100 dark:bg-green-900/50"
-                        : feature.color === "orange"
-                        ? "bg-orange-100 dark:bg-orange-900/50"
-                        : feature.color === "pink"
-                        ? "bg-pink-100 dark:bg-pink-900/50"
-                        : "bg-cyan-100 dark:bg-cyan-900/50"
+                          ? "bg-blue-100 dark:bg-blue-900/50"
+                          : feature.color === "green"
+                            ? "bg-green-100 dark:bg-green-900/50"
+                            : feature.color === "orange"
+                              ? "bg-orange-100 dark:bg-orange-900/50"
+                              : feature.color === "pink"
+                                ? "bg-pink-100 dark:bg-pink-900/50"
+                                : "bg-cyan-100 dark:bg-cyan-900/50"
                     }`}
                   >
                     <feature.icon
@@ -625,14 +625,14 @@ export function KorektorTekstu() {
                         feature.color === "purple"
                           ? "text-purple-600 dark:text-purple-400"
                           : feature.color === "blue"
-                          ? "text-blue-600 dark:text-blue-400"
-                          : feature.color === "green"
-                          ? "text-green-600 dark:text-green-400"
-                          : feature.color === "orange"
-                          ? "text-orange-600 dark:text-orange-400"
-                          : feature.color === "pink"
-                          ? "text-pink-600 dark:text-pink-400"
-                          : "text-cyan-600 dark:text-cyan-400"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : feature.color === "green"
+                              ? "text-green-600 dark:text-green-400"
+                              : feature.color === "orange"
+                                ? "text-orange-600 dark:text-orange-400"
+                                : feature.color === "pink"
+                                  ? "text-pink-600 dark:text-pink-400"
+                                  : "text-cyan-600 dark:text-cyan-400"
                       }`}
                     />
                   </div>

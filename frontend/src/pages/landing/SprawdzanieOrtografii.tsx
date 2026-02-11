@@ -325,7 +325,7 @@ export function SprawdzanieOrtografii() {
         />
         <link
           rel="canonical"
-          href="https://interpunkcja.com.pl/sprawdzanie-ortografii"
+          href="https://www.interpunkcja.com.pl/sprawdzanie-ortografii"
         />
 
         {/* Open Graph */}
@@ -340,7 +340,7 @@ export function SprawdzanieOrtografii() {
         <meta property="og:type" content="website" />
         <meta
           property="og:url"
-          content="https://interpunkcja.com.pl/sprawdzanie-ortografii"
+          content="https://www.interpunkcja.com.pl/sprawdzanie-ortografii"
         />
         <meta property="og:locale" content="pl_PL" />
         <meta property="og:site_name" content="Interpunkcja.com.pl" />
