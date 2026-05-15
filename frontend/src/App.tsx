@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthCallbackPage } from "./pages/auth/AuthCallbackPage";
+import { LimitsUpdateBanner } from "./components/LimitsUpdateBanner";
 import { CookieBanner } from "./components/CookieBanner";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
@@ -57,6 +58,7 @@ const queryClient = new QueryClient({
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
+      <LimitsUpdateBanner />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />

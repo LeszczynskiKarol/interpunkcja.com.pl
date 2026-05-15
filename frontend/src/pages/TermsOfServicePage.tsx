@@ -17,7 +17,7 @@ const content = {
 
 3. Kontakt z Usługodawcą:
    • Email: kontakt@ecopywriting.pl
-   • Strona: https://interpunkcja.com.pl
+   • Strona: https://www.interpunkcja.com.pl
 
 4. Korzystanie z Serwisu oznacza akceptację niniejszego Regulaminu oraz Polityki Prywatności.
 
@@ -56,11 +56,14 @@ const content = {
 3. Dostępne Plany:
 
 **Plan Free (bezpłatny):**
-- Do 5 sprawdzeń dziennie
+Plan Free (bezpłatny):
+- Do 2 sprawdzeń dziennie
+- Do 20 sprawdzeń miesięcznie
 - Maksymalnie 500 znaków na sprawdzenie
-- Maksymalnie 2000 znaków dziennie
+- Maksymalnie 1000 znaków dziennie
 - Podstawowe poprawki bez pełnych wyjaśnień
 - Brak historii sprawdzeń
+- Limity obowiązują również w ujęciu IP – z jednego adresu sieciowego można wykonać maksymalnie 3 darmowe sprawdzenia dziennie i 30 miesięcznie
 
 **Plan Premium (29 zł/miesiąc):**
 - Do 100 sprawdzeń dziennie
@@ -110,8 +113,14 @@ const content = {
    b) Posiadania więcej niż jednego Konta (niezależnie od metody rejestracji)
    c) Korzystania z Serwisu w sposób zakłócający jego działanie
    d) Próby obchodzenia limitów i zabezpieczeń
+   e) Zakładania kont w celu obchodzenia limitów (w tym z różnych adresów email czy IP)
+   f) Korzystania z VPN, proxy lub innych narzędzi w celu obejścia limitów per adres sieciowy
+   6. W przypadku wykrycia naruszenia ust. 5, Usługodawca zastrzega sobie prawo do:
+   a) Czasowego zablokowania dostępu do Konta lub adresu IP
+   b) Trwałego usunięcia Konta bez zwrotu wniesionych opłat
+   c) Anulowania niewykorzystanych dokupionych sprawdzeń
 
-6. Użytkownik może w każdej chwili:
+7. Użytkownik może w każdej chwili:
    a) Usunąć swoje Konto poprzez kontakt z Usługodawcą
    b) Odłączyć konto Google od Serwisu w ustawieniach konta
    c) Cofnąć uprawnienia aplikacji w ustawieniach konta Google`,
@@ -308,7 +317,7 @@ const content = {
 
 3. Contact with the Provider:
    • Email: kontakt@ecopywriting.pl
-   • Website: https://interpunkcja.com.pl
+   • Website: https://www.interpunkcja.com.pl
 
 4. Use of the Service constitutes acceptance of these Terms and the Privacy Policy.
 
@@ -621,7 +630,7 @@ export function TermsOfServicePage() {
                 {section.content
                   .split("**")
                   .map((part, i) =>
-                    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+                    i % 2 === 1 ? <strong key={i}>{part}</strong> : part,
                   )}
               </div>
             </section>
