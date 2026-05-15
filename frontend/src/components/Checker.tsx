@@ -293,8 +293,8 @@ export function Checker() {
       {/* Status limitów */}
       {status && (
         <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+            <div className="flex items-center gap-4 flex-wrap">
               <span className="text-gray-600 dark:text-gray-400">
                 Plan:{" "}
                 <strong
@@ -308,7 +308,6 @@ export function Checker() {
                 </strong>
               </span>
 
-              {/* Bonus checks badge */}
               {status.bonusChecks > 0 && (
                 <span className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
                   <Gift className="w-3 h-3" />
@@ -317,18 +316,61 @@ export function Checker() {
               )}
             </div>
 
-            <div className="flex items-center gap-4">
-              <span className="text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Dzienny licznik */}
+              <span
+                className={clsx(
+                  "px-2 py-1 rounded-md",
+                  status.remainingChecks === 0
+                    ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+                    : "text-gray-600 dark:text-gray-400",
+                )}
+                title={`Wykorzystano dziś: ${(status as any).usedToday ?? 0} / ${
+                  (status as any).maxChecksPerDay === null ||
+                  (status as any).maxChecksPerDay === undefined
+                    ? "∞"
+                    : (status as any).maxChecksPerDay
+                }`}
+              >
                 Dziś:{" "}
                 <strong className="text-gray-900 dark:text-white">
-                  {status.remainingChecks === Infinity
-                    ? "∞"
-                    : status.remainingChecks}
-                </strong>{" "}
-                spr.
+                  {(status as any).usedToday ?? 0}
+                </strong>
+                {(status as any).maxChecksPerDay !== null &&
+                  (status as any).maxChecksPerDay !== undefined &&
+                  (status as any).maxChecksPerDay !== Infinity && (
+                    <span className="text-gray-500 dark:text-gray-400">
+                      {" / "}
+                      {(status as any).maxChecksPerDay}
+                    </span>
+                  )}
               </span>
 
-              {/* Quick topup button - ukryj dla Premium/Lifetime */}
+              {/* Miesięczny licznik - tylko FREE */}
+              {displayPlan === "FREE" &&
+                (status as any).maxChecksPerMonth !== null &&
+                (status as any).maxChecksPerMonth !== undefined &&
+                (status as any).maxChecksPerMonth !== Infinity && (
+                  <span
+                    className={clsx(
+                      "px-2 py-1 rounded-md",
+                      (status as any).remainingMonthly === 0
+                        ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+                        : "text-gray-600 dark:text-gray-400",
+                    )}
+                    title={`Wykorzystano w tym miesiącu: ${(status as any).usedThisMonth ?? 0} / ${(status as any).maxChecksPerMonth}`}
+                  >
+                    Miesiąc:{" "}
+                    <strong className="text-gray-900 dark:text-white">
+                      {(status as any).usedThisMonth ?? 0}
+                    </strong>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      {" / "}
+                      {(status as any).maxChecksPerMonth}
+                    </span>
+                  </span>
+                )}
+
               {displayPlan === "FREE" && (
                 <button
                   onClick={openTopUpModal}

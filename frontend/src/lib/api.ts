@@ -51,7 +51,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // API Types
@@ -84,10 +84,16 @@ export interface CheckStatusResponse {
   limits: {
     maxCharsPerCheck: number;
     maxChecksPerDay: number;
+    maxChecksPerMonth: number;
     maxCharsPerDay: number;
     showExplanations: boolean;
     saveHistory: boolean;
   };
+  usedToday: number;
+  usedThisMonth: number;
+  remainingMonthly: number;
+  maxChecksPerDay: number;
+  maxChecksPerMonth: number;
 }
 
 export interface CheckResponse {
@@ -103,22 +109,6 @@ export interface CheckResponse {
   };
 }
 
-export interface Correction {
-  original: string;
-  corrected: string;
-  position: { start: number; end: number };
-  rule: string;
-  explanation: string;
-}
-
-export interface CheckStatusResponse {
-  canCheck: boolean;
-  reason?: string;
-  remainingChecks: number;
-  remainingChars: number;
-  plan: string;
-}
-
 export async function checkPunctuation(text: string): Promise<CheckResponse> {
   const res = await api.post("/api/check", { text });
   return res.data;
@@ -130,7 +120,7 @@ export async function getCheckStatus(): Promise<CheckStatusResponse> {
 }
 
 export async function createTopUpCheckout(
-  packageId: string
+  packageId: string,
 ): Promise<{ url: string }> {
   const res = await api.post("/api/payments/create-topup-checkout", {
     packageId,
@@ -177,7 +167,7 @@ export const login = async (email: string, password: string) => {
 export const register = async (
   email: string,
   password: string,
-  name?: string
+  name?: string,
 ) => {
   const response = await api.post("/api/auth/register", {
     email,

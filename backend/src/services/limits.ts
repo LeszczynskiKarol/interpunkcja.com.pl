@@ -84,6 +84,9 @@ export interface UsageStatus {
   bonusChecks: number;
   canUseBonusCheck: boolean;
   limits: typeof LIMITS.FREE;
+  usedToday: number;
+  usedThisMonth: number;
+  remainingMonthly: number;
 }
 
 export async function checkUsageLimits(
@@ -101,6 +104,56 @@ export async function checkUsageLimits(
   const plan: Plan = (user?.plan as Plan) || "FREE";
   const bonusChecks = user?.bonusChecks || 0;
   const limits = LIMITS[plan];
+  // Oblicz wykorzystane sprawdzenia (z uwzględnieniem override)
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const dailyUsageForStats = await prisma.dailyUsage.findFirst({
+    where: { userId, date: todayDate },
+  });
+  const usedToday = dailyUsageForStats?.checkCount || 0;
+
+  const userOverrideForStats = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      monthlyCountOverride: true,
+      monthlyCountOverrideSetAt: true,
+    },
+  });
+
+  let usedThisMonth: number;
+  if (
+    userOverrideForStats?.monthlyCountOverride !== null &&
+    userOverrideForStats?.monthlyCountOverride !== undefined &&
+    userOverrideForStats.monthlyCountOverrideSetAt &&
+    userOverrideForStats.monthlyCountOverrideSetAt >= monthStart
+  ) {
+    const checksAfter = await prisma.check.count({
+      where: {
+        userId,
+        createdAt: { gte: userOverrideForStats.monthlyCountOverrideSetAt },
+        usedBonusCheck: false,
+      },
+    });
+    usedThisMonth = userOverrideForStats.monthlyCountOverride + checksAfter;
+  } else {
+    usedThisMonth = await prisma.check.count({
+      where: {
+        userId,
+        createdAt: { gte: monthStart },
+        usedBonusCheck: false,
+      },
+    });
+  }
+
+  const remainingMonthly =
+    limits.maxChecksPerMonth === Infinity
+      ? Infinity
+      : Math.max(0, limits.maxChecksPerMonth - usedThisMonth);
 
   // Sprawdź limit znaków na jedno sprawdzenie
   // Dla bonus checks używamy limitu PREMIUM (10 000 znaków)
@@ -118,6 +171,9 @@ export async function checkUsageLimits(
       bonusChecks,
       canUseBonusCheck: false,
       limits,
+      usedToday,
+      usedThisMonth,
+      remainingMonthly,
     };
   }
 
@@ -184,6 +240,9 @@ export async function checkUsageLimits(
           bonusChecks,
           canUseBonusCheck: true,
           limits,
+          usedToday,
+          usedThisMonth,
+          remainingMonthly,
         };
       }
       return {
@@ -194,6 +253,9 @@ export async function checkUsageLimits(
         bonusChecks: 0,
         canUseBonusCheck: false,
         limits,
+        usedToday,
+        usedThisMonth,
+        remainingMonthly,
       };
     }
   }
@@ -227,6 +289,9 @@ export async function checkUsageLimits(
           bonusChecks,
           canUseBonusCheck: true,
           limits,
+          usedToday,
+          usedThisMonth,
+          remainingMonthly,
         };
       }
       return {
@@ -237,6 +302,9 @@ export async function checkUsageLimits(
         bonusChecks: 0,
         canUseBonusCheck: false,
         limits,
+        usedToday,
+        usedThisMonth,
+        remainingMonthly,
       };
     }
 
@@ -260,6 +328,9 @@ export async function checkUsageLimits(
           bonusChecks,
           canUseBonusCheck: true,
           limits,
+          usedToday,
+          usedThisMonth,
+          remainingMonthly,
         };
       }
       return {
@@ -270,6 +341,9 @@ export async function checkUsageLimits(
         bonusChecks: 0,
         canUseBonusCheck: false,
         limits,
+        usedToday,
+        usedThisMonth,
+        remainingMonthly,
       };
     }
   }
@@ -300,6 +374,9 @@ export async function checkUsageLimits(
       bonusChecks,
       canUseBonusCheck: false, // Nie potrzeba - mamy jeszcze limit
       limits,
+      usedToday,
+      usedThisMonth,
+      remainingMonthly,
     };
   }
 
@@ -313,6 +390,9 @@ export async function checkUsageLimits(
       bonusChecks,
       canUseBonusCheck: true,
       limits,
+      usedToday,
+      usedThisMonth,
+      remainingMonthly,
     };
   }
 
@@ -351,6 +431,9 @@ export async function checkUsageLimits(
     bonusChecks: 0,
     canUseBonusCheck: false,
     limits,
+    usedToday,
+    usedThisMonth,
+    remainingMonthly,
   };
 }
 

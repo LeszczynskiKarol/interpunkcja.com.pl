@@ -192,6 +192,8 @@ export async function checkRoutes(fastify: FastifyInstance) {
       ...status,
       plan: userPlan,
       topUpPackages: TOPUP_PACKAGES,
+      maxChecksPerDay: LIMITS[userPlan].maxChecksPerDay,
+      maxChecksPerMonth: LIMITS[userPlan].maxChecksPerMonth,
     };
   });
 
