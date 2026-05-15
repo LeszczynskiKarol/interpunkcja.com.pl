@@ -61,7 +61,13 @@ export async function checkRoutes(fastify: FastifyInstance) {
     const userPlan: Plan = user.plan as Plan;
 
     // Sprawdź limity
-    const usageStatus = await checkUsageLimits(userId, null, text.length);
+    const ipAddress = request.ip;
+    const usageStatus = await checkUsageLimits(
+      userId,
+      ipAddress,
+      null,
+      text.length,
+    );
 
     // Jeśli nie można sprawdzić i nie ma bonus checks
     if (!usageStatus.canCheck) {
@@ -111,6 +117,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
       data: {
         userId,
         visitorId: null,
+        ipAddress,
         originalText: text,
         correctedText: result.correctedText,
         corrections: JSON.parse(JSON.stringify(result.corrections)),
@@ -119,6 +126,12 @@ export async function checkRoutes(fastify: FastifyInstance) {
         usedBonusCheck: willUseBonusCheck,
         metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : null,
       },
+    });
+
+    // Aktualizuj lastIp użytkownika
+    await prisma.user.update({
+      where: { id: userId },
+      data: { lastIp: ipAddress },
     });
 
     // Dla bonus check lub premium - pokaż pełne wyjaśnienia
@@ -137,7 +150,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
     const currentBonusChecks = await getBonusChecks(userId);
 
     // Przelicz pozostałe sprawdzenia
-    const newUsageStatus = await checkUsageLimits(userId, null, 0);
+    const newUsageStatus = await checkUsageLimits(userId, ipAddress, null, 0);
 
     return {
       correctedText: result.correctedText,
@@ -173,7 +186,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
     });
 
     const userPlan: Plan = (user?.plan as Plan) || "FREE";
-    const status = await checkUsageLimits(userId, null, 0);
+    const status = await checkUsageLimits(userId, request.ip, null, 0);
 
     return {
       ...status,

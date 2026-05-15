@@ -66,7 +66,7 @@ export function Checker() {
   useEffect(() => {
     if (status?.plan && user && status.plan !== user.plan) {
       console.log(
-        `[Checker] Plan mismatch detected: local=${user.plan}, server=${status.plan}`
+        `[Checker] Plan mismatch detected: local=${user.plan}, server=${status.plan}`,
       );
       // Wymuś odświeżenie danych użytkownika
       refreshUser();
@@ -111,22 +111,41 @@ export function Checker() {
             data.errorCount === 1
               ? "błąd"
               : data.errorCount < 5
-              ? "błędy"
-              : "błędów"
-          }`
+                ? "błędy"
+                : "błędów"
+          }`,
         );
       }
     },
     onError: (error: any) => {
       if (error.response?.status === 429) {
         const responseData = error.response.data;
+        const reason: string =
+          responseData.message || responseData.reason || "";
 
+        // Wykryj blokadę IP (anti-abuse)
+        const isIpBlock = /adresu IP|adresu|tego adresu/i.test(reason);
+
+        if (isIpBlock) {
+          toast.error(
+            "Wykryto wiele sprawdzeń z Twojego adresu sieciowego. Jeśli korzystasz z sieci współdzielonej (firma, uczelnia, mieszkanie), skontaktuj się z nami lub przejdź na Premium.",
+            { duration: 8000, icon: "🛡️" },
+          );
+
+          if (responseData.canTopUp && responseData.topUpPackages) {
+            setTopUpPackages(responseData.topUpPackages);
+            setShowTopUpModal(true);
+          }
+          return;
+        }
+
+        // Zwykły limit (dzienny/miesięczny per user)
         if (responseData.canTopUp && responseData.topUpPackages) {
           setTopUpPackages(responseData.topUpPackages);
           setShowTopUpModal(true);
         }
 
-        toast.error(responseData.message || "Przekroczono limit sprawdzeń");
+        toast.error(reason || "Przekroczono limit sprawdzeń");
       } else {
         toast.error("Wystąpił błąd podczas sprawdzania tekstu");
       }
@@ -199,7 +218,7 @@ export function Checker() {
     let keyIndex = 0;
 
     const sortedCorrections = [...corrections].sort(
-      (a, b) => (b.original?.length || 0) - (a.original?.length || 0)
+      (a, b) => (b.original?.length || 0) - (a.original?.length || 0),
     );
 
     interface FoundError {
@@ -242,7 +261,7 @@ export function Checker() {
     for (const error of foundErrors) {
       if (error.start > lastIndex) {
         result.push(
-          <span key={keyIndex++}>{text.slice(lastIndex, error.start)}</span>
+          <span key={keyIndex++}>{text.slice(lastIndex, error.start)}</span>,
         );
       }
 
@@ -253,7 +272,7 @@ export function Checker() {
           title={`${error.correction.rule}: ${error.correction.explanation}`}
         >
           {text.slice(error.start, error.end)}
-        </span>
+        </span>,
       );
 
       lastIndex = error.end;
@@ -337,7 +356,7 @@ export function Checker() {
             "focus:outline-none focus:border-blue-500 dark:focus:border-blue-400",
             textExceedsLimit
               ? "border-red-500 dark:border-red-400"
-              : "border-gray-200 dark:border-gray-700"
+              : "border-gray-200 dark:border-gray-700",
           )}
           disabled={checkMutation.isPending}
         />
@@ -348,7 +367,7 @@ export function Checker() {
             "absolute bottom-3 right-3 text-sm",
             textExceedsLimit
               ? "text-red-600 dark:text-red-400 font-medium"
-              : "text-gray-400 dark:text-gray-500"
+              : "text-gray-400 dark:text-gray-500",
           )}
         >
           {text.length} / {maxChars}
@@ -372,7 +391,7 @@ export function Checker() {
               "p-4 rounded-xl border-2",
               canUseBonusForLongerText
                 ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800",
             )}
           >
             <div className="flex items-start gap-3">
@@ -456,7 +475,7 @@ export function Checker() {
             "flex items-center justify-center gap-2",
             checkMutation.isPending || text.length === 0 || textExceedsLimit
               ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
+              : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl",
           )}
         >
           {checkMutation.isPending ? (
@@ -498,7 +517,7 @@ export function Checker() {
                 "p-4 rounded-xl flex items-center gap-3",
                 corrections.length === 0
                   ? "bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200"
-                  : "bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200"
+                  : "bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200",
               )}
             >
               {corrections.length === 0 ? (
@@ -514,8 +533,8 @@ export function Checker() {
                     {corrections.length === 1
                       ? "błąd"
                       : corrections.length < 5
-                      ? "błędy"
-                      : "błędów"}
+                        ? "błędy"
+                        : "błędów"}
                   </span>
                 </>
               )}

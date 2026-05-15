@@ -1,6 +1,7 @@
 // backend/src/services/auth.ts
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcrypt";
+import { checkIpAccountLimit } from "./limits";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { EmailService } from "./email";
@@ -16,7 +17,19 @@ export class AuthService {
     this.emailService = new EmailService();
   }
 
-  async register(data: { email: string; name: string; password: string }) {
+  async register(data: {
+    email: string;
+    name: string;
+    password: string;
+    ipAddress?: string;
+  }) {
+    // Anti-abuse: sprawdź ilość kont z tego IP
+    if (data.ipAddress) {
+      const ipCheck = await checkIpAccountLimit(data.ipAddress);
+      if (!ipCheck.allowed) {
+        throw new Error("TOO_MANY_ACCOUNTS_FROM_IP");
+      }
+    }
     // Sprawdź email
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email.toLowerCase() },
@@ -29,7 +42,7 @@ export class AuthService {
         this.validatePassword(data.password);
 
         const verificationToken = Math.floor(
-          100000 + Math.random() * 900000
+          100000 + Math.random() * 900000,
         ).toString();
         const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -50,7 +63,7 @@ export class AuthService {
         await this.emailService.sendVerificationEmail(
           existingUser.email,
           verificationToken,
-          data.name || "Użytkowniku"
+          data.name || "Użytkowniku",
         );
 
         return {
@@ -77,7 +90,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const verificationToken = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
     const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -89,6 +102,8 @@ export class AuthService {
         emailVerificationToken: verificationToken,
         emailVerificationExpiry: verificationExpiry,
         authProvider: "LOCAL",
+        registrationIp: data.ipAddress || null,
+        lastIp: data.ipAddress || null,
       },
     });
 
@@ -96,7 +111,7 @@ export class AuthService {
     await this.emailService.sendVerificationEmail(
       user.email,
       verificationToken,
-      user.name || "Użytkowniku"
+      user.name || "Użytkowniku",
     );
 
     return {
@@ -135,7 +150,7 @@ export class AuthService {
     try {
       await this.emailService.sendWelcomeEmail(
         user.email,
-        user.name || "Użytkowniku"
+        user.name || "Użytkowniku",
       );
     } catch (error) {
       console.error("Failed to send welcome email:", error);
@@ -193,7 +208,7 @@ export class AuthService {
 
     // Wygeneruj nowy token
     const verificationToken = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
     const verificationExpiry = new Date();
     verificationExpiry.setHours(verificationExpiry.getHours() + 24);
@@ -210,7 +225,7 @@ export class AuthService {
     await this.emailService.sendVerificationEmail(
       user.email,
       verificationToken,
-      user.name || "Użytkowniku"
+      user.name || "Użytkowniku",
     );
 
     // Zapisz timestamp
@@ -222,7 +237,7 @@ export class AuthService {
     };
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, ipAddress?: string) {
     // 1. Znajdź użytkownika
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
@@ -251,7 +266,10 @@ export class AuthService {
     // 5. Zaktualizuj ostatnie logowanie
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastLogin: new Date() },
+      data: {
+        lastLogin: new Date(),
+        ...(ipAddress && { lastIp: ipAddress }),
+      },
     });
 
     // 6. Generuj tokeny
@@ -453,7 +471,7 @@ export class AuthService {
   async changePassword(
     userId: string,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
   ) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -471,7 +489,7 @@ export class AuthService {
     // Sprawdź obecne hasło
     const isValidPassword = await bcrypt.compare(
       currentPassword,
-      user.passwordHash
+      user.passwordHash,
     );
     if (!isValidPassword) {
       throw new Error("INVALID_PASSWORD");
@@ -533,7 +551,7 @@ export class AuthService {
         plan: user.plan,
       },
       this.JWT_SECRET,
-      { expiresIn: "24h" }
+      { expiresIn: "24h" },
     );
   }
 
@@ -544,7 +562,7 @@ export class AuthService {
         type: "refresh",
       },
       this.JWT_REFRESH_SECRET,
-      { expiresIn: "30d" }
+      { expiresIn: "30d" },
     );
   }
 

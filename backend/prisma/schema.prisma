@@ -38,6 +38,10 @@ model User {
   
   // Bonus sprawdzenia (dokupione)
   bonusChecks   Int       @default(0)
+
+  // IP tracking (anti-abuse)
+  registrationIp  String?
+  lastIp          String?
   
   // Status
   isActive      Boolean   @default(true)
@@ -48,6 +52,7 @@ model User {
   checks           Check[]
   dailyUsage       DailyUsage[]
   creditPurchases  CreditPurchase[]
+  @@index([registrationIp])
 }
 
 enum AuthProvider {
@@ -65,7 +70,8 @@ model Check {
   charCount       Int
   errorCount      Int
   usedBonusCheck  Boolean  @default(false)  // Czy użyto bonus sprawdzenia
-  
+  ipAddress       String?
+
   // Metadata z procesu korekty (tokeny, koszt, czas)
   metadata        Json?
   
@@ -76,6 +82,8 @@ model Check {
   @@index([userId])
   @@index([visitorId])
   @@index([createdAt])
+  @@index([ipAddress])
+  @@index([ipAddress, createdAt])
 }
 
 model DailyUsage {

@@ -9,6 +9,7 @@ interface PlanLimits {
   maxCharsPerCheck: number;
   maxChecksPerDay: number;
   maxCharsPerDay: number;
+  maxChecksPerMonth: number;
   showExplanations: boolean;
   saveHistory: boolean;
 }
@@ -17,14 +18,16 @@ interface PlanLimits {
 export const LIMITS: Record<Plan, PlanLimits> = {
   FREE: {
     maxCharsPerCheck: 500,
-    maxChecksPerDay: 5,
-    maxCharsPerDay: 2000,
+    maxChecksPerDay: 2,
+    maxChecksPerMonth: 20,
+    maxCharsPerDay: 1000,
     showExplanations: false,
     saveHistory: false,
   },
   PREMIUM: {
     maxCharsPerCheck: 10000,
     maxChecksPerDay: 100,
+    maxChecksPerMonth: Infinity,
     maxCharsPerDay: 100000,
     showExplanations: true,
     saveHistory: true,
@@ -32,6 +35,7 @@ export const LIMITS: Record<Plan, PlanLimits> = {
   LIFETIME: {
     maxCharsPerCheck: 50000,
     maxChecksPerDay: Infinity,
+    maxChecksPerMonth: Infinity,
     maxCharsPerDay: Infinity,
     showExplanations: true,
     saveHistory: true,
@@ -65,6 +69,13 @@ export const TOPUP_PACKAGES = [
   },
 ] as const;
 
+// Limity IP (anti-abuse) - dotyczą tylko kont FREE
+export const IP_LIMITS = {
+  maxFreeChecksPerDay: 3,
+  maxFreeChecksPerMonth: 30,
+  maxAccountsPerIpIn30Days: 3,
+};
+
 export interface UsageStatus {
   canCheck: boolean;
   reason?: string;
@@ -77,8 +88,9 @@ export interface UsageStatus {
 
 export async function checkUsageLimits(
   userId: string,
+  ipAddress: string | null,
   _visitorId: string | null,
-  textLength: number
+  textLength: number,
 ): Promise<UsageStatus> {
   // Pobierz plan użytkownika i bonus checks
   const user = await prisma.user.findUnique({
@@ -119,6 +131,120 @@ export async function checkUsageLimits(
 
   const usedChecks = dailyUsage?.checkCount || 0;
   const usedChars = dailyUsage?.charCount || 0;
+
+  // === NOWE: Limit miesięczny per user (tylko FREE) ===
+  if (plan === "FREE" && limits.maxChecksPerMonth !== Infinity) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const monthlyCount = await prisma.check.count({
+      where: {
+        userId,
+        createdAt: { gte: startOfMonth },
+        usedBonusCheck: false,
+      },
+    });
+
+    if (monthlyCount >= limits.maxChecksPerMonth) {
+      if (bonusChecks > 0) {
+        return {
+          canCheck: true,
+          reason: "Miesięczny limit wyczerpany. Użyto dodatkowego sprawdzenia.",
+          remainingChecks: 0,
+          remainingChars: 0,
+          bonusChecks,
+          canUseBonusCheck: true,
+          limits,
+        };
+      }
+      return {
+        canCheck: false,
+        reason: `Wykorzystano miesięczny limit ${limits.maxChecksPerMonth} darmowych sprawdzeń. Dokup sprawdzenia lub przejdź na Premium.`,
+        remainingChecks: 0,
+        remainingChars: 0,
+        bonusChecks: 0,
+        canUseBonusCheck: false,
+        limits,
+      };
+    }
+  }
+
+  // === NOWE: Limity IP (anti-abuse, tylko FREE) ===
+  if (plan === "FREE" && ipAddress) {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Dzienna suma sprawdzeń FREE z tego IP
+    const dailyIpCount = await prisma.check.count({
+      where: {
+        ipAddress,
+        createdAt: { gte: startOfDay },
+        usedBonusCheck: false,
+        user: { plan: "FREE" },
+      },
+    });
+
+    if (dailyIpCount >= IP_LIMITS.maxFreeChecksPerDay) {
+      if (bonusChecks > 0) {
+        return {
+          canCheck: true,
+          reason: "Dzienny limit dla tego adresu wyczerpany. Użyto bonusu.",
+          remainingChecks: 0,
+          remainingChars: 0,
+          bonusChecks,
+          canUseBonusCheck: true,
+          limits,
+        };
+      }
+      return {
+        canCheck: false,
+        reason: `Z tego adresu IP wykonano już ${IP_LIMITS.maxFreeChecksPerDay} darmowych sprawdzeń dziennie. Spróbuj jutro, dokup sprawdzenia lub przejdź na Premium.`,
+        remainingChecks: 0,
+        remainingChars: 0,
+        bonusChecks: 0,
+        canUseBonusCheck: false,
+        limits,
+      };
+    }
+
+    // Miesięczna suma sprawdzeń FREE z tego IP
+    const monthlyIpCount = await prisma.check.count({
+      where: {
+        ipAddress,
+        createdAt: { gte: startOfMonth },
+        usedBonusCheck: false,
+        user: { plan: "FREE" },
+      },
+    });
+
+    if (monthlyIpCount >= IP_LIMITS.maxFreeChecksPerMonth) {
+      if (bonusChecks > 0) {
+        return {
+          canCheck: true,
+          reason: "Miesięczny limit IP wyczerpany. Użyto bonusu.",
+          remainingChecks: 0,
+          remainingChars: 0,
+          bonusChecks,
+          canUseBonusCheck: true,
+          limits,
+        };
+      }
+      return {
+        canCheck: false,
+        reason: `Z tego adresu IP wykorzystano już ${IP_LIMITS.maxFreeChecksPerMonth} darmowych sprawdzeń w tym miesiącu. Dokup sprawdzenia lub przejdź na Premium.`,
+        remainingChecks: 0,
+        remainingChars: 0,
+        bonusChecks: 0,
+        canUseBonusCheck: false,
+        limits,
+      };
+    }
+  }
 
   // Oblicz pozostałe sprawdzenia
   const remainingRegularChecks =
@@ -170,7 +296,7 @@ export async function checkUsageLimits(
     usedChecks >= limits.maxChecksPerDay
   ) {
     reasonParts.push(
-      `Wykorzystano dzienny limit ${limits.maxChecksPerDay} sprawdzeń.`
+      `Wykorzystano dzienny limit ${limits.maxChecksPerDay} sprawdzeń.`,
     );
   }
 
@@ -179,7 +305,7 @@ export async function checkUsageLimits(
     usedChars + textLength > limits.maxCharsPerDay
   ) {
     reasonParts.push(
-      `Wykorzystano dzienny limit ${limits.maxCharsPerDay} znaków.`
+      `Wykorzystano dzienny limit ${limits.maxCharsPerDay} znaków.`,
     );
   }
 
@@ -192,7 +318,7 @@ export async function checkUsageLimits(
     remainingChars: Math.max(
       0,
       (limits.maxCharsPerDay === Infinity ? 0 : limits.maxCharsPerDay) -
-        usedChars
+        usedChars,
     ),
     bonusChecks: 0,
     canUseBonusCheck: false,
@@ -204,7 +330,7 @@ export async function recordUsage(
   userId: string,
   _visitorId: string | null,
   charCount: number,
-  usedBonusCheck: boolean = false
+  usedBonusCheck: boolean = false,
 ): Promise<void> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -239,7 +365,7 @@ export async function recordUsage(
 
 export async function addBonusChecks(
   userId: string,
-  credits: number
+  credits: number,
 ): Promise<number> {
   const user = await prisma.user.update({
     where: { id: userId },
@@ -259,4 +385,24 @@ export async function getBonusChecks(userId: string): Promise<number> {
   });
 
   return user?.bonusChecks || 0;
+}
+
+export async function checkIpAccountLimit(
+  ipAddress: string | null,
+): Promise<{ allowed: boolean; count: number }> {
+  if (!ipAddress) return { allowed: true, count: 0 };
+
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const count = await prisma.user.count({
+    where: {
+      registrationIp: ipAddress,
+      createdAt: { gte: thirtyDaysAgo },
+    },
+  });
+
+  return {
+    allowed: count < IP_LIMITS.maxAccountsPerIpIn30Days,
+    count,
+  };
 }

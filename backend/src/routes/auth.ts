@@ -60,7 +60,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       const frontendUrl =
         process.env.FRONTEND_URL || "https://interpunkcja.com.pl";
       return reply.redirect(
-        `${frontendUrl}/logowanie?error=google_auth_failed`
+        `${frontendUrl}/logowanie?error=google_auth_failed`,
       );
     }
 
@@ -86,7 +86,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       });
 
       return reply.redirect(
-        `${frontendUrl}/auth/callback?${params.toString()}`
+        `${frontendUrl}/auth/callback?${params.toString()}`,
       );
     } catch (error: any) {
       console.error("Google authentication error:", error);
@@ -115,7 +115,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       // Weryfikacja reCAPTCHA
       const recaptchaResult = await verifyRecaptcha(
         data.recaptchaToken || "",
-        "register"
+        "register",
       );
 
       if (!recaptchaResult.success) {
@@ -131,6 +131,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         email: data.email,
         name: data.name,
         password: data.password,
+        ipAddress: request.ip,
       });
 
       return reply.code(201).send(result);
@@ -146,6 +147,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
 
       const errorMessages: Record<string, string> = {
+        TOO_MANY_ACCOUNTS_FROM_IP:
+          "Wykryto zbyt wiele kont założonych z tego adresu w ostatnich 30 dniach. Jeśli to pomyłka, skontaktuj się z nami.",
         USER_EXISTS: "Użytkownik z tym adresem email już istnieje",
         GOOGLE_ACCOUNT_EXISTS:
           "To konto jest już połączone z Google. Użyj logowania przez Google.",
@@ -239,7 +242,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       // Weryfikacja reCAPTCHA
       const recaptchaResult = await verifyRecaptcha(
         data.recaptchaToken || "",
-        "login"
+        "login",
       );
 
       if (!recaptchaResult.success) {
@@ -251,7 +254,11 @@ export async function authRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const result = await authService.login(data.email, data.password);
+      const result = await authService.login(
+        data.email,
+        data.password,
+        request.ip,
+      );
       return reply.send(result);
     } catch (error: any) {
       console.error("Login error:", error);
@@ -332,7 +339,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       // Weryfikacja reCAPTCHA
       const recaptchaResult = await verifyRecaptcha(
         data.recaptchaToken || "",
-        "forgot_password"
+        "forgot_password",
       );
 
       if (!recaptchaResult.success) {

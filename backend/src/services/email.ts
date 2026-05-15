@@ -251,4 +251,57 @@ export class EmailService {
       return null;
     }
   }
+  async sendAbuseReport(
+    adminEmail: string,
+    suspicious: import("./abuseMonitor").SuspiciousIpEntry[],
+  ) {
+    const date = new Date().toLocaleDateString("pl-PL");
+
+    const rows = suspicious
+      .map((entry) => {
+        const accountsList = entry.accounts
+          .map(
+            (a) =>
+              `<li><strong>${a.email}</strong> – ${a.checksCount} sprawdzeń, utworzone: ${a.createdAt.toLocaleDateString("pl-PL")}</li>`,
+          )
+          .join("");
+
+        return `
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:16px;background:#fafafa;">
+          <h3 style="margin:0 0 8px 0;color:#dc2626;">🚨 IP: ${entry.ip}</h3>
+          <p style="margin:4px 0;color:#374151;">
+            <strong>${entry.accountCount}</strong> kont FREE, łącznie <strong>${entry.totalChecks}</strong> sprawdzeń
+          </p>
+          <ul style="margin:8px 0 0 0;padding-left:20px;color:#4b5563;font-size:14px;">
+            ${accountsList}
+          </ul>
+        </div>`;
+      })
+      .join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="utf-8"></head>
+      <body style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px;background:#ffffff;color:#111827;">
+        <h2 style="color:#111827;">🛡️ Raport podejrzanych IP – ${date}</h2>
+        <p style="color:#4b5563;">
+          Wykryto <strong>${suspicious.length}</strong> ${suspicious.length === 1 ? "adres IP" : "adresów IP"} z 3 lub więcej kontami FREE w ostatnich 30 dniach.
+        </p>
+        ${rows}
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+        <p style="color:#9ca3af;font-size:12px;">
+          Automatyczny raport z systemu Interpunkcja.com.pl. Sprawdź konta w panelu admina i w razie potrzeby zablokuj.
+        </p>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+      to: adminEmail,
+      subject: `🚨 Raport abuse – ${suspicious.length} podejrzanych IP (${date})`,
+      html,
+    });
+  }
 }
