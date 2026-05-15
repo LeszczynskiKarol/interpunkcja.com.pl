@@ -138,13 +138,41 @@ export async function checkUsageLimits(
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const monthlyCount = await prisma.check.count({
-      where: {
-        userId,
-        createdAt: { gte: startOfMonth },
-        usedBonusCheck: false,
+    // Pobierz override (jeśli admin ręcznie ustawił licznik)
+    const userOverride = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        monthlyCountOverride: true,
+        monthlyCountOverrideSetAt: true,
       },
     });
+
+    let monthlyCount: number;
+    if (
+      userOverride?.monthlyCountOverride !== null &&
+      userOverride?.monthlyCountOverride !== undefined &&
+      userOverride.monthlyCountOverrideSetAt &&
+      userOverride.monthlyCountOverrideSetAt >= startOfMonth
+    ) {
+      // Admin ustawił override w bieżącym miesiącu - liczymy override + sprawdzenia PO override
+      const checksAfterOverride = await prisma.check.count({
+        where: {
+          userId,
+          createdAt: { gte: userOverride.monthlyCountOverrideSetAt },
+          usedBonusCheck: false,
+        },
+      });
+      monthlyCount = userOverride.monthlyCountOverride + checksAfterOverride;
+    } else {
+      // Normalne zliczanie
+      monthlyCount = await prisma.check.count({
+        where: {
+          userId,
+          createdAt: { gte: startOfMonth },
+          usedBonusCheck: false,
+        },
+      });
+    }
 
     if (monthlyCount >= limits.maxChecksPerMonth) {
       if (bonusChecks > 0) {

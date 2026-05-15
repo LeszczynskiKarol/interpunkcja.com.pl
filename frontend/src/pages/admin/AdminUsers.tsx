@@ -72,6 +72,20 @@ export function AdminUsers() {
     },
   });
 
+  const { data: userUsage } = useQuery({
+    queryKey: ["admin-user-usage", selectedUser?.id, showModal],
+    queryFn: async () => {
+      if (!selectedUser) return null;
+      const res = await api.get(`/api/admin/users/${selectedUser.id}/usage`);
+      return res.data as {
+        dailyCheckCount: number;
+        dailyCharCount: number;
+        monthlyCheckCount: number;
+      };
+    },
+    enabled: !!selectedUser && showModal,
+  });
+
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const res = await api.patch(`/api/admin/users/${id}`, data);
@@ -79,6 +93,7 @@ export function AdminUsers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user-usage"] });
       toast.success("Użytkownik zaktualizowany");
       setShowModal(false);
     },
@@ -279,7 +294,7 @@ export function AdminUsers() {
                     <td className="px-4 py-3">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${getPlanBadge(
-                          user.plan
+                          user.plan,
                         )}`}
                       >
                         {user.plan === "PREMIUM" || user.plan === "LIFETIME" ? (
@@ -366,7 +381,7 @@ export function AdminUsers() {
                             onClick={() => {
                               if (
                                 confirm(
-                                  "Czy na pewno chcesz dezaktywować użytkownika?"
+                                  "Czy na pewno chcesz dezaktywować użytkownika?",
                                 )
                               ) {
                                 deactivateUserMutation.mutate(user.id);
@@ -435,6 +450,11 @@ export function AdminUsers() {
                     isActive: formData.get("isActive") === "true",
                     bonusChecks:
                       parseInt(formData.get("bonusChecks") as string) || 0,
+                    dailyCheckCount:
+                      parseInt(formData.get("dailyCheckCount") as string) || 0,
+                    monthlyCheckCount:
+                      parseInt(formData.get("monthlyCheckCount") as string) ||
+                      0,
                   },
                 });
               }}
@@ -518,6 +538,52 @@ export function AdminUsers() {
                   />
                 </div>
               </div>
+
+              {/* Ręczna manipulacja licznikami sprawdzeń */}
+              <div className="p-3 border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 rounded-lg">
+                <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-3">
+                  ⚙️ Wykorzystane sprawdzenia (dowolna wartość)
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Dziś
+                    </label>
+                    <input
+                      type="number"
+                      name="dailyCheckCount"
+                      min="0"
+                      key={`daily-${selectedUser.id}-${userUsage?.dailyCheckCount ?? "loading"}`}
+                      defaultValue={userUsage?.dailyCheckCount ?? 0}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Obecnie: {userUsage?.dailyCheckCount ?? "..."}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      W tym miesiącu
+                    </label>
+                    <input
+                      type="number"
+                      name="monthlyCheckCount"
+                      min="0"
+                      key={`monthly-${selectedUser.id}-${userUsage?.monthlyCheckCount ?? "loading"}`}
+                      defaultValue={userUsage?.monthlyCheckCount ?? 0}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Obecnie: {userUsage?.monthlyCheckCount ?? "..."}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
+                  💡 Możesz wpisać dowolną wartość (0, 5, 100, 9999 itd.).
+                  Override resetuje się 1. dnia każdego miesiąca.
+                </p>
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"

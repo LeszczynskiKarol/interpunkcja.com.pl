@@ -38,7 +38,9 @@ model User {
   
   // Bonus sprawdzenia (dokupione)
   bonusChecks   Int       @default(0)
-
+  // Ręczne nadpisanie miesięcznego licznika przez admina (null = nie nadpisuje)
+  monthlyCountOverride        Int?
+  monthlyCountOverrideSetAt   DateTime?
   // IP tracking (anti-abuse)
   registrationIp  String?
   lastIp          String?

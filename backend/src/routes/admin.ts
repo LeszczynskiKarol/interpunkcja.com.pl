@@ -523,9 +523,12 @@ export async function adminRoutes(fastify: FastifyInstance) {
       isActive: z.boolean().optional(),
       emailVerified: z.boolean().optional(),
       bonusChecks: z.number().min(0).optional(),
+      dailyCheckCount: z.number().min(0).optional(),
+      monthlyCheckCount: z.number().min(0).optional(),
     });
 
-    const data = schema.parse(request.body);
+    const parsed = schema.parse(request.body);
+    const { dailyCheckCount, monthlyCheckCount, ...data } = parsed;
 
     // Sprawdź czy user istnieje
     const existingUser = await prisma.user.findUnique({ where: { id } });
@@ -547,9 +550,16 @@ export async function adminRoutes(fastify: FastifyInstance) {
       }
     }
 
+    // Jeśli admin ustawia monthlyCheckCount - dopisz override
+    const updateData: any = { ...data };
+    if (typeof monthlyCheckCount === "number") {
+      updateData.monthlyCountOverride = monthlyCheckCount;
+      updateData.monthlyCountOverrideSetAt = new Date();
+    }
+
     const user = await prisma.user.update({
       where: { id },
-      data,
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -564,7 +574,80 @@ export async function adminRoutes(fastify: FastifyInstance) {
       },
     });
 
+    // Manipulacja licznikiem dziennym
+    if (typeof dailyCheckCount === "number") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      await prisma.dailyUsage.upsert({
+        where: { userId_date: { userId: id, date: today } },
+        update: { checkCount: dailyCheckCount },
+        create: {
+          userId: id,
+          date: today,
+          checkCount: dailyCheckCount,
+          charCount: 0,
+        },
+      });
+    }
+
     return user;
+  });
+
+  // Pobierz aktualne wykorzystanie sprawdzeń (dzienne + miesięczne)
+  fastify.get("/api/admin/users/:id/usage", async (request, reply) => {
+    const { id } = request.params as { id: string };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const [dailyUsage, userOverride, realMonthlyCount] = await Promise.all([
+      prisma.dailyUsage.findFirst({
+        where: { userId: id, date: today },
+      }),
+      prisma.user.findUnique({
+        where: { id },
+        select: {
+          monthlyCountOverride: true,
+          monthlyCountOverrideSetAt: true,
+        },
+      }),
+      prisma.check.count({
+        where: {
+          userId: id,
+          createdAt: { gte: startOfMonth },
+          usedBonusCheck: false,
+        },
+      }),
+    ]);
+
+    // Oblicz efektywny licznik miesięczny (z override)
+    let effectiveMonthlyCount = realMonthlyCount;
+    if (
+      userOverride?.monthlyCountOverride !== null &&
+      userOverride?.monthlyCountOverride !== undefined &&
+      userOverride.monthlyCountOverrideSetAt &&
+      userOverride.monthlyCountOverrideSetAt >= startOfMonth
+    ) {
+      const checksAfter = await prisma.check.count({
+        where: {
+          userId: id,
+          createdAt: { gte: userOverride.monthlyCountOverrideSetAt },
+          usedBonusCheck: false,
+        },
+      });
+      effectiveMonthlyCount = userOverride.monthlyCountOverride + checksAfter;
+    }
+
+    return {
+      dailyCheckCount: dailyUsage?.checkCount || 0,
+      dailyCharCount: dailyUsage?.charCount || 0,
+      monthlyCheckCount: effectiveMonthlyCount,
+    };
   });
 
   // Dodaj bonus sprawdzenia użytkownikowi
@@ -602,7 +685,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     console.log(
       `[ADMIN] Added ${credits} bonus checks to user ${id} (${
         existingUser.email
-      }). Reason: ${reason || "none"}`
+      }). Reason: ${reason || "none"}`,
     );
 
     return {
@@ -677,7 +760,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         message:
           "Hasło zostało zresetowane. Przekaż użytkownikowi tymczasowe hasło.",
       };
-    }
+    },
   );
 
   // ==================== CHECKS MANAGEMENT ====================
@@ -941,7 +1024,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           bonusChecks: {
             decrement: Math.min(
               purchase.creditsGranted,
-              purchase.user.bonusChecks
+              purchase.user.bonusChecks,
             ),
           },
         },
@@ -1024,13 +1107,13 @@ export async function adminRoutes(fastify: FastifyInstance) {
       const dateStr = currentDate.toISOString().split("T")[0];
 
       const userEntry = dailyUsers.find(
-        (u) => u.date.toISOString().split("T")[0] === dateStr
+        (u) => u.date.toISOString().split("T")[0] === dateStr,
       );
       const checkEntry = dailyChecks.find(
-        (c) => c.date.toISOString().split("T")[0] === dateStr
+        (c) => c.date.toISOString().split("T")[0] === dateStr,
       );
       const purchaseEntry = dailyPurchases.find(
-        (p) => p.date && p.date.toISOString().split("T")[0] === dateStr
+        (p) => p.date && p.date.toISOString().split("T")[0] === dateStr,
       );
 
       result.push({
