@@ -141,8 +141,8 @@ export function Home() {
   const useCases = [
     {
       icon: GraduationCap,
-      title: "Studenci i uczniowie",
-      description: "Prace zaliczeniowe, wypracowania, prezentacje",
+      title: "Maturzyści i studenci",
+      description: "Wypracowania maturalne, prace zaliczeniowe, prezentacje",
     },
     {
       icon: Briefcase,
@@ -483,6 +483,21 @@ export function Home() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-10 max-w-3xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              Piszesz wypracowanie maturalne i potrzebujesz nie tylko sprawdzenia
+              interpunkcji, ale też oceny całości według kryteriów CKE?
+              Polecamy{" "}
+              <a
+                href="https://www.matury-online.pl/wypracowanie"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300"
+              >
+                ocenę wypracowań maturalnych przez AI według kryteriów CKE
+              </a>
+              {" "}— treść, kompozycja, język i ortografia w jednym raporcie.
             </div>
           </div>
         </section>
