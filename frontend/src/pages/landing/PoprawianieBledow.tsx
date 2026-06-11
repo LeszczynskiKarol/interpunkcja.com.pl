@@ -295,11 +295,6 @@ export function PoprawianieBledow() {
       price: "0",
       priceCurrency: "PLN",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      ratingCount: "1893",
-    },
   };
 
   const faqSchema = {

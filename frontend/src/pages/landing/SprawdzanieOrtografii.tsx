@@ -288,11 +288,6 @@ export function SprawdzanieOrtografii() {
       price: "0",
       priceCurrency: "PLN",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      ratingCount: "1250",
-    },
   };
 
   const faqSchema = {

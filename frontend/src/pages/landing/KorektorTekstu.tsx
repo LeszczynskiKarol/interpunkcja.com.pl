@@ -302,11 +302,6 @@ export function KorektorTekstu() {
       price: "0",
       priceCurrency: "PLN",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      ratingCount: "2156",
-    },
   };
 
   const faqSchema = {

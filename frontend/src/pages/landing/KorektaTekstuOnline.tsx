@@ -270,11 +270,6 @@ export function KorektaTekstuOnline() {
       price: "0",
       priceCurrency: "PLN",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      ratingCount: "2341",
-    },
   };
 
   const faqSchema = {

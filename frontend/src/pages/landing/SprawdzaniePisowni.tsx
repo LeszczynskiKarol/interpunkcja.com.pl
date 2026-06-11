@@ -251,11 +251,6 @@ export function SprawdzaniePisowni() {
       price: "0",
       priceCurrency: "PLN",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      ratingCount: "1847",
-    },
   };
 
   const faqSchema = {
