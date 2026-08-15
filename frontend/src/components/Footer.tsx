@@ -177,14 +177,14 @@ export function Footer() {
               zastrzeżone.
             </p>
             <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span>Realizacja:</span>
+              <span>Projekt i wykonanie:</span>
               <a
-                href="https://www.torweb.pl"
+                href="https://www.karol-leszczynski.pl/"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="author"
                 className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
               >
-                TorWeb.pl
+                Karol Leszczyński
               </a>
               <span className="text-gray-300 dark:text-gray-600">|</span>
               <a

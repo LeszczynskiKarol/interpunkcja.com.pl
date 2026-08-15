@@ -414,6 +414,30 @@ export function Home() {
                 </div>
               ))}
             </div>
+
+            <p className="mt-12 text-gray-600 dark:text-gray-400 max-w-3xl mx-auto text-center">
+              Interpunkcję zaprojektował i rozwija Karol Leszczyński —
+              sprawdzanie tekstu, konta użytkowników, płatności i serwery są
+              jego pracą od pierwszej wersji. W ten sam sposób buduje{" "}
+              <a
+                href="https://www.karol-leszczynski.pl/uslugi/aplikacje-webowe/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
+                aplikacje internetowe dla firm
+              </a>{" "}
+              i prowadzi{" "}
+              <a
+                href="https://www.karol-leszczynski.pl/uslugi/wdrozenia-ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
+                wdrożenia sztucznej inteligencji
+              </a>{" "}
+              w firmowych systemach.
+            </p>
           </div>
         </section>
 
