@@ -74,10 +74,21 @@ const ogUrl = canonical;
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonty ładowane asynchronicznie (media="print" + onload) — arkusz
+         Google Fonts nie blokuje renderowania; tekst rysuje się od razu
+         fallbackiem dzięki display=swap -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
 
     <!-- Motyw + stan zalogowania przed pierwszym renderem
          (te same klucze localStorage co zustand persist w SPA) -->
@@ -112,18 +123,35 @@ const ogUrl = canonical;
       });
     </script>
 
-    <!-- Google Tag Manager -->
+    <!-- Google Tag Manager — ładowany po bezczynności przeglądarki, żeby nie
+         konkurował o łącze/CPU podczas pierwszego renderu. Eventy sprzed
+         załadowania (consent default/update) czekają w dataLayer i GTM
+         przetwarza je po starcie. -->
     <script is:inline>
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "GTM-KDSW7L23");
+      (function () {
+        function loadGtm() {
+          if (window.__gtmLoaded) return;
+          window.__gtmLoaded = true;
+          (function (w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+            var f = d.getElementsByTagName(s)[0],
+              j = d.createElement(s),
+              dl = l != "dataLayer" ? "&l=" + l : "";
+            j.async = true;
+            j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+            f.parentNode.insertBefore(j, f);
+          })(window, document, "script", "dataLayer", "GTM-KDSW7L23");
+        }
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(loadGtm, { timeout: 3500 });
+        } else {
+          setTimeout(loadGtm, 2000);
+        }
+        window.addEventListener("load", function () {
+          setTimeout(loadGtm, 500);
+        });
+      })();
     </script>
     <!-- End Google Tag Manager -->
   </head>

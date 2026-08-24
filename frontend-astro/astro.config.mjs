@@ -18,6 +18,11 @@ export default defineConfig({
     port: 4321,
     host: "127.0.0.1",
   },
+  build: {
+    // CSS inline w HTML — usuwa render-blokujący request po arkusz
+    // (duży zysk FCP/LCP na wolnych łączach; HTML rośnie o ~8 KB gzip)
+    inlineStylesheets: "always",
+  },
   vite: {
     resolve: {
       alias: {
