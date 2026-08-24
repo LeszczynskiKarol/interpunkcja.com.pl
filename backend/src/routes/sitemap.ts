@@ -12,6 +12,7 @@ const STATIC_PAGES = [
   { path: "/poprawianie-bledow", priority: "0.9", changefreq: "monthly" },
   { path: "/korekta-tekstu-online", priority: "0.9", changefreq: "monthly" },
   { path: "/cennik", priority: "0.8", changefreq: "monthly" },
+  { path: "/partnerzy", priority: "0.4", changefreq: "yearly" },
   { path: "/polityka-prywatnosci", priority: "0.3", changefreq: "yearly" },
   { path: "/polityka-cookies", priority: "0.3", changefreq: "yearly" },
   { path: "/regulamin", priority: "0.3", changefreq: "yearly" },

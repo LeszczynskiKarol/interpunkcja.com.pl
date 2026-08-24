@@ -1,0 +1,268 @@
+---
+// Strona "Partnerzy" — kto i co stoi za serwisem (wzorowana na sitario.com/pl/partnerzy).
+// Czysty Astro, zero JS po stronie klienta.
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const partners = [
+  {
+    label: "Twórca serwisu",
+    name: "Karol Leszczyński",
+    url: "https://www.karol-leszczynski.pl/",
+    description:
+      "Korektor i programista w jednej osobie. Zaprojektował i napisał całe narzędzie — od silnika korekty, przez panel użytkownika, po bazę zasad interpunkcyjnych na blogu.",
+    icon: "pen",
+  },
+  {
+    label: "Modele AI",
+    name: "Anthropic",
+    url: "https://www.anthropic.com/",
+    description:
+      "Twórca modeli Claude, które sprawdzają Twój tekst. Zamiast dopasowywać słowa do słownika, analizują budowę zdania — dlatego wyłapują brakujący przecinek przed „który” czy „że”.",
+    icon: "sparkles",
+  },
+  {
+    label: "Infrastruktura",
+    name: "Amazon Web Services",
+    url: "https://aws.amazon.com/",
+    description:
+      "Serwer, na którym działa aplikacja i baza artykułów: certyfikaty SSL, kopie zapasowe i europejska lokalizacja danych (region Frankfurt).",
+    icon: "cloud",
+  },
+  {
+    label: "Płatności",
+    name: "Stripe",
+    url: "https://stripe.com/pl",
+    description:
+      "Operator płatności za plan Premium i Lifetime. Dane karty trafiają wprost do Stripe — nie przechodzą przez nasz serwer i nie są u nas zapisywane.",
+    icon: "card",
+  },
+  {
+    label: "Domena",
+    name: "Aftermarket.pl",
+    url: "https://www.aftermarket.pl/",
+    description:
+      "Rejestrator, przez którego kupiona i odnawiana jest domena interpunkcja.com.pl — zarejestrowana na dane właściciela serwisu, nie pośrednika.",
+    icon: "globe",
+  },
+  {
+    label: "Dane i analityka",
+    name: "Google",
+    url: "https://developers.google.com/",
+    description:
+      "Search Console, Analytics 4 i PageSpeed Insights — na tych danych opieramy tematy artykułów i pracę nad szybkością strony. Zbierane dopiero po Twojej zgodzie na cookies.",
+    icon: "chart",
+  },
+];
+
+const schemas = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Strona główna",
+        item: "https://www.interpunkcja.com.pl/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Partnerzy",
+        item: "https://www.interpunkcja.com.pl/partnerzy",
+      },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Partnerzy | Interpunkcja.com.pl - kto i co stoi za serwisem"
+  description="Ludzie i technologie, na których działa Interpunkcja.com.pl: modele Claude od Anthropic, infrastruktura AWS, płatności Stripe, domena z Aftermarket.pl i dane z Google Search Console."
+  canonical="https://www.interpunkcja.com.pl/partnerzy"
+  ogTitle="Partnerzy | Interpunkcja.com.pl"
+  ogDescription="Kto i co stoi za korektorem interpunkcji: Anthropic, AWS, Stripe, Aftermarket.pl i Google."
+  schemas={schemas}
+>
+  <!-- Hero -->
+  <section
+    class="border-b border-gray-200 dark:border-gray-800 bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-900 transition-colors"
+  >
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
+      <span class="inline-flex items-center gap-2.5">
+        <span
+          class="inline-flex shrink-0 items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 ring-1 ring-inset ring-blue-200 dark:ring-blue-800"
+          aria-hidden="true"
+        >
+          <svg
+            class="w-5 h-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="6" cy="6" r="2.5"></circle>
+            <circle cx="6" cy="18" r="2.5"></circle>
+            <circle cx="18" cy="8" r="2.5"></circle>
+            <path d="M6 8.5v7"></path>
+            <path d="M18 10.5a6 6 0 0 1-6 6H8.5"></path>
+          </svg>
+        </span>
+        <span class="font-medium text-sm text-gray-900 dark:text-white">
+          Partnerzy
+        </span>
+      </span>
+
+      <h1
+        class="mt-5 text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white leading-tight"
+      >
+        Kto i co stoi za Interpunkcja.com.pl
+      </h1>
+      <p
+        class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400"
+      >
+        Korekta jednym kliknięciem wygląda prosto, ale pod spodem pracuje
+        konkretny zestaw ludzi i technologii. Bez marketingowej mgły: tu jest
+        dokładnie to, z czego korzystamy i po co.
+      </p>
+    </div>
+  </section>
+
+  <!-- Karty partnerów -->
+  <section class="bg-gray-50 dark:bg-gray-950 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          partners.map((p) => (
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener"
+              class="group flex h-full flex-col rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg"
+            >
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30">
+                <svg
+                  class="h-5 w-5 text-blue-600 dark:text-blue-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  {p.icon === "pen" && (
+                    <>
+                      <path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z" />
+                      <path d="M14 7l3 3" />
+                      <path d="M12 20h8" />
+                    </>
+                  )}
+                  {p.icon === "sparkles" && (
+                    <>
+                      <path d="M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6z" />
+                      <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" />
+                      <path d="M5 3l.6 1.7L7.3 5.3 5.6 6 5 7.7 4.4 6 2.7 5.3 4.4 4.7z" />
+                    </>
+                  )}
+                  {p.icon === "cloud" && (
+                    <path d="M7.2 18h9.9a3.9 3.9 0 0 0 .7-7.7A6 6 0 0 0 6.3 9.4 4.4 4.4 0 0 0 7.2 18z" />
+                  )}
+                  {p.icon === "card" && (
+                    <>
+                      <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+                      <path d="M2.5 10h19" />
+                      <path d="M6.5 14.5h3" />
+                    </>
+                  )}
+                  {p.icon === "globe" && (
+                    <>
+                      <circle cx="12" cy="12" r="8.5" />
+                      <path d="M3.5 12h17" />
+                      <path d="M12 3.5c2.6 2.3 4 5.2 4 8.5s-1.4 6.2-4 8.5c-2.6-2.3-4-5.2-4-8.5s1.4-6.2 4-8.5z" />
+                    </>
+                  )}
+                  {p.icon === "chart" && (
+                    <>
+                      <path d="M4 4v16h16" />
+                      <path d="m7.5 14.5 3.5-3.5 2.5 2.5 5-5.5" />
+                      <path d="M15.5 8h3v3" />
+                    </>
+                  )}
+                </svg>
+              </div>
+
+              <span class="mt-4 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                {p.label}
+              </span>
+              <span class="mt-1.5 inline-flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
+                {p.name}
+                <svg
+                  class="h-4 w-4 text-gray-400 dark:text-gray-600 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M14 4h6v6" />
+                  <path d="M20 4 10 14" />
+                  <path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />
+                </svg>
+              </span>
+              <span class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                {p.description}
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Domknięcie + CTA -->
+  <section class="bg-white dark:bg-gray-900 transition-colors">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
+      <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        Efekt tej układanki sprawdzisz w minutę
+      </h2>
+      <p
+        class="mx-auto mt-4 max-w-xl text-[0.9375rem] leading-relaxed text-gray-600 dark:text-gray-400"
+      >
+        Wszystkie te klocki składają się na jedno okienko, do którego wklejasz
+        tekst i dostajesz poprawioną wersję z wyjaśnieniem każdej zmiany.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a
+          href="/"
+          class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-blue-600/25 transition-colors hover:bg-blue-700"
+        >
+          Sprawdź swój tekst
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 12h15"></path>
+            <path d="m13 6 6 6-6 6"></path>
+          </svg>
+        </a>
+        <a
+          href="/cennik"
+          class="inline-flex items-center gap-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-3 text-base font-medium text-gray-900 dark:text-white transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+        >
+          Zobacz cennik
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
