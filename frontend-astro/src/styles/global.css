@@ -2,10 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fallback z metrykami dopasowanymi do Intera — eliminuje przesunięcie
+   layoutu (CLS) przy podmianie fontu ładowanego asynchronicznie */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  ascent-override: 90.2%;
+  descent-override: 22.48%;
+  line-gap-override: 0%;
+  size-adjust: 107.4%;
+}
+
 @layer base {
   body {
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      sans-serif;
+    font-family: "Inter", "Inter Fallback", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors;
