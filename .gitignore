@@ -56,4 +56,4 @@ backend/package-lock.json
 
 # Testing
 coverage/
-.nyc_output/
+.nyc_output/content-cluster/
