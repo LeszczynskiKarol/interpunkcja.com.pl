@@ -72,23 +72,22 @@ const ogUrl = canonical;
       />
     ))}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Fonty ładowane asynchronicznie (media="print" + onload) — arkusz
-         Google Fonts nie blokuje renderowania; tekst rysuje się od razu
-         fallbackiem dzięki display=swap -->
+    <!-- Inter self-hostowany (variable) — preload, żeby font był gotowy
+         przy pierwszym renderze (minimalny swap, brak third-party) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
+      rel="preload"
+      href="/fonts/inter-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
-    <noscript>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
-    </noscript>
+    <link
+      rel="preload"
+      href="/fonts/inter-latin-ext.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <!-- Motyw + stan zalogowania przed pierwszym renderem
          (te same klucze localStorage co zustand persist w SPA) -->
