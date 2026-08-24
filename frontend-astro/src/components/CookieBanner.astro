@@ -281,11 +281,28 @@
 
     // Inicjalizacja: pokaż banner tylko bez zapisanej zgody,
     // przy zapisanej — zaktualizuj Google Consent Mode.
+    // Banner pojawia się dopiero po ustabilizowaniu webfontów (ładowanych
+    // asynchronicznie) — inaczej reflow tekstu w elemencie fixed-bottom
+    // przesuwa całą jego zawartość i podbija CLS.
     var existing = readConsent();
     if (existing) {
       updateGoogleConsent(existing);
     } else {
-      show();
+      var shown = false;
+      var showOnce = function () {
+        if (!shown) {
+          shown = true;
+          show();
+        }
+      };
+      setTimeout(function () {
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(showOnce);
+        } else {
+          showOnce();
+        }
+      }, 1500);
+      setTimeout(showOnce, 3500);
     }
 
     document
