@@ -1,5 +1,5 @@
 // frontend/src/components/Header.tsx
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Moon,
   Sun,
@@ -39,21 +39,21 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [zasadyMenuOpen, setZasadyMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate("/");
     setUserMenuOpen(false);
+    // Strona główna żyje w Astro — pełne przejście zamiast nawigacji SPA
+    window.location.href = "/";
   };
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo z claimem */}
-          <Link
-            to={isAuthenticated ? "/panel" : "/"}
+          {/* Logo z claimem — "/" żyje w Astro, więc pełne przejście */}
+          <a
+            href={isAuthenticated ? "/panel" : "/"}
             className="flex items-center gap-2"
           >
             <span className="text-2xl">✏️</span>
@@ -65,16 +65,16 @@ export function Header() {
                 Sprawdzanie pisowni online
               </span>
             </div>
-          </Link>
+          </a>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link
-              to={isAuthenticated ? "/panel" : "/"}
+            <a
+              href={isAuthenticated ? "/panel" : "/"}
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Sprawdź tekst
-            </Link>
+            </a>
 
             {/* Zasady dropdown - TYLKO gdy niezalogowany */}
             {!isAuthenticated && (
@@ -91,9 +91,9 @@ export function Header() {
                 {zasadyMenuOpen && (
                   <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
                     {categories.map((cat) => (
-                      <Link
+                      <a
                         key={cat.slug}
-                        to={`/category/${cat.slug}/`}
+                        href={`/category/${cat.slug}/`}
                         className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                         onClick={() => setZasadyMenuOpen(false)}
                       >
@@ -103,7 +103,7 @@ export function Header() {
                         <span className="text-sm text-gray-500 dark:text-gray-400">
                           {cat.description}
                         </span>
-                      </Link>
+                      </a>
                     ))}
                   </div>
                 )}
@@ -112,12 +112,12 @@ export function Header() {
 
             {/* Cennik - TYLKO gdy niezalogowany */}
             {!isAuthenticated && (
-              <Link
-                to="/cennik"
+              <a
+                href="/cennik"
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 Cennik
-              </Link>
+              </a>
             )}
           </nav>
 
@@ -231,13 +231,13 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800">
             <nav className="flex flex-col gap-2">
-              <Link
-                to={isAuthenticated ? "/panel" : "/"}
+              <a
+                href={isAuthenticated ? "/panel" : "/"}
                 onClick={() => setMobileMenuOpen(false)}
                 className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
               >
                 Sprawdź tekst
-              </Link>
+              </a>
 
               {/* Mobile categories - TYLKO gdy niezalogowany */}
               {!isAuthenticated && (
@@ -249,23 +249,23 @@ export function Header() {
                     </span>
                   </div>
                   {categories.map((cat) => (
-                    <Link
+                    <a
                       key={cat.slug}
-                      to={`/category/${cat.slug}/`}
+                      href={`/category/${cat.slug}/`}
                       onClick={() => setMobileMenuOpen(false)}
                       className="px-6 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm"
                     >
                       {cat.name}
-                    </Link>
+                    </a>
                   ))}
 
-                  <Link
-                    to="/cennik"
+                  <a
+                    href="/cennik"
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                   >
                     Cennik
-                  </Link>
+                  </a>
                 </>
               )}
 

@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+  PoprawianieBledow,
+  schemaData,
+  faqSchema,
+} from "../components/react/landing/PoprawianieBledow";
+---
+
+<BaseLayout
+  title="Poprawianie Błędów Online Za Darmo | Korektor AI 2025 - Interpunkcja.com.pl"
+  description="✓ Automatyczne poprawianie błędów ortograficznych i interpunkcyjnych z AI! Wklej tekst i zobacz poprawki z wyjaśnieniami w 3 sekundy. Darmowe 5 sprawdzeń dziennie."
+  keywords="poprawianie błędów, poprawianie błędów online, korekta błędów, poprawianie ortografii, poprawianie interpunkcji, korektor błędów, naprawa tekstu, poprawki tekstu, korektor online, poprawianie tekstu"
+  canonical="https://www.interpunkcja.com.pl/poprawianie-bledow"
+  ogTitle="Poprawianie Błędów Online Za Darmo | AI 2025"
+  ogDescription="Automatyczne poprawianie błędów z AI. Wklej tekst i zobacz poprawki z wyjaśnieniami w 3 sekundy!"
+  twitterTitle="Poprawianie Błędów Online Za Darmo"
+  twitterDescription="Korektor AI - popraw błędy w 3 sekundy!"
+  schemas={[schemaData, faqSchema]}
+>
+  <PoprawianieBledow />
+</BaseLayout>

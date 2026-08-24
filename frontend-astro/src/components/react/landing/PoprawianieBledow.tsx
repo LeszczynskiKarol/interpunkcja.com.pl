@@ -20,11 +20,85 @@ import {
   Wrench,
   Hammer,
 } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
-import { Checker } from "../../components/Checker";
+
+// Dane FAQ i schema.org na poziomie modulu — uzywane tez w <head> strony Astro
+export const faq = [
+  {
+    question: "Jak szybko AI poprawia błędy w tekście?",
+    answer:
+      "Nasz korektor AI poprawia błędy w ciągu 2-3 sekund, niezależnie od długości tekstu (do 10 000 znaków). Sztuczna inteligencja Claude analizuje cały tekst jednocześnie, wykrywając błędy ortograficzne, interpunkcyjne i gramatyczne.",
+  },
+  {
+    question: "Jakie błędy potrafi poprawić korektor?",
+    answer:
+      "Korektor poprawia: literówki i błędy ortograficzne, błędną pisownię łączną i rozdzielną (napewno→na pewno), brakujące przecinki, błędy gramatyczne (poszłem→poszedłem), pleonazmy i błędy stylistyczne. AI rozumie kontekst, więc wykrywa też błędy w poprawnych słowach użytych niewłaściwie.",
+  },
+  {
+    question: "Czy poprawianie błędów jest darmowe?",
+    answer:
+      "Tak! Oferujemy darmowy plan z 5 poprawkami dziennie (do 500 znaków każda). Dla intensywniejszego użycia polecamy Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i pełnymi wyjaśnieniami.",
+  },
+  {
+    question: "Czy AI wyjaśnia poprawiane błędy?",
+    answer:
+      "Tak! Każda poprawka zawiera wyjaśnienie zasady, która została naruszona. Dzięki temu nie tylko poprawiasz tekst, ale też uczysz się na bieżąco i unikasz tych samych błędów w przyszłości.",
+  },
+  {
+    question: "Czy mogę poprawić długi dokument?",
+    answer:
+      "W planie Free możesz poprawiać do 500 znaków. Plan Premium i Lifetime pozwalają na poprawianie do 10 000 znaków na raz (około 5 stron A4). Dłuższe dokumenty możesz poprawiać częściami.",
+  },
+  {
+    question: "Czym różni się od korektora w Wordzie?",
+    answer:
+      "Wbudowany korektor Word opiera się na słowniku i prostych regułach. Nasz korektor AI rozumie kontekst zdania, wykrywa subtelne błędy i wyjaśnia każdą poprawkę. Szczególnie dobrze radzi sobie z polską interpunkcją, która jest problematyczna dla tradycyjnych korektorów.",
+  },
+  {
+    question: "Czy moje teksty są bezpieczne?",
+    answer:
+      "Tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest priorytetem.",
+  },
+  {
+    question: "Czy działa na telefonie?",
+    answer:
+      "Tak! Strona jest w pełni responsywna. Możesz poprawiać błędy na smartfonie, tablecie i komputerze — wystarczy przeglądarka z internetem.",
+  },
+];
+
+export const schemaData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Poprawianie Błędów Online - Interpunkcja.com.pl",
+  description:
+    "Automatyczne poprawianie błędów ortograficznych, interpunkcyjnych i gramatycznych z AI. Szybka korekta tekstu z wyjaśnieniami.",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "PLN",
+  },
+};
+
+export const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
+// Checker (interaktywny korektor) zyje w SPA — na froncie publicznym
+// zalogowani sa kierowani do /panel, wiec komponent jest wylaczony.
+const Checker = () => null;
 
 export function PoprawianieBledow() {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = false;
 
   // Typy błędów do poprawienia
   const errorTypes = [
@@ -230,48 +304,6 @@ export function PoprawianieBledow() {
   ];
 
   // FAQ
-  const faq = [
-    {
-      question: "Jak szybko AI poprawia błędy w tekście?",
-      answer:
-        "Nasz korektor AI poprawia błędy w ciągu 2-3 sekund, niezależnie od długości tekstu (do 10 000 znaków). Sztuczna inteligencja Claude analizuje cały tekst jednocześnie, wykrywając błędy ortograficzne, interpunkcyjne i gramatyczne.",
-    },
-    {
-      question: "Jakie błędy potrafi poprawić korektor?",
-      answer:
-        "Korektor poprawia: literówki i błędy ortograficzne, błędną pisownię łączną i rozdzielną (napewno→na pewno), brakujące przecinki, błędy gramatyczne (poszłem→poszedłem), pleonazmy i błędy stylistyczne. AI rozumie kontekst, więc wykrywa też błędy w poprawnych słowach użytych niewłaściwie.",
-    },
-    {
-      question: "Czy poprawianie błędów jest darmowe?",
-      answer:
-        "Tak! Oferujemy darmowy plan z 5 poprawkami dziennie (do 500 znaków każda). Dla intensywniejszego użycia polecamy Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i pełnymi wyjaśnieniami.",
-    },
-    {
-      question: "Czy AI wyjaśnia poprawiane błędy?",
-      answer:
-        "Tak! Każda poprawka zawiera wyjaśnienie zasady, która została naruszona. Dzięki temu nie tylko poprawiasz tekst, ale też uczysz się na bieżąco i unikasz tych samych błędów w przyszłości.",
-    },
-    {
-      question: "Czy mogę poprawić długi dokument?",
-      answer:
-        "W planie Free możesz poprawiać do 500 znaków. Plan Premium i Lifetime pozwalają na poprawianie do 10 000 znaków na raz (około 5 stron A4). Dłuższe dokumenty możesz poprawiać częściami.",
-    },
-    {
-      question: "Czym różni się od korektora w Wordzie?",
-      answer:
-        "Wbudowany korektor Word opiera się na słowniku i prostych regułach. Nasz korektor AI rozumie kontekst zdania, wykrywa subtelne błędy i wyjaśnia każdą poprawkę. Szczególnie dobrze radzi sobie z polską interpunkcją, która jest problematyczna dla tradycyjnych korektorów.",
-    },
-    {
-      question: "Czy moje teksty są bezpieczne?",
-      answer:
-        "Tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest priorytetem.",
-    },
-    {
-      question: "Czy działa na telefonie?",
-      answer:
-        "Tak! Strona jest w pełni responsywna. Możesz poprawiać błędy na smartfonie, tablecie i komputerze — wystarczy przeglądarka z internetem.",
-    },
-  ];
 
   // Statystyki
   const stats = [
@@ -282,33 +314,7 @@ export function PoprawianieBledow() {
   ];
 
   // Schema.org
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Poprawianie Błędów Online - Interpunkcja.com.pl",
-    description:
-      "Automatyczne poprawianie błędów ortograficznych, interpunkcyjnych i gramatycznych z AI. Szybka korekta tekstu z wyjaśnieniami.",
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "PLN",
-    },
-  };
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
 
   return (
     <>

@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+  SprawdzanieOrtografii,
+  schemaData,
+  faqSchema,
+} from "../components/react/landing/SprawdzanieOrtografii";
+---
+
+<BaseLayout
+  title="Sprawdzanie Ortografii Online Za Darmo | Korektor AI 2025 - Interpunkcja.com.pl"
+  description="✓ Sprawdź ortografię online za darmo! Korektor ortografii AI wykrywa błędy w pisowni, literówki i błędy interpunkcyjne. Sprawdzanie pisowni w 3 sekundy z wyjaśnieniami."
+  keywords="sprawdzanie ortografii, sprawdzanie ortografii online, korektor ortografii, sprawdzanie pisowni, korekta ortografii, sprawdzanie błędów ortograficznych, korektor tekstu, sprawdzanie tekstu online, korektor pisowni, błędy ortograficzne"
+  canonical="https://www.interpunkcja.com.pl/sprawdzanie-ortografii"
+  ogTitle="Sprawdzanie Ortografii Online Za Darmo | Korektor AI"
+  ogDescription="Sprawdź ortografię w tekście za darmo! AI wykrywa błędy pisowni, literówki i błędy interpunkcyjne. Wyjaśnienia każdej poprawki."
+  twitterTitle="Sprawdzanie Ortografii Online Za Darmo"
+  twitterDescription="Korektor ortografii AI - sprawdź pisownię w 3 sekundy!"
+  schemas={[schemaData, faqSchema]}
+>
+  <SprawdzanieOrtografii />
+</BaseLayout>

@@ -11,7 +11,6 @@ import {
   Lock,
   AlertCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/authStore";
@@ -76,12 +75,12 @@ export function HistoryPage() {
             Historia sprawdzeń jest dostępna tylko dla użytkowników Premium i
             Lifetime.
           </p>
-          <Link
-            to="/cennik"
+          <a
+            href="/cennik"
             className="inline-block px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             Przejdź na Premium →
-          </Link>
+          </a>
         </div>
       </div>
     );

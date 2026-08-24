@@ -1,6 +1,5 @@
 // frontend/src/pages/Home.tsx
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import {
   BookOpen,
@@ -24,8 +23,6 @@ import {
   Globe,
   Infinity,
 } from "lucide-react";
-import { useAuthStore } from "../stores/authStore";
-import { api } from "../lib/api";
 
 interface Category {
   id: string;
@@ -51,26 +48,15 @@ const categoryDescriptions: Record<string, string> = {
     "Podstawowe reguły interpunkcji w zdaniach złożonych i wyliczeniach",
 };
 
-export function Home() {
-  const { isAuthenticated } = useAuthStore();
+interface HomeProps {
+  categories: Category[] | null;
+  latestArticles: { articles: Article[] } | null;
+}
 
-  // Pobierz kategorie z liczbą artykułów
-  const { data: categories } = useQuery<Category[]>({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const res = await api.get("/api/categories");
-      return res.data;
-    },
-  });
+export function Home({ categories, latestArticles }: HomeProps) {
+  const isAuthenticated = false;
 
-  // Pobierz najnowsze artykuły
-  const { data: latestArticles } = useQuery<{ articles: Article[] }>({
-    queryKey: ["latest-articles"],
-    queryFn: async () => {
-      const res = await api.get("/api/articles?limit=6");
-      return res.data;
-    },
-  });
+
 
   const features = [
     {

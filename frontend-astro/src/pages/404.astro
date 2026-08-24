@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Strona nie została znaleziona | Interpunkcja.com.pl"
+  description="Strona, której szukasz, nie istnieje."
+  robots="noindex, nofollow"
+>
+  <div class="max-w-4xl mx-auto px-4 py-20 text-center">
+    <p class="text-7xl mb-6">✏️</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      Strona nie została znaleziona
+    </h1>
+    <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">
+      Strona, której szukasz, nie istnieje lub została przeniesiona.
+    </p>
+    <a
+      href="/"
+      class="inline-block px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+    >
+      Wróć na stronę główną
+    </a>
+  </div>
+</BaseLayout>

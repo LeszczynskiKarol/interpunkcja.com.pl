@@ -117,13 +117,13 @@ export function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="max-w-md w-full">
         {/* Back to home */}
-        <Link
-          to="/"
+        <a
+          href="/"
           className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Powrót do strony głównej
-        </Link>
+        </a>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <div className="text-center mb-6">
@@ -339,21 +339,21 @@ export function RegisterPage() {
                 className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none"
               >
                 Oświadczam, że zapoznałem/am się z{" "}
-                <Link
-                  to="/regulamin"
+                <a
+                  href="/regulamin"
                   target="_blank"
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
                   Regulaminem
-                </Link>{" "}
+                </a>{" "}
                 oraz{" "}
-                <Link
-                  to="/polityka-prywatnosci"
+                <a
+                  href="/polityka-prywatnosci"
                   target="_blank"
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
                   Polityką prywatności
-                </Link>{" "}
+                </a>{" "}
                 i akceptuję ich postanowienia.
               </label>
             </div>

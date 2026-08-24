@@ -58,9 +58,9 @@ export function PaymentPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Nie znaleziono planu
           </h1>
-          <Link to="/cennik" className="text-blue-600 hover:underline">
+          <a href="/cennik" className="text-blue-600 hover:underline">
             Zobacz dostępne plany →
-          </Link>
+          </a>
         </div>
       </div>
     );
@@ -116,13 +116,13 @@ export function PaymentPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 py-12">
       <div className="max-w-4xl mx-auto px-4">
         {/* Back button */}
-        <Link
-          to="/cennik"
+        <a
+          href="/cennik"
           className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           Wróć do cennika
-        </Link>
+        </a>
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Order summary */}
@@ -249,13 +249,13 @@ export function PaymentPage() {
 
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
               Klikając "Zapłać" zgadzasz się z{" "}
-              <Link to="/regulamin" className="text-blue-600 hover:underline">
+              <a href="/regulamin" className="text-blue-600 hover:underline">
                 Regulaminem
-              </Link>{" "}
+              </a>{" "}
               i{" "}
-              <Link to="/prywatnosc" className="text-blue-600 hover:underline">
+              <a href="/polityka-prywatnosci" className="text-blue-600 hover:underline">
                 Polityką prywatności
-              </Link>
+              </a>
             </p>
           </div>
         </div>

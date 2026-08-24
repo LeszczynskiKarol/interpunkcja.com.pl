@@ -1,8 +1,7 @@
 // frontend/src/pages/CookiePolicyPage.tsx
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { LanguageToggle } from "../components/LanguageToggle";
-import { useCookieConsentStore } from "../stores/cookieConsentStore";
+import { LanguageToggle } from "./LanguageToggle";
 
 const content = {
   pl: {
@@ -332,7 +331,9 @@ When you don't consent to analytics/marketing cookies, the respective scripts ar
 
 export function CookiePolicyPage() {
   const [language, setLanguage] = useState<"pl" | "en">("pl");
-  const { openBanner } = useCookieConsentStore();
+  const openBanner = () => {
+    window.dispatchEvent(new CustomEvent("open-cookie-settings"));
+  };
   const t = content[language];
 
   const renderCookieTable = (

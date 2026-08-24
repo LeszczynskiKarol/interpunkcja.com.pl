@@ -5,7 +5,7 @@ import {
   useCookieConsentStore,
   CookieConsent,
 } from "../stores/cookieConsentStore";
-import { Link } from "react-router-dom";
+import { Link } from "./HardLink";
 
 export function CookieBanner() {
   const { consent, showBanner, setConsent, acceptAll, rejectAll, closeBanner } =

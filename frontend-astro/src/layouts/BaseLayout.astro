@@ -1,0 +1,160 @@
+---
+// Wspólny layout publicznego frontu — head z meta SEO, GTM + Consent Mode,
+// Header/Footer i cookie banner (kompatybilny z localStorage SPA).
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import CookieBanner from "../components/CookieBanner.astro";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogType?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  robots?: string;
+  schemas?: object[];
+  noLayout?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  keywords,
+  ogTitle,
+  ogDescription,
+  ogType = "website",
+  twitterTitle,
+  twitterDescription,
+  robots = "index, follow",
+  schemas = [],
+} = Astro.props;
+
+const ogUrl = canonical;
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {keywords && <meta name="keywords" content={keywords} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta name="robots" content={robots} />
+
+    {(ogTitle || title) && <meta property="og:title" content={ogTitle || title} />}
+    {(ogDescription || description) && (
+      <meta property="og:description" content={ogDescription || description} />
+    )}
+    <meta property="og:type" content={ogType} />
+    {ogUrl && <meta property="og:url" content={ogUrl} />}
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:site_name" content="Interpunkcja.com.pl" />
+
+    {twitterTitle && <meta name="twitter:card" content="summary_large_image" />}
+    {twitterTitle && <meta name="twitter:title" content={twitterTitle} />}
+    {twitterDescription && (
+      <meta name="twitter:description" content={twitterDescription} />
+    )}
+
+    {schemas.map((schema) => (
+      <script
+        type="application/ld+json"
+        set:html={JSON.stringify(schema)}
+      />
+    ))}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Motyw + stan zalogowania przed pierwszym renderem
+         (te same klucze localStorage co zustand persist w SPA) -->
+    <script is:inline>
+      try {
+        var t = JSON.parse(localStorage.getItem("interpunkcja-theme"));
+        if (t && t.state && t.state.theme === "dark") {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (e) {}
+      try {
+        var a = JSON.parse(localStorage.getItem("interpunkcja-auth"));
+        if (a && a.state && a.state.isAuthenticated && a.state.token) {
+          document.documentElement.setAttribute("data-authenticated", "true");
+        }
+      } catch (e) {}
+    </script>
+
+    <!-- Google Consent Mode v2 - MUST be before GTM -->
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+
+      gtag("consent", "default", {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        wait_for_update: 500,
+      });
+    </script>
+
+    <!-- Google Tag Manager -->
+    <script is:inline>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-KDSW7L23");
+    </script>
+    <!-- End Google Tag Manager -->
+  </head>
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-KDSW7L23"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <div class="min-h-screen flex flex-col">
+      <Header />
+      <main class="flex-1"><slot /></main>
+      <Footer />
+    </div>
+
+    <CookieBanner />
+
+    <!-- Zalogowany użytkownik: CTA "logowanie/rejestracja" prowadzą do panelu -->
+    <script is:inline>
+      if (document.documentElement.getAttribute("data-authenticated") === "true") {
+        document
+          .querySelectorAll('a[href="/rejestracja"], a[href="/logowanie"]')
+          .forEach(function (a) {
+            a.setAttribute("href", "/panel");
+          });
+      }
+    </script>
+  </body>
+</html>

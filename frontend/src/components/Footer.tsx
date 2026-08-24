@@ -1,5 +1,5 @@
 // frontend/src/components/Footer.tsx
-import { Link } from "react-router-dom";
+import { Link } from "./HardLink";
 import { useCookieConsentStore } from "../stores/cookieConsentStore";
 import { Cookie, Sparkles } from "lucide-react";
 

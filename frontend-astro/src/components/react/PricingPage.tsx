@@ -1,10 +1,10 @@
 // frontend/src/pages/PricingPage.tsx
 import { Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
 
 export function PricingPage() {
-  const { user, isAuthenticated } = useAuthStore();
+  const user: { plan?: string } | null = null;
+  const isAuthenticated = false;
 
   const plans = [
     {

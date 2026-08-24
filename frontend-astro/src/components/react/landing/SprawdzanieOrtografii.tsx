@@ -24,11 +24,85 @@ import {
   Type,
   Infinity,
 } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
-import { Checker } from "../../components/Checker";
+
+// Dane FAQ i schema.org na poziomie modulu — uzywane tez w <head> strony Astro
+export const faq = [
+  {
+    question: "Jak działa sprawdzanie ortografii online?",
+    answer:
+      "Nasz korektor ortografii wykorzystuje zaawansowaną sztuczną inteligencję Claude do analizy tekstu. AI analizuje każde słowo w kontekście całego zdania, wykrywając nie tylko literówki, ale też błędy wynikające z nieznajomości zasad ortograficznych. Dzięki temu wykrywamy błędy, które omijają tradycyjne słownikowe korektory.",
+  },
+  {
+    question: "Czy korektor sprawdza tylko ortografię czy też interpunkcję?",
+    answer:
+      "Nasz korektor sprawdza zarówno ortografię, jak i interpunkcję. To kompleksowe narzędzie do korekty tekstu, które wykrywa brakujące przecinki, błędne użycie znaków interpunkcyjnych oraz klasyczne błędy ortograficzne. Każda poprawka zawiera wyjaśnienie zasady.",
+  },
+  {
+    question: "Jakie błędy ortograficzne wykrywa AI?",
+    answer:
+      "AI wykrywa szeroki zakres błędów: literówki i przejęzyczenia, błędy w pisowni ó/u, rz/ż, ch/h, błędną pisownię łączną i rozdzielną (np. 'naprawdę' vs 'na prawdę'), błędy w odmianie wyrazów, niepoprawne formy czasowników (np. 'wziąść' zamiast 'wziąć'), a także błędy w pisowni nazw własnych.",
+  },
+  {
+    question: "Czy sprawdzanie ortografii jest darmowe?",
+    answer:
+      "Tak! Oferujemy darmowy plan z 5 sprawdzeniami dziennie do 500 znaków. To wystarczy do sprawdzenia krótkich tekstów, emaili czy postów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
+  },
+  {
+    question: "Czy mogę sprawdzić długi dokument, np. pracę magisterską?",
+    answer:
+      "W planie Premium i Lifetime możesz sprawdzać teksty do 10 000 znaków na raz (ok. 5 stron A4). Dłuższe dokumenty możesz sprawdzać częściami. Plan Lifetime nie ma dziennych limitów sprawdzeń, więc możesz sprawdzić nawet bardzo długą pracę.",
+  },
+  {
+    question: "Czym różni się od korektora w Microsoft Word?",
+    answer:
+      "Wbudowane korektory w edytorach tekstu opierają się głównie na słownikach i prostych regułach. Nasz korektor AI analizuje kontekst całego zdania, rozumie znaczenie i wykrywa błędy, które tradycyjne narzędzia pomijają. Dodatkowo wyjaśniamy każdy błąd, co pomaga w nauce.",
+  },
+  {
+    question: "Czy moje teksty są bezpieczne i prywatne?",
+    answer:
+      "Tak, Twoje teksty są w pełni bezpieczne. Przetwarzamy je w czasie rzeczywistym i nie przechowujemy ich na serwerach. Po zamknięciu strony wszystkie dane są usuwane. Nie udostępniamy tekstów osobom trzecim.",
+  },
+  {
+    question: "Czy korektor działa na telefonie?",
+    answer:
+      "Tak! Nasza strona jest w pełni responsywna i działa na smartfonach i tabletach. Możesz sprawdzać ortografię z dowolnego urządzenia z dostępem do internetu.",
+  },
+];
+
+export const schemaData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Sprawdzanie Ortografii Online - Interpunkcja.com.pl",
+  description:
+    "Darmowy korektor ortografii online z AI. Sprawdź pisownię tekstu, wykryj błędy ortograficzne i interpunkcyjne. Sztuczna inteligencja Claude.",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "PLN",
+  },
+};
+
+export const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
+// Checker (interaktywny korektor) zyje w SPA — na froncie publicznym
+// zalogowani sa kierowani do /panel, wiec komponent jest wylaczony.
+const Checker = () => null;
 
 export function SprawdzanieOrtografii() {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = false;
 
   // Najczęstsze błędy ortograficzne
   const commonMistakes = [
@@ -185,48 +259,6 @@ export function SprawdzanieOrtografii() {
   ];
 
   // FAQ specyficzne dla ortografii
-  const faq = [
-    {
-      question: "Jak działa sprawdzanie ortografii online?",
-      answer:
-        "Nasz korektor ortografii wykorzystuje zaawansowaną sztuczną inteligencję Claude do analizy tekstu. AI analizuje każde słowo w kontekście całego zdania, wykrywając nie tylko literówki, ale też błędy wynikające z nieznajomości zasad ortograficznych. Dzięki temu wykrywamy błędy, które omijają tradycyjne słownikowe korektory.",
-    },
-    {
-      question: "Czy korektor sprawdza tylko ortografię czy też interpunkcję?",
-      answer:
-        "Nasz korektor sprawdza zarówno ortografię, jak i interpunkcję. To kompleksowe narzędzie do korekty tekstu, które wykrywa brakujące przecinki, błędne użycie znaków interpunkcyjnych oraz klasyczne błędy ortograficzne. Każda poprawka zawiera wyjaśnienie zasady.",
-    },
-    {
-      question: "Jakie błędy ortograficzne wykrywa AI?",
-      answer:
-        "AI wykrywa szeroki zakres błędów: literówki i przejęzyczenia, błędy w pisowni ó/u, rz/ż, ch/h, błędną pisownię łączną i rozdzielną (np. 'naprawdę' vs 'na prawdę'), błędy w odmianie wyrazów, niepoprawne formy czasowników (np. 'wziąść' zamiast 'wziąć'), a także błędy w pisowni nazw własnych.",
-    },
-    {
-      question: "Czy sprawdzanie ortografii jest darmowe?",
-      answer:
-        "Tak! Oferujemy darmowy plan z 5 sprawdzeniami dziennie do 500 znaków. To wystarczy do sprawdzenia krótkich tekstów, emaili czy postów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
-    },
-    {
-      question: "Czy mogę sprawdzić długi dokument, np. pracę magisterską?",
-      answer:
-        "W planie Premium i Lifetime możesz sprawdzać teksty do 10 000 znaków na raz (ok. 5 stron A4). Dłuższe dokumenty możesz sprawdzać częściami. Plan Lifetime nie ma dziennych limitów sprawdzeń, więc możesz sprawdzić nawet bardzo długą pracę.",
-    },
-    {
-      question: "Czym różni się od korektora w Microsoft Word?",
-      answer:
-        "Wbudowane korektory w edytorach tekstu opierają się głównie na słownikach i prostych regułach. Nasz korektor AI analizuje kontekst całego zdania, rozumie znaczenie i wykrywa błędy, które tradycyjne narzędzia pomijają. Dodatkowo wyjaśniamy każdy błąd, co pomaga w nauce.",
-    },
-    {
-      question: "Czy moje teksty są bezpieczne i prywatne?",
-      answer:
-        "Tak, Twoje teksty są w pełni bezpieczne. Przetwarzamy je w czasie rzeczywistym i nie przechowujemy ich na serwerach. Po zamknięciu strony wszystkie dane są usuwane. Nie udostępniamy tekstów osobom trzecim.",
-    },
-    {
-      question: "Czy korektor działa na telefonie?",
-      answer:
-        "Tak! Nasza strona jest w pełni responsywna i działa na smartfonach i tabletach. Możesz sprawdzać ortografię z dowolnego urządzenia z dostępem do internetu.",
-    },
-  ];
 
   // Przypadki użycia
   const useCases = [
@@ -275,33 +307,7 @@ export function SprawdzanieOrtografii() {
   ];
 
   // Schema.org structured data
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Sprawdzanie Ortografii Online - Interpunkcja.com.pl",
-    description:
-      "Darmowy korektor ortografii online z AI. Sprawdź pisownię tekstu, wykryj błędy ortograficzne i interpunkcyjne. Sztuczna inteligencja Claude.",
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "PLN",
-    },
-  };
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
 
   return (
     <>

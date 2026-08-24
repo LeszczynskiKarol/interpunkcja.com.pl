@@ -1,0 +1,25 @@
+---
+// Strona główna — SSR, bo sekcje kategorii i najnowszych artykułów
+// pochodzą z bazy (panel admina dodaje artykuły bez rebuildu).
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Home } from "../components/react/Home";
+import { getCategories, getLatestArticles } from "../lib/api";
+
+const [categories, latestArticles] = await Promise.all([
+  getCategories(),
+  getLatestArticles(6),
+]);
+---
+
+<BaseLayout
+  title="Sprawdzanie Interpunkcji Online | Korektor Przecinków AI - Interpunkcja.com.pl"
+  description="Sprawdź interpunkcję w tekście za darmo! Korektor interpunkcji AI wykrywa brakujące przecinki i wyjaśnia zasady. Sprawdzanie pisowni i błędów interpunkcyjnych online."
+  keywords="interpunkcja, sprawdzanie interpunkcji, korektor przecinków, sprawdzanie pisowni, sprawdzanie błędów, przecinek przed że, zasady interpunkcji, korektor tekstu online, sprawdzanie tekstu"
+  canonical="https://www.interpunkcja.com.pl"
+  ogTitle="Sprawdzanie Interpunkcji Online | Korektor AI"
+  ogDescription="Sprawdź interpunkcję w tekście za darmo! AI wykrywa brakujące przecinki i wyjaśnia zasady polskiej interpunkcji."
+>
+  <Home categories={categories} latestArticles={latestArticles} />
+</BaseLayout>

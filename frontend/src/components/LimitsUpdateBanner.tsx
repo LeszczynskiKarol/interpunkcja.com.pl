@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Info } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "./HardLink";
 import { useAuthStore } from "../stores/authStore";
 
 const STORAGE_KEY = "interpunkcja-banner-limits-2026-05";

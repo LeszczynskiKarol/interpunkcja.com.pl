@@ -1,0 +1,12 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { PrivacyPolicyPage } from "../components/react/PrivacyPolicyPage";
+---
+
+<BaseLayout
+  title="Polityka Prywatności | Interpunkcja.com.pl"
+  description="Polityka prywatności serwisu Interpunkcja.com.pl - zasady przetwarzania danych osobowych, RODO, prawa użytkownika."
+  canonical="https://www.interpunkcja.com.pl/polityka-prywatnosci"
+>
+  <PrivacyPolicyPage client:load />
+</BaseLayout>

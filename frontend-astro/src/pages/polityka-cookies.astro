@@ -1,0 +1,12 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { CookiePolicyPage } from "../components/react/CookiePolicyPage";
+---
+
+<BaseLayout
+  title="Polityka Cookies | Interpunkcja.com.pl"
+  description="Polityka cookies serwisu Interpunkcja.com.pl - jakie pliki cookies wykorzystujemy i jak zarządzać zgodami."
+  canonical="https://www.interpunkcja.com.pl/polityka-cookies"
+>
+  <CookiePolicyPage client:load />
+</BaseLayout>

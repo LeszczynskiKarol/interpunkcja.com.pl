@@ -86,12 +86,12 @@ export function Dashboard() {
                     dziennie, do 10 000 znaków!
                   </p>
                 </div>
-                <Link
-                  to="/cennik"
+                <a
+                  href="/cennik"
                   className="flex-shrink-0 px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
                 >
                   Zobacz cennik →
-                </Link>
+                </a>
               </div>
             </div>
           </div>

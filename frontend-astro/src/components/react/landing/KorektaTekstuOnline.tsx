@@ -22,11 +22,85 @@ import {
   Laptop,
   Smartphone,
 } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
-import { Checker } from "../../components/Checker";
+
+// Dane FAQ i schema.org na poziomie modulu — uzywane tez w <head> strony Astro
+export const faq = [
+  {
+    question: "Czym jest korekta tekstu online?",
+    answer:
+      "Korekta tekstu online to automatyczne sprawdzanie i poprawianie błędów językowych za pomocą narzędzia internetowego. W przeciwieństwie do tradycyjnej korekty przez człowieka, korekta online jest natychmiastowa (2-3 sekundy), dostępna 24/7 i znacznie tańsza. Nasz korektor wykorzystuje sztuczną inteligencję Claude, która rozumie kontekst zdań.",
+  },
+  {
+    question: "Czy korekta online jest lepsza od korektora-człowieka?",
+    answer:
+      "Korekta AI i ludzka mają różne zalety. AI jest szybszy (sekundy vs dni), tańszy, dostępny 24/7 i konsekwentny. Korektor-człowiek może lepiej zrozumieć specyficzny kontekst branżowy. Dla większości tekstów (emaile, prace akademickie, content) korekta AI jest wystarczająca i znacznie praktyczniejsza.",
+  },
+  {
+    question: "Jakie błędy wykrywa korekta online?",
+    answer:
+      "Nasz korektor wykrywa: błędy ortograficzne (literówki, ó/u, rz/ż), błędy interpunkcyjne (przecinki, kropki), pisownię łączną i rozdzielną, błędy gramatyczne (odmiana, formy czasowników), pleonazmy i błędy stylistyczne. AI analizuje kontekst, więc wykrywa też poprawne słowa użyte niewłaściwie.",
+  },
+  {
+    question: "Ile kosztuje korekta tekstu online?",
+    answer:
+      "Oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków). Premium kosztuje 29 zł/miesiąc (100 sprawdzeń, 10 000 znaków). Lifetime to jednorazowa płatność 299 zł za dostęp na zawsze bez limitów dziennych.",
+  },
+  {
+    question: "Czy moje teksty są bezpieczne?",
+    answer:
+      "Tak, Twoje teksty są w pełni bezpieczne. Przetwarzamy je w czasie rzeczywistym i nie przechowujemy na serwerach po sprawdzeniu. Nie udostępniamy tekstów osobom trzecim. To przewaga nad tradycyjną korektą, gdzie tekst widzi obca osoba.",
+  },
+  {
+    question: "Czy mogę korygować długie dokumenty?",
+    answer:
+      "W planie Free możesz korygować do 500 znaków. Plan Premium i Lifetime pozwalają na korektę do 10 000 znaków na raz (około 5 stron A4). Dłuższe dokumenty możesz korygować częściami.",
+  },
+  {
+    question: "Czy działa na telefonie i tablecie?",
+    answer:
+      "Tak! Nasza strona jest w pełni responsywna. Możesz korygować teksty na smartfonie, tablecie i komputerze. Wystarczy przeglądarka z dostępem do internetu.",
+  },
+  {
+    question: "Czy AI wyjaśnia poprawiane błędy?",
+    answer:
+      "Tak! Każda poprawka zawiera wyjaśnienie zasady językowej. Dzięki temu nie tylko poprawiasz tekst, ale też uczysz się na bieżąco. W planie Premium i Lifetime wyjaśnienia są szczegółowe z odniesieniem do reguł.",
+  },
+];
+
+export const schemaData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Korekta Tekstu Online - Interpunkcja.com.pl",
+  description:
+    "Profesjonalna korekta tekstu online z AI. Sprawdzanie ortografii, interpunkcji i gramatyki w 3 sekundy. Wyjaśnienia każdej poprawki.",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "PLN",
+  },
+};
+
+export const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
+// Checker (interaktywny korektor) zyje w SPA — na froncie publicznym
+// zalogowani sa kierowani do /panel, wiec komponent jest wylaczony.
+const Checker = () => null;
 
 export function KorektaTekstuOnline() {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = false;
 
   // Zalety korekty online
   const onlineAdvantages = [
@@ -205,48 +279,6 @@ export function KorektaTekstuOnline() {
   ];
 
   // FAQ
-  const faq = [
-    {
-      question: "Czym jest korekta tekstu online?",
-      answer:
-        "Korekta tekstu online to automatyczne sprawdzanie i poprawianie błędów językowych za pomocą narzędzia internetowego. W przeciwieństwie do tradycyjnej korekty przez człowieka, korekta online jest natychmiastowa (2-3 sekundy), dostępna 24/7 i znacznie tańsza. Nasz korektor wykorzystuje sztuczną inteligencję Claude, która rozumie kontekst zdań.",
-    },
-    {
-      question: "Czy korekta online jest lepsza od korektora-człowieka?",
-      answer:
-        "Korekta AI i ludzka mają różne zalety. AI jest szybszy (sekundy vs dni), tańszy, dostępny 24/7 i konsekwentny. Korektor-człowiek może lepiej zrozumieć specyficzny kontekst branżowy. Dla większości tekstów (emaile, prace akademickie, content) korekta AI jest wystarczająca i znacznie praktyczniejsza.",
-    },
-    {
-      question: "Jakie błędy wykrywa korekta online?",
-      answer:
-        "Nasz korektor wykrywa: błędy ortograficzne (literówki, ó/u, rz/ż), błędy interpunkcyjne (przecinki, kropki), pisownię łączną i rozdzielną, błędy gramatyczne (odmiana, formy czasowników), pleonazmy i błędy stylistyczne. AI analizuje kontekst, więc wykrywa też poprawne słowa użyte niewłaściwie.",
-    },
-    {
-      question: "Ile kosztuje korekta tekstu online?",
-      answer:
-        "Oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków). Premium kosztuje 29 zł/miesiąc (100 sprawdzeń, 10 000 znaków). Lifetime to jednorazowa płatność 299 zł za dostęp na zawsze bez limitów dziennych.",
-    },
-    {
-      question: "Czy moje teksty są bezpieczne?",
-      answer:
-        "Tak, Twoje teksty są w pełni bezpieczne. Przetwarzamy je w czasie rzeczywistym i nie przechowujemy na serwerach po sprawdzeniu. Nie udostępniamy tekstów osobom trzecim. To przewaga nad tradycyjną korektą, gdzie tekst widzi obca osoba.",
-    },
-    {
-      question: "Czy mogę korygować długie dokumenty?",
-      answer:
-        "W planie Free możesz korygować do 500 znaków. Plan Premium i Lifetime pozwalają na korektę do 10 000 znaków na raz (około 5 stron A4). Dłuższe dokumenty możesz korygować częściami.",
-    },
-    {
-      question: "Czy działa na telefonie i tablecie?",
-      answer:
-        "Tak! Nasza strona jest w pełni responsywna. Możesz korygować teksty na smartfonie, tablecie i komputerze. Wystarczy przeglądarka z dostępem do internetu.",
-    },
-    {
-      question: "Czy AI wyjaśnia poprawiane błędy?",
-      answer:
-        "Tak! Każda poprawka zawiera wyjaśnienie zasady językowej. Dzięki temu nie tylko poprawiasz tekst, ale też uczysz się na bieżąco. W planie Premium i Lifetime wyjaśnienia są szczegółowe z odniesieniem do reguł.",
-    },
-  ];
 
   // Stats
   const stats = [
@@ -257,33 +289,7 @@ export function KorektaTekstuOnline() {
   ];
 
   // Schema.org
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Korekta Tekstu Online - Interpunkcja.com.pl",
-    description:
-      "Profesjonalna korekta tekstu online z AI. Sprawdzanie ortografii, interpunkcji i gramatyki w 3 sekundy. Wyjaśnienia każdej poprawki.",
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "PLN",
-    },
-  };
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
 
   return (
     <>

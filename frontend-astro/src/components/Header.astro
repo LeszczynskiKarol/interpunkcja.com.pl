@@ -1,0 +1,320 @@
+---
+// Nagłówek publicznego frontu — odwzorowanie frontend/src/components/Header.tsx.
+// Interaktywność (motyw, menu mobilne, stan zalogowania) w vanilla JS.
+const categories = [
+  {
+    name: "Interpunkcyjny słownik wyrazów",
+    slug: "interpunkcyjny-slownik-wyrazow",
+    description: "Przecinek przed: że, który, gdy...",
+  },
+  {
+    name: "Znaki interpunkcyjne",
+    slug: "znaki-interpunkcyjne",
+    description: "Przecinek, myślnik, cudzysłów...",
+  },
+  {
+    name: "Ogólne zasady interpunkcji",
+    slug: "ogolne-zasady-interpunkcji",
+    description: "Zdania złożone, wyliczenia...",
+  },
+];
+---
+
+<header
+  class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo z claimem -->
+      <a href="/" data-auth-href="/panel" class="flex items-center gap-2">
+        <span class="text-2xl">✏️</span>
+        <div class="flex flex-col">
+          <span
+            class="font-bold text-xl text-gray-900 dark:text-white leading-tight"
+          >
+            Interpunkcja<span class="text-blue-600">.com.pl</span>
+          </span>
+          <span
+            class="text-[10px] text-gray-500 dark:text-gray-400 tracking-wide uppercase hidden sm:block"
+          >
+            Sprawdzanie pisowni online
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center gap-6">
+        <a
+          href="/"
+          data-auth-href="/panel"
+          class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
+          Sprawdź tekst
+        </a>
+
+        <!-- Zasady dropdown - TYLKO gdy niezalogowany -->
+        <div class="relative group guest-only">
+          <button
+            class="flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            Zasady interpunkcji
+            <svg
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg
+            >
+          </button>
+
+          <div class="hidden group-hover:block absolute top-full left-0 w-72 pt-1">
+            <div
+              class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2"
+            >
+              {
+                categories.map((cat) => (
+                  <a
+                    href={`/category/${cat.slug}/`}
+                    class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <span class="font-medium text-gray-900 dark:text-white block">
+                      {cat.name}
+                    </span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                      {cat.description}
+                    </span>
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Cennik - TYLKO gdy niezalogowany -->
+        <a
+          href="/cennik"
+          class="guest-only text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
+          Cennik
+        </a>
+      </nav>
+
+      <!-- Right side -->
+      <div class="flex items-center gap-3">
+        <!-- Theme toggle -->
+        <button
+          id="theme-toggle"
+          class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Przełącz motyw"
+        >
+          <svg
+            class="w-5 h-5 dark:hidden"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg
+          >
+          <svg
+            class="w-5 h-5 hidden dark:block"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path
+              d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path
+              d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path
+              d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path
+              d="m19.07 4.93-1.41 1.41"></path></svg
+          >
+        </button>
+
+        <!-- Auth buttons (goście) -->
+        <div class="guest-only hidden sm:flex items-center gap-2">
+          <a
+            href="/logowanie"
+            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            Zaloguj się
+          </a>
+          <a
+            href="/rejestracja"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Załóż konto
+          </a>
+        </div>
+
+        <!-- Zalogowany: przejście do panelu -->
+        <a
+          href="/panel"
+          class="auth-only hidden sm:inline-flex px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Mój panel
+        </a>
+
+        <!-- Mobile menu button -->
+        <button
+          id="mobile-menu-toggle"
+          class="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+          aria-label="Menu"
+        >
+          <svg
+            id="icon-menu"
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><line x1="4" x2="20" y1="12" y2="12"></line><line
+              x1="4"
+              x2="20"
+              y1="6"
+              y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg
+          >
+          <svg
+            id="icon-close"
+            class="w-6 h-6 hidden"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg
+          >
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div
+      id="mobile-menu"
+      class="hidden md:hidden py-4 border-t border-gray-200 dark:border-gray-800"
+    >
+      <nav class="flex flex-col gap-2">
+        <a
+          href="/"
+          data-auth-href="/panel"
+          class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+        >
+          Sprawdź tekst
+        </a>
+
+        <div class="guest-only">
+          <div class="px-4 py-2">
+            <span
+              class="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+            >
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><path d="M12 7v14"></path><path
+                  d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+                ></path></svg
+              >
+              Zasady interpunkcji
+            </span>
+          </div>
+          {
+            categories.map((cat) => (
+              <a
+                href={`/category/${cat.slug}/`}
+                class="block px-6 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm"
+              >
+                {cat.name}
+              </a>
+            ))
+          }
+
+          <a
+            href="/cennik"
+            class="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+          >
+            Cennik
+          </a>
+
+          <div
+            class="flex flex-col gap-2 pt-4 border-t border-gray-200 dark:border-gray-800 mt-2"
+          >
+            <a
+              href="/logowanie"
+              class="px-4 py-2 text-center text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg"
+            >
+              Zaloguj się
+            </a>
+            <a
+              href="/rejestracja"
+              class="px-4 py-2 text-center text-white bg-blue-600 rounded-lg"
+            >
+              Załóż konto
+            </a>
+          </div>
+        </div>
+
+        <a
+          href="/panel"
+          class="auth-only px-4 py-2 text-center text-white bg-blue-600 rounded-lg"
+        >
+          Mój panel
+        </a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script is:inline>
+  (function () {
+    // Przełącznik motywu — zapis w formacie zustand persist z SPA
+    var themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", function () {
+        var isDark = document.documentElement.classList.toggle("dark");
+        try {
+          localStorage.setItem(
+            "interpunkcja-theme",
+            JSON.stringify({
+              state: { theme: isDark ? "dark" : "light" },
+              version: 0,
+            })
+          );
+        } catch (e) {}
+      });
+    }
+
+    // Menu mobilne
+    var menuBtn = document.getElementById("mobile-menu-toggle");
+    var menu = document.getElementById("mobile-menu");
+    var iconMenu = document.getElementById("icon-menu");
+    var iconClose = document.getElementById("icon-close");
+    if (menuBtn && menu) {
+      menuBtn.addEventListener("click", function () {
+        menu.classList.toggle("hidden");
+        iconMenu.classList.toggle("hidden");
+        iconClose.classList.toggle("hidden");
+      });
+    }
+
+    // Zalogowany: linki z data-auth-href prowadzą do panelu
+    if (
+      document.documentElement.getAttribute("data-authenticated") === "true"
+    ) {
+      document.querySelectorAll("[data-auth-href]").forEach(function (el) {
+        el.setAttribute("href", el.getAttribute("data-auth-href"));
+      });
+    }
+  })();
+</script>

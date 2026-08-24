@@ -1,0 +1,12 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { TermsOfServicePage } from "../components/react/TermsOfServicePage";
+---
+
+<BaseLayout
+  title="Regulamin | Interpunkcja.com.pl"
+  description="Regulamin serwisu Interpunkcja.com.pl - zasady korzystania z korektora interpunkcji AI, plany, płatności i prawa użytkownika."
+  canonical="https://www.interpunkcja.com.pl/regulamin"
+>
+  <TermsOfServicePage client:load />
+</BaseLayout>

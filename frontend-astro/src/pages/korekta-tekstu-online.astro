@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+  KorektaTekstuOnline,
+  schemaData,
+  faqSchema,
+} from "../components/react/landing/KorektaTekstuOnline";
+---
+
+<BaseLayout
+  title="Korekta Tekstu Online Za Darmo | Korektor AI 2025 - Interpunkcja.com.pl"
+  description="✓ Profesjonalna korekta tekstu online z AI! Sprawdź ortografię, interpunkcję i gramatykę w 3 sekundy. Wyjaśnienia każdej poprawki. Darmowe 5 sprawdzeń dziennie."
+  keywords="korekta tekstu online, korekta online, korekta tekstu, korektor online, korekta tekstów, sprawdzanie tekstu online, korekta językowa, korekta AI, korektor tekstu online, korekta polska"
+  canonical="https://www.interpunkcja.com.pl/korekta-tekstu-online"
+  ogTitle="Korekta Tekstu Online Za Darmo | AI 2025"
+  ogDescription="Profesjonalna korekta tekstu online z AI. Sprawdź tekst w 3 sekundy z wyjaśnieniami!"
+  twitterTitle="Korekta Tekstu Online Za Darmo | AI"
+  twitterDescription="Korekta tekstu AI - sprawdź w 3 sekundy!"
+  schemas={[schemaData, faqSchema]}
+>
+  <KorektaTekstuOnline />
+</BaseLayout>

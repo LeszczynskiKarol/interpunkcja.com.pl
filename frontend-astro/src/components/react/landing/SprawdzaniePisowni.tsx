@@ -22,11 +22,85 @@ import {
   Languages,
   BarChart3,
 } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
-import { Checker } from "../../components/Checker";
+
+// Dane FAQ i schema.org na poziomie modulu — uzywane tez w <head> strony Astro
+export const faq = [
+  {
+    question: "Czym różni się sprawdzanie pisowni od sprawdzania ortografii?",
+    answer:
+      "Sprawdzanie pisowni to szersze pojęcie obejmujące weryfikację całego tekstu pod kątem poprawności językowej. Zawiera sprawdzanie ortografii (poprawność zapisu wyrazów), interpunkcji (przecinki, kropki), gramatyki (odmiana, składnia) oraz stylistyki. Nasz korektor sprawdza wszystkie te elementy jednocześnie.",
+  },
+  {
+    question: "Jak działa sprawdzanie pisowni online?",
+    answer:
+      "Nasz korektor wykorzystuje sztuczną inteligencję Claude do analizy tekstu. W przeciwieństwie do tradycyjnych słownikowych korektorów, AI analizuje kontekst całego zdania, rozumie znaczenie i wykrywa błędy, które inne narzędzia pomijają. Sprawdzenie tekstu zajmuje 2-3 sekundy.",
+  },
+  {
+    question: "Czy sprawdzanie pisowni jest darmowe?",
+    answer:
+      "Tak! Oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków każde). To wystarczy do sprawdzenia emaili, postów czy krótkich tekstów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
+  },
+  {
+    question: "Jakie błędy wykrywa korektor pisowni?",
+    answer:
+      "Wykrywamy: literówki i błędy ortograficzne, błędną pisownię łączną i rozdzielną (naprawdę, na pewno, w ogóle), błędy w pisowni ó/u i rz/ż, brakujące przecinki przed spójnikami, błędy gramatyczne w odmianie, pleonazmy i błędy stylistyczne.",
+  },
+  {
+    question: "Czy mogę sprawdzić pisownię w długim dokumencie?",
+    answer:
+      "W planie Free możesz sprawdzać teksty do 500 znaków. Plan Premium i Lifetime pozwalają na sprawdzanie do 10 000 znaków (ok. 5 stron A4) na raz. Dłuższe dokumenty możesz sprawdzać częściami.",
+  },
+  {
+    question: "Czy korektor działa na telefonie?",
+    answer:
+      "Tak! Nasza strona jest w pełni responsywna. Możesz sprawdzać pisownię na smartfonie, tablecie i komputerze. Wystarczy przeglądarka z dostępem do internetu.",
+  },
+  {
+    question: "Czy moje teksty są bezpieczne?",
+    answer:
+      "Absolutnie tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane na serwerach po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest dla nas priorytetem.",
+  },
+  {
+    question: "Czym różni się od korektora w Wordzie?",
+    answer:
+      "Wbudowany korektor Worda opiera się na słowniku i prostych regułach. Nasz korektor AI analizuje kontekst, rozumie znaczenie zdań i wykrywa subtelne błędy. Dodatkowo wyjaśniamy każdy błąd z odniesieniem do zasady, co pomaga w nauce.",
+  },
+];
+
+export const schemaData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Sprawdzanie Pisowni Online - Interpunkcja.com.pl",
+  description:
+    "Darmowy korektor pisowni online z AI. Sprawdź tekst pod kątem błędów ortograficznych, interpunkcyjnych i gramatycznych. Szybko i dokładnie.",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "PLN",
+  },
+};
+
+export const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
+// Checker (interaktywny korektor) zyje w SPA — na froncie publicznym
+// zalogowani sa kierowani do /panel, wiec komponent jest wylaczony.
+const Checker = () => null;
 
 export function SprawdzaniePisowni() {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = false;
 
   // Typowe problemy z pisownią
   const spellingProblems = [
@@ -194,77 +268,9 @@ export function SprawdzaniePisowni() {
   ];
 
   // FAQ
-  const faq = [
-    {
-      question: "Czym różni się sprawdzanie pisowni od sprawdzania ortografii?",
-      answer:
-        "Sprawdzanie pisowni to szersze pojęcie obejmujące weryfikację całego tekstu pod kątem poprawności językowej. Zawiera sprawdzanie ortografii (poprawność zapisu wyrazów), interpunkcji (przecinki, kropki), gramatyki (odmiana, składnia) oraz stylistyki. Nasz korektor sprawdza wszystkie te elementy jednocześnie.",
-    },
-    {
-      question: "Jak działa sprawdzanie pisowni online?",
-      answer:
-        "Nasz korektor wykorzystuje sztuczną inteligencję Claude do analizy tekstu. W przeciwieństwie do tradycyjnych słownikowych korektorów, AI analizuje kontekst całego zdania, rozumie znaczenie i wykrywa błędy, które inne narzędzia pomijają. Sprawdzenie tekstu zajmuje 2-3 sekundy.",
-    },
-    {
-      question: "Czy sprawdzanie pisowni jest darmowe?",
-      answer:
-        "Tak! Oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków każde). To wystarczy do sprawdzenia emaili, postów czy krótkich tekstów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
-    },
-    {
-      question: "Jakie błędy wykrywa korektor pisowni?",
-      answer:
-        "Wykrywamy: literówki i błędy ortograficzne, błędną pisownię łączną i rozdzielną (naprawdę, na pewno, w ogóle), błędy w pisowni ó/u i rz/ż, brakujące przecinki przed spójnikami, błędy gramatyczne w odmianie, pleonazmy i błędy stylistyczne.",
-    },
-    {
-      question: "Czy mogę sprawdzić pisownię w długim dokumencie?",
-      answer:
-        "W planie Free możesz sprawdzać teksty do 500 znaków. Plan Premium i Lifetime pozwalają na sprawdzanie do 10 000 znaków (ok. 5 stron A4) na raz. Dłuższe dokumenty możesz sprawdzać częściami.",
-    },
-    {
-      question: "Czy korektor działa na telefonie?",
-      answer:
-        "Tak! Nasza strona jest w pełni responsywna. Możesz sprawdzać pisownię na smartfonie, tablecie i komputerze. Wystarczy przeglądarka z dostępem do internetu.",
-    },
-    {
-      question: "Czy moje teksty są bezpieczne?",
-      answer:
-        "Absolutnie tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane na serwerach po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest dla nas priorytetem.",
-    },
-    {
-      question: "Czym różni się od korektora w Wordzie?",
-      answer:
-        "Wbudowany korektor Worda opiera się na słowniku i prostych regułach. Nasz korektor AI analizuje kontekst, rozumie znaczenie zdań i wykrywa subtelne błędy. Dodatkowo wyjaśniamy każdy błąd z odniesieniem do zasady, co pomaga w nauce.",
-    },
-  ];
 
   // Schema.org
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Sprawdzanie Pisowni Online - Interpunkcja.com.pl",
-    description:
-      "Darmowy korektor pisowni online z AI. Sprawdź tekst pod kątem błędów ortograficznych, interpunkcyjnych i gramatycznych. Szybko i dokładnie.",
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "PLN",
-    },
-  };
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
 
   return (
     <>

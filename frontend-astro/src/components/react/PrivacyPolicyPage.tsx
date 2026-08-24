@@ -1,7 +1,7 @@
 // frontend/src/pages/PrivacyPolicyPage.tsx
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { LanguageToggle } from "../components/LanguageToggle";
+import { LanguageToggle } from "./LanguageToggle";
 
 const content = {
   pl: {

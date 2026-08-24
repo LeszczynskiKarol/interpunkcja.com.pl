@@ -22,11 +22,85 @@ import {
   MessageSquare,
   BookOpen,
 } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
-import { Checker } from "../../components/Checker";
+
+// Dane FAQ i schema.org na poziomie modulu — uzywane tez w <head> strony Astro
+export const faq = [
+  {
+    question: "Co to jest korektor tekstu online?",
+    answer:
+      "Korektor tekstu online to narzędzie do automatycznego sprawdzania i poprawiania błędów w tekstach. Nowoczesne korektory, takie jak nasz, wykorzystują sztuczną inteligencję do analizy kontekstu zdań, dzięki czemu wykrywają nie tylko literówki, ale również błędy gramatyczne, interpunkcyjne i stylistyczne.",
+  },
+  {
+    question: "Czym różni się korektor AI od tradycyjnego?",
+    answer:
+      "Tradycyjne korektory porównują słowa ze słownikiem i stosują proste reguły. Korektor AI analizuje całe zdanie, rozumie jego znaczenie i wykrywa błędy wynikające z kontekstu. Na przykład AI rozpozna, że 'zamek' może być budowlą lub mechanizmem, i sprawdzi poprawność użycia w danym zdaniu.",
+  },
+  {
+    question: "Jakie błędy wykrywa korektor tekstu?",
+    answer:
+      "Nasz korektor wykrywa: błędy ortograficzne (literówki, ó/u, rz/ż), błędy w pisowni łącznej i rozdzielnej, błędy interpunkcyjne (przecinki, kropki, średniki), błędy gramatyczne (odmiana, formy czasowników), oraz błędy stylistyczne (pleonazmy, powtórzenia).",
+  },
+  {
+    question: "Czy korektor tekstu jest darmowy?",
+    answer:
+      "Tak, oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków każde). Dla intensywniejszego użycia polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i nielimitowanymi sprawdzeniami.",
+  },
+  {
+    question: "Czy mogę sprawdzić długi dokument?",
+    answer:
+      "W planie Free możesz sprawdzać do 500 znaków. Plan Premium i Lifetime pozwalają na sprawdzanie do 10 000 znaków na raz (około 5 stron A4). Dłuższe dokumenty możesz sprawdzać częściami.",
+  },
+  {
+    question: "Czy korektor działa na telefonie?",
+    answer:
+      "Tak! Nasza strona jest w pełni responsywna. Możesz korzystać z korektora na smartfonie, tablecie i komputerze. Wystarczy przeglądarka z dostępem do internetu.",
+  },
+  {
+    question: "Czy moje teksty są bezpieczne?",
+    answer:
+      "Absolutnie tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane na serwerach po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest dla nas priorytetem.",
+  },
+  {
+    question: "Czym różni się od korektora w Microsoft Word?",
+    answer:
+      "Wbudowany korektor w Word opiera się na słowniku i prostych regułach. Nasz korektor AI analizuje kontekst, rozumie znaczenie zdań i wykrywa subtelne błędy. Dodatkowo wyjaśniamy każdy błąd z odniesieniem do zasady, co pomaga w nauce poprawnej polszczyzny.",
+  },
+];
+
+export const schemaData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Korektor Tekstu Online - Interpunkcja.com.pl",
+  description:
+    "Profesjonalny korektor tekstu online z AI. Sprawdza ortografię, interpunkcję i gramatykę. Sztuczna inteligencja Claude analizuje kontekst i wyjaśnia każdy błąd.",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "PLN",
+  },
+};
+
+export const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
+// Checker (interaktywny korektor) zyje w SPA — na froncie publicznym
+// zalogowani sa kierowani do /panel, wiec komponent jest wylaczony.
+const Checker = () => null;
 
 export function KorektorTekstu() {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = false;
 
   // Funkcje korektora
   const correctorFeatures = [
@@ -245,77 +319,9 @@ export function KorektorTekstu() {
   ];
 
   // FAQ
-  const faq = [
-    {
-      question: "Co to jest korektor tekstu online?",
-      answer:
-        "Korektor tekstu online to narzędzie do automatycznego sprawdzania i poprawiania błędów w tekstach. Nowoczesne korektory, takie jak nasz, wykorzystują sztuczną inteligencję do analizy kontekstu zdań, dzięki czemu wykrywają nie tylko literówki, ale również błędy gramatyczne, interpunkcyjne i stylistyczne.",
-    },
-    {
-      question: "Czym różni się korektor AI od tradycyjnego?",
-      answer:
-        "Tradycyjne korektory porównują słowa ze słownikiem i stosują proste reguły. Korektor AI analizuje całe zdanie, rozumie jego znaczenie i wykrywa błędy wynikające z kontekstu. Na przykład AI rozpozna, że 'zamek' może być budowlą lub mechanizmem, i sprawdzi poprawność użycia w danym zdaniu.",
-    },
-    {
-      question: "Jakie błędy wykrywa korektor tekstu?",
-      answer:
-        "Nasz korektor wykrywa: błędy ortograficzne (literówki, ó/u, rz/ż), błędy w pisowni łącznej i rozdzielnej, błędy interpunkcyjne (przecinki, kropki, średniki), błędy gramatyczne (odmiana, formy czasowników), oraz błędy stylistyczne (pleonazmy, powtórzenia).",
-    },
-    {
-      question: "Czy korektor tekstu jest darmowy?",
-      answer:
-        "Tak, oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków każde). Dla intensywniejszego użycia polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i nielimitowanymi sprawdzeniami.",
-    },
-    {
-      question: "Czy mogę sprawdzić długi dokument?",
-      answer:
-        "W planie Free możesz sprawdzać do 500 znaków. Plan Premium i Lifetime pozwalają na sprawdzanie do 10 000 znaków na raz (około 5 stron A4). Dłuższe dokumenty możesz sprawdzać częściami.",
-    },
-    {
-      question: "Czy korektor działa na telefonie?",
-      answer:
-        "Tak! Nasza strona jest w pełni responsywna. Możesz korzystać z korektora na smartfonie, tablecie i komputerze. Wystarczy przeglądarka z dostępem do internetu.",
-    },
-    {
-      question: "Czy moje teksty są bezpieczne?",
-      answer:
-        "Absolutnie tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane na serwerach po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest dla nas priorytetem.",
-    },
-    {
-      question: "Czym różni się od korektora w Microsoft Word?",
-      answer:
-        "Wbudowany korektor w Word opiera się na słowniku i prostych regułach. Nasz korektor AI analizuje kontekst, rozumie znaczenie zdań i wykrywa subtelne błędy. Dodatkowo wyjaśniamy każdy błąd z odniesieniem do zasady, co pomaga w nauce poprawnej polszczyzny.",
-    },
-  ];
 
   // Schema.org
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Korektor Tekstu Online - Interpunkcja.com.pl",
-    description:
-      "Profesjonalny korektor tekstu online z AI. Sprawdza ortografię, interpunkcję i gramatykę. Sztuczna inteligencja Claude analizuje kontekst i wyjaśnia każdy błąd.",
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "PLN",
-    },
-  };
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
 
   return (
     <>

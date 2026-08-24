@@ -113,13 +113,13 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="w-full max-w-md">
         {/* Back to home */}
-        <Link
-          to="/"
+        <a
+          href="/"
           className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Powrót do strony głównej
-        </Link>
+        </a>
 
         {/* Email not verified warning */}
         {verificationError && (

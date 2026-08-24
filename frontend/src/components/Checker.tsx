@@ -18,7 +18,7 @@ import { checkPunctuation, getCheckStatus, type Correction } from "../lib/api";
 import { useAuthStore } from "../stores/authStore";
 import { clsx } from "clsx";
 import { TopUpModal } from "./TopUpModal";
-import { Link } from "react-router-dom";
+import { Link } from "./HardLink";
 
 interface TopUpPackage {
   id: string;

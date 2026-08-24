@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /panel
+Disallow: /konto
+Disallow: /historia
+Disallow: /admin
+Disallow: /platnosc
+
+Sitemap: https://www.interpunkcja.com.pl/sitemap_index.xml
