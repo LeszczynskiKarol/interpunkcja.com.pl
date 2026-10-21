@@ -57,3 +57,4 @@ backend/package-lock.json
 coverage/
 .nyc_output/
 content-cluster/
+backend/data/

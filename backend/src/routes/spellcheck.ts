@@ -3,6 +3,7 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { checkSpelling } from "../services/spellcheck";
+import { recordSpellcheckVisitor } from "../services/trafficStats";
 
 export const SPELLCHECK_MAX_CHARS = 5000;
 
@@ -19,6 +20,8 @@ export async function spellcheckRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { text } = spellcheckSchema.parse(request.body);
+      // Ruch na narzędziu wyznacza dzienny limit AI dla gości
+      recordSpellcheckVisitor(request.ip);
       try {
         const issues = await checkSpelling(text);
         return { issues, checkedChars: text.length };

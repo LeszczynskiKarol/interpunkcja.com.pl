@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowRight, CheckCircle, Loader2, Sparkles } from "lucide-react";
 
+const GUEST_MAX_CHARS = 300;
+const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY as string | undefined;
+
 const MAX_CHARS = 5000;
 
 interface Issue {
@@ -242,30 +245,190 @@ export function SpellChecker({ heading }: SpellCheckerProps) {
             )}
           </p>
 
-          <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 p-5">
-            <p className="flex items-start gap-2 text-gray-800 dark:text-gray-200 mb-3">
-              <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <span>
-                Słownik sprawdza każde słowo osobno, więc nie widzi przecinków ani błędów
-                zależnych od kontekstu (np. „może” i „morze”). To sprawdzi korektor AI, który przy
-                każdej poprawce wyjaśni regułę.
-              </span>
-            </p>
-            <a
-              href={loggedIn ? "/panel" : "/rejestracja"}
-              onClick={() => trackEvent("spellcheck_cta", { target: loggedIn ? "panel" : "signup" })}
-              className="inline-flex items-center gap-2 px-5 py-2 font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-            >
-              {loggedIn ? "Sprawdź przecinki w korektorze AI" : "Sprawdź przecinki za darmo z AI"}
-              <ArrowRight className="w-4 h-4" />
-            </a>
-            {!loggedIn && (
-              <span className="block mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Darmowe konto: 2 sprawdzenia AI dziennie
-              </span>
-            )}
-          </div>
+          <GuestAiBox text={checkedText ?? text} loggedIn={loggedIn} />
         </div>
+      )}
+    </div>
+  );
+}
+
+interface GuestCorrection {
+  original: string;
+  corrected: string;
+  rule: string;
+  explanation: string;
+}
+
+interface GuestResult {
+  correctedText: string;
+  corrections: GuestCorrection[];
+}
+
+// Skrypt reCAPTCHA ładowany dopiero po kliknięciu - nie obciąża strony
+let recaptchaPromise: Promise<any> | null = null;
+function loadRecaptcha(): Promise<any> {
+  if (!RECAPTCHA_SITE_KEY) return Promise.reject(new Error("Brak klucza reCAPTCHA"));
+  if (!recaptchaPromise) {
+    recaptchaPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+      script.async = true;
+      script.onload = () => (window as any).grecaptcha.ready(() => resolve((window as any).grecaptcha));
+      script.onerror = () => {
+        recaptchaPromise = null;
+        reject(new Error("Nie udało się wczytać zabezpieczenia reCAPTCHA"));
+      };
+      document.head.appendChild(script);
+    });
+  }
+  return recaptchaPromise;
+}
+
+function visitorId(): string {
+  try {
+    let id = localStorage.getItem("interpunkcja-visitor");
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("interpunkcja-visitor", id);
+    }
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+// Sprawdzenie przecinków przez AI bez konta (1 dziennie, do 300 znaków).
+// Zalogowani i przy wyłączonej funkcji widzą tylko odnośnik do korektora.
+function GuestAiBox({ text, loggedIn }: { text: string; loggedIn: boolean }) {
+  const [enabled, setEnabled] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<GuestResult | null>(null);
+  const [refusal, setRefusal] = useState("");
+
+  useEffect(() => {
+    if (loggedIn || !RECAPTCHA_SITE_KEY) return;
+    fetch("/api/guest-check/status")
+      .then((r) => r.json())
+      .then((d) => setEnabled(!!d.enabled))
+      .catch(() => setEnabled(false));
+  }, [loggedIn]);
+
+  const tooLong = text.length > GUEST_MAX_CHARS;
+
+  const runAi = async () => {
+    setLoading(true);
+    setRefusal("");
+    try {
+      const grecaptcha = await loadRecaptcha();
+      const recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "guest_check" });
+      const res = await fetch("/api/guest-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, recaptchaToken, visitorId: visitorId() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRefusal(data.message || "Nie udało się sprawdzić tekstu.");
+        trackEvent("guest_check_refused", { reason: data.error || res.status });
+        return;
+      }
+      setResult(data);
+      trackEvent("guest_check", { chars: text.length, errors: data.corrections.length });
+    } catch (e: any) {
+      setRefusal(e.message || "Nie udało się sprawdzić tekstu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signupCta = (
+    <a
+      href={loggedIn ? "/panel" : "/rejestracja"}
+      onClick={() => trackEvent("spellcheck_cta", { target: loggedIn ? "panel" : "signup" })}
+      className="inline-flex items-center gap-2 px-5 py-2 font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+    >
+      {loggedIn ? "Sprawdź przecinki w korektorze AI" : "Załóż darmowe konto"}
+      <ArrowRight className="w-4 h-4" />
+    </a>
+  );
+
+  if (result) {
+    return (
+      <div className="rounded-xl border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40 p-5 space-y-4">
+        <div>
+          <div className="text-sm font-semibold uppercase tracking-wide text-green-700 dark:text-green-400 mb-2">
+            Po korekcie AI
+          </div>
+          <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
+            {result.correctedText}
+          </p>
+        </div>
+        {result.corrections.length === 0 ? (
+          <p className="text-gray-700 dark:text-gray-300">AI nie znalazło błędów. Tekst jest poprawny.</p>
+        ) : (
+          <ol className="space-y-3">
+            {result.corrections.map((c, i) => (
+              <li key={i} className="text-sm">
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {i + 1}. {c.rule}:
+                </span>{" "}
+                <span className="line-through text-red-600 dark:text-red-400">{c.original}</span>
+                {" → "}
+                <span className="font-medium text-green-700 dark:text-green-400">{c.corrected}</span>
+                <span className="block text-gray-600 dark:text-gray-400 mt-0.5">{c.explanation}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+        <div className="pt-2 border-t border-green-200 dark:border-green-900">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Z darmowym kontem sprawdzisz 2 teksty dziennie do 500 znaków, a historia sprawdzeń
+            będzie pod ręką.
+          </p>
+          {signupCta}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 p-5">
+      <p className="flex items-start gap-2 text-gray-800 dark:text-gray-200 mb-3">
+        <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+        <span>
+          Słownik sprawdza każde słowo osobno, więc nie widzi przecinków ani błędów zależnych od
+          kontekstu (np. „może” i „morze”). To sprawdzi korektor AI, który przy każdej poprawce
+          wyjaśni regułę.
+        </span>
+      </p>
+
+      {enabled && !loggedIn && !refusal ? (
+        <>
+          <button
+            type="button"
+            onClick={runAi}
+            disabled={loading || tooLong}
+            className="inline-flex items-center gap-2 px-5 py-2 font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {loading ? "AI sprawdza tekst…" : "Sprawdź przecinki z AI"}
+          </button>
+          <span className="block mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {tooLong
+              ? `Bez konta AI sprawdzi tekst do ${GUEST_MAX_CHARS} znaków (Twój ma ${text.length}). Skróć go albo załóż darmowe konto.`
+              : "1 darmowe sprawdzenie dziennie bez konta, do 300 znaków"}
+          </span>
+        </>
+      ) : (
+        <>
+          {refusal && <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">{refusal}</p>}
+          {signupCta}
+          {!loggedIn && (
+            <span className="block mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Darmowe konto: 2 sprawdzenia AI dziennie
+            </span>
+          )}
+        </>
       )}
     </div>
   );

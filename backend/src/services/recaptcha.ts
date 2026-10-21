@@ -1,6 +1,5 @@
 // backend/src/services/recaptcha.ts
 
-const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
 const RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
 // Minimalne wymagane score (0.0 - 1.0, gdzie 1.0 = bardzo pewne że człowiek)
@@ -19,6 +18,10 @@ export async function verifyRecaptcha(
   token: string,
   expectedAction?: string
 ): Promise<{ success: boolean; score?: number; error?: string }> {
+  // Czytane przy wywołaniu, nie przy imporcie - moduł ładuje się przed
+  // dotenv.config() w index.ts i stała na poziomie modułu była zawsze pusta
+  const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
+
   // Jeśli brak klucza - pomiń weryfikację (development)
   if (!RECAPTCHA_SECRET_KEY) {
     console.warn("reCAPTCHA secret key not configured, skipping verification");

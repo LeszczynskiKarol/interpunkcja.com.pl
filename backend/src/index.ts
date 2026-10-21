@@ -14,6 +14,8 @@ import { paymentRoutes } from "./routes/payments";
 import { adminRoutes } from "./routes/admin";
 import { articleRoutes } from "./routes/articles";
 import { spellcheckRoutes } from "./routes/spellcheck";
+import { guestCheckRoutes } from "./routes/guestCheck";
+import { sendDailyReport } from "./services/dailyReport";
 
 import fastifyRawBody from "fastify-raw-body";
 
@@ -98,6 +100,7 @@ async function start() {
   await fastify.register(adminRoutes);
   await fastify.register(articleRoutes);
   await fastify.register(spellcheckRoutes);
+  await fastify.register(guestCheckRoutes);
   await fastify.register(sitemapRoutes);
 
   // Health check
@@ -138,6 +141,20 @@ async function start() {
     },
   );
   console.log("✅ Text retention cron registered (daily 3:30 Europe/Warsaw)");
+
+  // Cron - codziennie o 8:00 raport użycia i kosztów na Slacka
+  cron.schedule(
+    "0 8 * * *",
+    () => {
+      sendDailyReport().catch((err) =>
+        console.error("[DailyReport] Unhandled error:", err),
+      );
+    },
+    {
+      timezone: "Europe/Warsaw",
+    },
+  );
+  console.log("✅ Daily report cron registered (daily 8:00 Europe/Warsaw)");
 
   try {
     await fastify.listen({ port, host });

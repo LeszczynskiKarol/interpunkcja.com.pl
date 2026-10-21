@@ -1,8 +1,9 @@
 // backend/src/services/claude.ts
 import Anthropic from "@anthropic-ai/sdk";
 
-// Lazy initialization - klient tworzony przy pierwszym użyciu (po załadowaniu dotenv)
-let anthropicClient: Anthropic | null = null;
+// Lazy initialization - klienci tworzeni przy pierwszym użyciu (po załadowaniu dotenv),
+// osobno dla każdego klucza (goście mają własny klucz z limitem wydatków)
+const anthropicClients = new Map<string, Anthropic>();
 
 // ============================================
 // KONFIGURACJA LOGOWANIA
@@ -90,9 +91,11 @@ function logBox(title: string, content: string, color: string = COLORS.white) {
 
 // ============================================
 
-function getAnthropicClient(): Anthropic {
+function getAnthropicClient(
+  apiKey: string | undefined = process.env.ANTHROPIC_API_KEY,
+): Anthropic {
+  let anthropicClient = apiKey ? anthropicClients.get(apiKey) : undefined;
   if (!anthropicClient) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
     log(
       COLORS.yellow,
       "INIT",
@@ -102,6 +105,7 @@ function getAnthropicClient(): Anthropic {
       throw new Error("ANTHROPIC_API_KEY is not set in environment variables");
     }
     anthropicClient = new Anthropic({ apiKey });
+    anthropicClients.set(apiKey, anthropicClient);
   }
   return anthropicClient;
 }
@@ -301,7 +305,10 @@ Zwróć wyłącznie obiekt JSON:
 
 Jeśli tekst jest w pełni poprawny, zwróć pustą tablicę corrections i niezmieniony correctedText.`;
 
-export async function checkPunctuation(text: string): Promise<CheckResult> {
+export async function checkPunctuation(
+  text: string,
+  options: { apiKey?: string } = {},
+): Promise<CheckResult> {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).substring(7);
 
@@ -335,7 +342,7 @@ ${text}
   logSubSection("USER MESSAGE DO CLAUDE");
   console.log(truncateText(userMessage, 300));
 
-  const anthropic = getAnthropicClient();
+  const anthropic = getAnthropicClient(options.apiKey);
   const { model, profile } = getModel();
 
   log(COLORS.yellow, "API", "Wysyłanie requestu do Anthropic API...");
