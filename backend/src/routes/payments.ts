@@ -329,7 +329,9 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     try {
       const sessionConfig: Stripe.Checkout.SessionCreateParams = {
         customer: customerId,
-        payment_method_types: ["card", "blik"],
+        // BLIK nie obsługuje płatności cyklicznych — w subskrypcji tylko karta
+        payment_method_types:
+          selectedPlan.mode === "subscription" ? ["card"] : ["card", "blik"],
         mode: selectedPlan.mode,
         success_url: `${frontendUrl}/platnosc/sukces?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${frontendUrl}/platnosc/${plan}`,
