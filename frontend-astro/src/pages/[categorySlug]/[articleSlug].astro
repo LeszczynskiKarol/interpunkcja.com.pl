@@ -21,7 +21,25 @@ const description = article
   ? article.metaDescription || article.excerpt || article.title
   : "Artykuł nie został znaleziony.";
 
-const cleanedContent = article ? cleanWordPressContent(article.content) : "";
+// Ramka „praca dyplomowa” w środku artykułu - przed drugim nagłówkiem H2
+// (czytelnik, który doszedł do połowy, jest najbardziej zaangażowany);
+// przy krótszych tekstach na końcu treści
+const THESIS_BOX = `<aside class="not-prose my-8 rounded-xl border-2 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 p-5">
+  <p class="font-bold text-gray-900 dark:text-white mb-1">Piszesz pracę licencjacką albo magisterską?</p>
+  <p class="text-base text-gray-700 dark:text-gray-300 mb-3">Sprawdzimy przecinki, ortografię i przypisy w całym pliku .docx. Każda poprawka trafi do Worda jako zmiana śledzona, z komentarzem i regułą.</p>
+  <a href="/korekta-pracy-dyplomowej" data-cta="srodek" class="inline-block px-5 py-2 rounded-lg bg-blue-600 font-semibold hover:bg-blue-700" style="color:#fff;text-decoration:none">Zobacz bezpłatną próbkę 2 stron →</a>
+</aside>`;
+
+function withThesisBox(html: string): string {
+  const h2 = [...html.matchAll(/<h2[\s>]/gi)];
+  if (h2.length >= 2) {
+    const at = h2[1].index!;
+    return html.slice(0, at) + THESIS_BOX + html.slice(at);
+  }
+  return html + THESIS_BOX;
+}
+
+const cleanedContent = article ? withThesisBox(cleanWordPressContent(article.content)) : "";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pl-PL", {
@@ -161,22 +179,50 @@ function formatDate(iso: string) {
           </a>
         </div>
 
-        <div class="mt-12 p-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl text-white text-center">
-          <h2 class="text-2xl font-bold mb-3">
-            Sprawdź interpunkcję swojego tekstu
-          </h2>
-          <p class="text-blue-100 mb-6 max-w-lg mx-auto">
-            Skorzystaj z naszego narzędzia do automatycznego sprawdzania
-            przecinków i innych znaków interpunkcyjnych.
-          </p>
-          <a
-            href="/panel"
-            class="inline-block px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            Sprawdź tekst za darmo
-          </a>
+        <div class="mt-12 grid md:grid-cols-2 gap-4">
+          <div class="p-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+            <h2 class="text-xl font-bold mb-2">Sprawdź swój tekst</h2>
+            <p class="text-blue-100 mb-5">
+              Wklej tekst - pisownię sprawdzimy od razu, bez zakładania konta,
+              a przecinki z wyjaśnieniem reguły sprawdzi korektor AI.
+            </p>
+            <a
+              href="/sprawdzanie-pisowni"
+              data-cta="koniec-tekst"
+              class="inline-block px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              Sprawdź tekst za darmo
+            </a>
+          </div>
+          <div class="p-6 rounded-xl border-2 border-blue-600 bg-white dark:bg-gray-800">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Cała praca dyplomowa</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-5">
+              Wgraj plik .docx i dostań poprawki w trybie śledzenia zmian Worda.
+              Najpierw bezpłatna próbka 2 stron, potem od 39 zł.
+            </p>
+            <a
+              href="/korekta-pracy-dyplomowej"
+              data-cta="koniec-praca"
+              class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Korekta pracy dyplomowej
+            </a>
+          </div>
         </div>
       </div>
     )
   }
+  <script is:inline>
+    // Kliknięcia w wezwania do działania w artykułach -> GA4 (send_to jak w SPA)
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest && e.target.closest("[data-cta]");
+      if (!a) return;
+      window.dataLayer = window.dataLayer || [];
+      (function () { window.dataLayer.push(arguments); })("event", "article_cta", {
+        placement: a.getAttribute("data-cta"),
+        article: location.pathname,
+        send_to: "G-RYR505E30R",
+      });
+    });
+  </script>
 </BaseLayout>
