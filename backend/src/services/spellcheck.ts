@@ -44,7 +44,7 @@ const REFORM_PREFIXES = ["quasi", "ekstra", "super", "niby", "mega", "mini", "ek
 // "nie" łącznie z przymiotnikami i przysłówkami w stopniu wyższym i najwyższym
 // (niemilszy, nienajlepszy, nielepiej). Tylko te końcówki - inaczej przeszłoby
 // też "niewiem".
-const COMPARATIVE = /^(naj\p{L}{3,}|\p{L}{2,}(szy|sza|sze|szego|szej|szemu|szym|szych|szymi|szą|iej|ej))$/u;
+const COMPARATIVE = /^(naj\p{L}{3,}|\p{L}{3,}(szy|sza|sze|szego|szej|szemu|szym|szych|szymi|szą|iej|ej))$/u;
 const NOT_COMPARATIVE = new Set(["więcej", "mniej", "bardziej", "najwięcej", "najmniej", "najbardziej"]);
 
 // Druga część słowa, które według reformy jest poprawne, o ile ta część jest poprawna
