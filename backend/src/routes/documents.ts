@@ -18,6 +18,8 @@ import {
 } from "../services/documentJobs";
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const MAX_UNPAID_DOCUMENTS = 5;
+const MAX_UPLOADS_PER_DAY = 20;
 
 function stripeClient() {
   return new Stripe(process.env.STRIPE_SECRET_KEY || "");
@@ -75,6 +77,21 @@ export async function documentRoutes(fastify: FastifyInstance) {
         return reply.status(403).send({ error: "EMAIL_NOT_VERIFIED", message: "Potwierdź adres e-mail, aby wgrać dokument" });
       }
 
+      // Limity chroniące dysk serwera przed zalewaniem nieopłaconymi plikami
+      const [unpaid, today] = await Promise.all([
+        prisma.document.count({ where: { userId, status: "AWAITING_PAYMENT", filesDeletedAt: null } }),
+        prisma.document.count({ where: { userId, createdAt: { gte: new Date(Date.now() - 86400000) } } }),
+      ]);
+      if (unpaid >= MAX_UNPAID_DOCUMENTS || today >= MAX_UPLOADS_PER_DAY) {
+        return reply.status(429).send({
+          error: "TOO_MANY_DOCUMENTS",
+          message:
+            unpaid >= MAX_UNPAID_DOCUMENTS
+              ? `Masz już ${unpaid} nieopłaconych dokumentów. Opłać któryś albo poczekaj - nieopłacone usuwamy po 2 dniach.`
+              : "Osiągnięto dzienny limit wgranych plików. Spróbuj jutro.",
+        });
+      }
+
       const file = await request.file();
       if (!file) return reply.status(400).send({ error: "NO_FILE", message: "Nie wybrano pliku" });
       const fileName = file.filename || "dokument.docx";
@@ -92,7 +109,10 @@ export async function documentRoutes(fastify: FastifyInstance) {
       let chars: number;
       try {
         chars = documentChars(await TrackedDocx.load(buffer));
-      } catch {
+      } catch (error: any) {
+        if (error?.message === "DOCX_TOO_LARGE") {
+          return reply.status(400).send({ error: "FILE_TOO_LARGE", message: "Dokument jest za duży do automatycznej korekty - napisz do nas." });
+        }
         return reply.status(400).send({ error: "INVALID_FILE", message: "Nie udało się odczytać pliku .docx" });
       }
       const pages = Math.max(1, Math.ceil(chars / CHARS_PER_PAGE));

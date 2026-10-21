@@ -118,8 +118,10 @@ export class TrackedDocx {
 
   static async load(buffer: Buffer): Promise<TrackedDocx> {
     const zip = await JSZip.loadAsync(buffer);
-    const xml = await zip.file("word/document.xml")?.async("string");
-    if (!xml) throw new Error("INVALID_DOCX");
+    assertSaneArchive(zip);
+    const entry = zip.file("word/document.xml");
+    if (!entry) throw new Error("INVALID_DOCX");
+    const xml = await readLimited(entry, MAX_DOCUMENT_XML_BYTES);
     const doc = new DOMParser().parseFromString(xml, "text/xml");
     return new TrackedDocx(zip, doc);
   }
@@ -389,6 +391,42 @@ export class TrackedDocx {
       this.zip.file("[Content_Types].xml", types);
     }
   }
+}
+
+// Ochrona przed „bombą ZIP”: .docx to archiwum, a 15 MB może rozpakować się do
+// gigabajtów i wyczerpać pamięć procesu. Treść pracy magisterskiej to kilka MB XML.
+const MAX_DOCUMENT_XML_BYTES = 30 * 1024 * 1024;
+const MAX_ARCHIVE_DECLARED_BYTES = 200 * 1024 * 1024;
+const MAX_ARCHIVE_ENTRIES = 2000;
+
+function assertSaneArchive(zip: JSZip) {
+  const entries = Object.values(zip.files);
+  if (entries.length > MAX_ARCHIVE_ENTRIES) throw new Error("DOCX_TOO_LARGE");
+  // Rozmiary z nagłówków archiwum (pole wewnętrzne JSZip) - deklarowane, więc
+  // treść dokumentu i tak czytamy z twardym limitem w readLimited
+  const declared = entries.reduce((sum, e: any) => sum + (e._data?.uncompressedSize || 0), 0);
+  if (declared > MAX_ARCHIVE_DECLARED_BYTES) throw new Error("DOCX_TOO_LARGE");
+}
+
+// Rozpakowanie strumieniem, przerwane po przekroczeniu limitu
+function readLimited(entry: JSZip.JSZipObject, limit: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    const stream = entry.nodeStream("nodebuffer");
+    stream.on("data", (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > limit) {
+        stream.removeAllListeners("data");
+        stream.pause();
+        reject(new Error("DOCX_TOO_LARGE"));
+        return;
+      }
+      chunks.push(chunk);
+    });
+    stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    stream.on("error", reject);
+  });
 }
 
 // Słowa, białe znaki i pojedyncze znaki interpunkcyjne - dzięki temu
