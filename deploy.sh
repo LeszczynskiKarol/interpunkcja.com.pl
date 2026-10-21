@@ -7,6 +7,9 @@ echo "========================================="
 # Backend
 echo "[1/4] Updating Backend..."
 cd /var/www/interpunkcja/backend
+npm install --no-audit --no-fund
+npx prisma generate
+npx prisma migrate deploy
 npm run build
 pm2 restart interpunkcja-backend
 echo "✓ Backend updated"
