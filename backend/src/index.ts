@@ -13,6 +13,7 @@ import { authRoutes } from "./routes/auth";
 import { paymentRoutes } from "./routes/payments";
 import { adminRoutes } from "./routes/admin";
 import { articleRoutes } from "./routes/articles";
+import { spellcheckRoutes } from "./routes/spellcheck";
 
 import fastifyRawBody from "fastify-raw-body";
 
@@ -96,6 +97,7 @@ async function start() {
   await fastify.register(paymentRoutes);
   await fastify.register(adminRoutes);
   await fastify.register(articleRoutes);
+  await fastify.register(spellcheckRoutes);
   await fastify.register(sitemapRoutes);
 
   // Health check
