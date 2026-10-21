@@ -18,6 +18,7 @@ echo "✓ Backend updated"
 echo ""
 echo "[2/4] Updating Frontend (SPA)..."
 cd /var/www/interpunkcja/frontend
+npm install --no-audit --no-fund
 npm run build
 echo "✓ Frontend SPA updated"
 
