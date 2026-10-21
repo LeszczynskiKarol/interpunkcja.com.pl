@@ -210,7 +210,8 @@ export async function checkRoutes(fastify: FastifyInstance) {
     // Historia dostępna dla wszystkich kont - teksty i tak przechowujemy 90 dni
 
     const history = await prisma.check.findMany({
-      where: { userId },
+      // Po 90 dniach treść jest czyszczona - takich pozycji nie pokazujemy
+      where: { userId, NOT: { originalText: "" } },
       orderBy: { createdAt: "desc" },
       take: 100,
       select: {

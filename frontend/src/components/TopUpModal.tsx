@@ -1,5 +1,5 @@
 // frontend/src/components/TopUpModal.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { X, Loader2, Zap, Check, Gift, CreditCard } from "lucide-react";
 import toast from "react-hot-toast";
@@ -61,17 +61,31 @@ export function TopUpModal({
     createCheckoutMutation.mutate(selectedPackage);
   };
 
+  // Zamknięcie klawiszem Esc
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const selectedPkg = packages.find((p) => p.id === selectedPackage);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+    // items-start + overflow-y-auto: okno wyższe niż ekran da się przewinąć
+    // (przy items-center górna część z przyciskiem zamknięcia znikała poza ekranem)
+    <div
+      className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl my-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white relative">
           <button
             onClick={onClose}
+            aria-label="Zamknij"
             className="absolute top-4 right-4 p-1 hover:bg-white/20 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />

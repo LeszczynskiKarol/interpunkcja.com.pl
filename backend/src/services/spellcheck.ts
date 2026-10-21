@@ -13,6 +13,23 @@ export interface SpellingIssue {
 
 const MAX_SUGGESTIONS = 5;
 
+// Najczęstsze błędy (także bez polskich znaków), dla których Hunspell nie
+// podaje właściwej formy albo podaje ją daleko na liście
+const COMMON_ERRORS: Record<string, string> = {
+  wogole: "w ogóle", wogóle: "w ogóle", wogle: "w ogóle", napewno: "na pewno",
+  narazie: "na razie", poprostu: "po prostu", conajmniej: "co najmniej",
+  conajwyżej: "co najwyżej", conajwyzej: "co najwyżej", niewiem: "nie wiem",
+  naprzyklad: "na przykład", naprzykład: "na przykład", wkońcu: "w końcu",
+  wkoncu: "w końcu", ztąd: "stąd", pozatym: "poza tym", odrazu: "od razu",
+  wszczególności: "w szczególności", przedewszystkim: "przede wszystkim",
+  napoczątku: "na początku", spowrotem: "z powrotem", zpowrotem: "z powrotem",
+  wrazie: "w razie", naprawde: "naprawdę",
+};
+
+function withCase(original: string, fix: string): string {
+  return original[0] === original[0].toUpperCase() ? fix[0].toUpperCase() + fix.slice(1) : fix;
+}
+
 // Pierwsze człony typowych błędów pisowni łącznej ("napewno", "wogóle", "niewiem")
 const SPLIT_PREFIXES = new Set([
   "w", "we", "z", "ze", "na", "po", "do", "od", "za", "o", "u", "przy", "przed",
@@ -144,5 +161,11 @@ export async function checkSpelling(text: string): Promise<SpellingIssue[]> {
 
   return tokens
     .filter((t) => cache.get(t.word) !== null)
-    .map((t) => ({ ...t, suggestions: cache.get(t.word) || [] }));
+    .map((t) => {
+      const suggestions = cache.get(t.word) || [];
+      const known = COMMON_ERRORS[t.word.toLowerCase()];
+      if (!known) return { ...t, suggestions };
+      const fix = withCase(t.word, known);
+      return { ...t, suggestions: [fix, ...suggestions.filter((s) => s !== fix)].slice(0, MAX_SUGGESTIONS) };
+    });
 }

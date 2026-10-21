@@ -58,7 +58,7 @@ export function Header() {
           >
             <span className="text-2xl">✏️</span>
             <div className="flex flex-col">
-              <span className="font-bold text-xl text-gray-900 dark:text-white leading-tight">
+              <span className="font-bold text-lg sm:text-xl text-gray-900 dark:text-white leading-tight">
                 Interpunkcja<span className="text-blue-600">.com.pl</span>
               </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400 tracking-wide uppercase hidden sm:block">
@@ -130,7 +130,7 @@ export function Header() {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}

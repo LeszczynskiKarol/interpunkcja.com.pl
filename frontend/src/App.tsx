@@ -8,7 +8,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { useEffect } from "react";
 import { AuthCallbackPage } from "./pages/auth/AuthCallbackPage";
-import { LimitsUpdateBanner } from "./components/LimitsUpdateBanner";
 import { CookieBanner } from "./components/CookieBanner";
 import { Toaster } from "react-hot-toast";
 import { Header } from "./components/Header";
@@ -85,7 +84,6 @@ function FullPageRedirect() {
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <LimitsUpdateBanner />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
