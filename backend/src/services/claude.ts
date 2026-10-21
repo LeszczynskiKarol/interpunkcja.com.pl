@@ -278,7 +278,7 @@ Stosuj zasady w wersji Rady Języka Polskiego obowiązującej od 1.01.2026. Star
 - przymiotniki od imion i nazwisk na -ski, -cki małą literą (szekspirowski, mickiewiczowski styl); przymiotniki dzierżawcze na -owy, -in, -ów wolno pisać wielką albo małą (Zosina lalka i zosina lalka, Tadeuszowy dom i tadeuszowy dom) - obu wersji nie poprawiaj;
 - "czy by" zawsze rozdzielnie, tak jak "czy" z innymi wyrazami;
 - "nie" z imiesłowami przymiotnikowymi zawsze łącznie, także gdy imiesłów ma znaczenie czasownikowe (niepalący, nieprzeczytana książka, niezrobione zadanie);
-- "nie" z przymiotnikami i przysłówkami odprzymiotnikowymi łącznie także w stopniu wyższym i najwyższym (niemilszy, nienajlepszy, nielepiej, nieprędzej); rozdzielna pisownia zostaje w wyraźnych przeciwstawieniach (nie lepszy, lecz gorszy) - takich miejsc nie zmieniaj;
+- "nie" z przymiotnikami i przysłówkami odprzymiotnikowymi łącznie także w stopniu wyższym i najwyższym (niemilszy, nienajlepszy, nielepiej, nieprędzej); poprawka polega wyłącznie na usunięciu spacji ("nie lepsza" → "nielepsza") - nigdy nie zastępuj wyrazu innym, bo zmienisz sens; rozdzielna pisownia zostaje w wyraźnych przeciwstawieniach (nie lepszy, lecz gorszy) - takich miejsc nie zmieniaj;
 - "pół" łącznie z wyrazem (półżartem, półserio, półprzytomny), z łącznikiem przed wielką literą (pół-Polka);
 - przedrostki łącznie, także niby- i quasi- (nibyartysta, quasinauka); łącznik tylko przed wielką literą (niby-Polak, super-Europejczyk); super, ekstra, mini, mega, eko wolno też pisać osobno (super pomysł, ekstra oferta), ale nie z łącznikiem;
 - "tuż-tuż", "tuż, tuż" i "tuż tuż" - wszystkie trzy zapisy poprawne;
