@@ -153,6 +153,23 @@ export interface CorrectionDocument {
   createdAt: string;
   completedAt: string | null;
   downloadable: boolean;
+  canPreview?: boolean;
+  preview: DocumentPreview | null;
+}
+
+export interface DocumentPreview {
+  paragraphs: {
+    original: string;
+    corrected: string;
+    corrections: { corrected: string; category: string; rule: string; explanation: string }[];
+  }[];
+  chars: number;
+  corrections: number;
+}
+
+export async function requestDocumentPreview(id: string): Promise<DocumentPreview> {
+  const res = await api.post(`/api/documents/${id}/preview`);
+  return res.data.preview;
 }
 
 export async function getDocumentPackages(): Promise<{ charsPerPage: number; packages: DocumentPackage[] }> {

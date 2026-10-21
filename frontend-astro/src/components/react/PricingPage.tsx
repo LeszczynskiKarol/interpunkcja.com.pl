@@ -24,7 +24,11 @@ const FAQ = [
   },
   {
     q: "Co poprawiacie, a czego nie ruszamy?",
-    a: "Poprawiamy interpunkcję, ortografię, pisownię łączną i rozdzielną oraz gramatykę. Nie zmieniamy stylu autora, cytatów z innych źródeł, terminologii, nazw własnych ani bibliografii. Formatowanie, przypisy i tabele zostają bez zmian.",
+    a: "Poprawiamy interpunkcję, ortografię, pisownię łączną i rozdzielną oraz gramatykę - w treści i w przypisach. Nie zmieniamy stylu autora, cytatów z innych źródeł, opisów źródeł, terminologii, nazw własnych ani bibliografii. Formatowanie i tabele zostają bez zmian.",
+  },
+  {
+    q: "Czy mogę zobaczyć wynik przed zapłatą?",
+    a: "Tak. Po wgraniu pliku możesz raz, bez płacenia, zobaczyć próbkę: poprawki na pierwszych dwóch stronach pracy z wyjaśnieniem każdej reguły. Plik .docx z poprawkami dostajesz po opłaceniu całej korekty.",
   },
   {
     q: "Ile trwa korekta dokumentu?",
@@ -144,7 +148,7 @@ export function PricingPage() {
             </a>
             <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <MessageSquare className="w-4 h-4" />
-              Cenę zobaczysz przed płatnością. Potrzebne jest darmowe konto.
+              Cenę i bezpłatną próbkę 2 stron zobaczysz przed płatnością. Potrzebne jest darmowe konto.
             </p>
             <a href="/korekta-pracy-dyplomowej" className="text-sm text-blue-600 hover:underline">
               Jak wygląda korekta pracy licencjackiej i magisterskiej →

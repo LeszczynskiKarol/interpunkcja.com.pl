@@ -11,18 +11,21 @@ import {
   FileText,
   Loader2,
   MessageSquare,
+  Sparkles,
   Upload,
 } from "lucide-react";
 import {
   downloadDocument,
   getDocumentPackages,
   listDocuments,
+  requestDocumentPreview,
   startDocumentCheckout,
   uploadDocument,
   verifyDocumentPayment,
   type CorrectionDocument,
 } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
+import { DocumentPreviewView } from "../components/DocumentPreviewView";
 
 const pln = (grosze: number) => `${(grosze / 100).toFixed(0)} zł`;
 
@@ -47,6 +50,7 @@ export function DocumentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [uploading, setUploading] = useState(false);
   const [paying, setPaying] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [consent, setConsent] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -100,6 +104,19 @@ export function DocumentsPage() {
     }
   };
 
+  const preview = async (doc: CorrectionDocument) => {
+    setPreviewing(doc.id);
+    try {
+      await requestDocumentPreview(doc.id);
+      trackEvent("document_preview", { pages: doc.pages });
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Nie udało się przygotować próbki");
+    } finally {
+      setPreviewing(null);
+    }
+  };
+
   const pay = async (doc: CorrectionDocument) => {
     setPaying(doc.id);
     try {
@@ -126,7 +143,8 @@ export function DocumentsPage() {
         <p className="text-gray-600 dark:text-gray-400 mb-8">
           Wgraj pracę dyplomową, artykuł albo raport w formacie .docx. Odeślemy ten sam plik z
           poprawkami w trybie śledzenia zmian Worda, a przy każdej poprawce dodamy komentarz z regułą.
-          Formatowanie, przypisy i bibliografia zostają nietknięte.
+          Sprawdzamy też przypisy. Formatowanie i bibliografia zostają nietknięte. Przed zapłatą możesz
+          zobaczyć bezpłatną próbkę poprawek na 2 stronach.
         </p>
 
         {/* Cennik */}
@@ -276,6 +294,21 @@ export function DocumentsPage() {
                     W Wordzie poprawki zaakceptujesz na karcie Recenzja - pojedynczo albo wszystkie naraz.
                   </p>
                 )}
+                {doc.canPreview && !doc.preview && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => preview(doc)}
+                      disabled={previewing === doc.id}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-green-600 text-green-700 dark:text-green-400 font-semibold hover:bg-green-50 dark:hover:bg-green-950/30 disabled:opacity-60"
+                    >
+                      {previewing === doc.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      {previewing === doc.id ? "Sprawdzamy 2 strony…" : "Zobacz bezpłatną próbkę (2 strony)"}
+                    </button>
+                    <span className="text-xs text-gray-500">Jedna próbka na konto · bez płacenia</span>
+                  </div>
+                )}
+                {doc.preview && doc.status === "AWAITING_PAYMENT" && <DocumentPreviewView preview={doc.preview} />}
                 {doc.status === "FAILED" && (
                   <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center gap-1">
                     <AlertCircle className="w-4 h-4" />

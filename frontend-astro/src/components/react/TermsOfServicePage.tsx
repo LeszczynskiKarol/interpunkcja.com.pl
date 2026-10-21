@@ -74,10 +74,11 @@ const content = {
    a) Użytkownik posiadający Konto przesyła plik w formacie .docx
    b) Przed złożeniem zamówienia Serwis wylicza liczbę Stron i cenę: 39 zł za dokument do 20 Stron, 79 zł do 60 Stron, 149 zł do 150 Stron; dokumenty dłuższe wyceniane są indywidualnie
    c) Po zapłacie Usługodawca przekazuje plik do automatycznej korekty i udostępnia w Koncie ten sam plik z poprawkami w trybie śledzenia zmian oraz komentarzem przy każdej poprawce, zwykle w ciągu kilkunastu minut
-   d) Korekta obejmuje interpunkcję, ortografię, pisownię łączną i rozdzielną oraz gramatykę; nie obejmuje zmian stylu, cytatów z innych źródeł, terminologii, nazw własnych ani bibliografii
+   d) Korekta obejmuje interpunkcję, ortografię, pisownię łączną i rozdzielną oraz gramatykę w treści dokumentu i w przypisach; nie obejmuje zmian stylu, cytatów z innych źródeł, opisów źródeł w przypisach, terminologii, nazw własnych, bibliografii ani nagłówków i stopek stron
    e) Użytkownik decyduje, które poprawki przyjmuje; poprawki nie są nanoszone na tekst bez jego akceptacji w edytorze
    f) Pliki są przechowywane przez 30 dni od przesłania, a następnie trwale usuwane
    g) Jeżeli korekta nie zostanie wykonana z przyczyn technicznych, Usługodawca ponawia ją albo zwraca całą zapłaconą kwotę
+   h) Przed zamówieniem Użytkownik może raz na Konto bezpłatnie zobaczyć próbkę korekty obejmującą około 2 Strony tekstu dokumentu; próbka jest wyświetlana w Koncie bez pliku do pobrania. Usługodawca może ograniczyć liczbę próbek z jednego adresu sieciowego i dzienną liczbę próbek w Serwisie
 
 6. Usługodawca zastrzega sobie prawo do modyfikacji limitów i funkcji Usługi; zmiana nie dotyczy zamówień już opłaconych.`,
       },
@@ -363,10 +364,11 @@ const content = {
    a) A User with an Account uploads a file in .docx format
    b) Before placing the order, the Service calculates the number of Pages and the price: PLN 39 for a document of up to 20 Pages, PLN 79 for up to 60 Pages, PLN 149 for up to 150 Pages; longer documents are priced individually
    c) After payment, the Service Provider proofreads the file automatically and makes the same file available in the Account with corrections as tracked changes and a comment on each correction, usually within several minutes
-   d) Proofreading covers punctuation, spelling, word separation and grammar; it does not include changes of style, quotations from other sources, terminology, proper names or bibliography
+   d) Proofreading covers punctuation, spelling, word separation and grammar in the document text and its footnotes; it does not include changes of style, quotations from other sources, source references in footnotes, terminology, proper names, bibliography, or page headers and footers
    e) The User decides which corrections to accept; corrections are not applied to the text without the User's acceptance in the editor
    f) Files are stored for 30 days from upload and then permanently deleted
    g) If proofreading cannot be completed for technical reasons, the Service Provider repeats it or refunds the full amount paid
+   h) Before ordering, the User may once per Account view a free sample of the proofreading covering about 2 Pages of the document text; the sample is shown in the Account without a downloadable file. The Service Provider may limit the number of samples from one network address and the daily number of samples in the Service
 
 6. The Service Provider reserves the right to modify the limits and features of the Service; changes do not apply to orders already paid for.`,
       },

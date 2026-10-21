@@ -13,9 +13,9 @@ PARAGRAPHS = [
     ("p", "Praca zdalna zmieniła sposób w jaki zespoły się komunikują. Badania pokazują że w zespołach rozproszonych rośnie znaczenie komunikacji pisemnej."),
     ("bold", ["Pracując zdalnie ", "pracownicy", " częściej korzystają z komunikatorów niż z poczty elektronicznej. Wynika to z tego że komunikatory są szybsze."]),
     ("p", "Jak zauważa Nowak „komunikacja w zespole zdalnym wymaga jasnych reguł, w przeciwnym razie powstaje chaos informacyjny” (Nowak 2021, s. 45). Autor podkreśla że bez zasad zespół traci czas."),
-    ("p", "Zespoły które pracują w różnych strefach czasowych muszą planować spotkania z wyprzedzeniem."),
+    ("fn", ["Zespoły które pracują w różnych strefach czasowych muszą planować spotkania z wyprzedzeniem.", 2]),
     ("p", "Wogóle warto zauważyć, że menedżerowie napewno powinni dbać o regularny kontakt z zespołem."),
-    ("p", "W badaniu sprawdzono czy częstotliwość spotkań wpływa na zadowolenie z pracy. Okazało się że wystarcza jedna krótka rozmowa w tygodniu."),
+    ("fn", ["W badaniu sprawdzono czy częstotliwość spotkań wpływa na zadowolenie z pracy. Okazało się że wystarcza jedna krótka rozmowa w tygodniu.", 3]),
     ("heading", "Bibliografia"),
     ("p", "Nowak J. (2021), Zarządzanie zespołem zdalnym, Wydawnictwo Naukowe PWN, Warszawa."),
     ("p", "Kowalski A. (2019), Komunikacja w organizacji ktora sie zmienia, Difin, Warszawa."),
@@ -31,6 +31,9 @@ body = []
 for kind, value in PARAGRAPHS:
     if kind == "heading":
         body.append(f'<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr>{run(value, bold=True)}</w:p>')
+    elif kind == "fn":
+        ref = f'<w:r><w:rPr><w:vertAlign w:val="superscript"/></w:rPr><w:footnoteReference w:id="{value[1]}"/></w:r>'
+        body.append("<w:p>" + run(value[0]) + ref + "</w:p>")
     elif kind == "bold":
         body.append("<w:p>" + run(value[0]) + run(value[1], bold=True) + run(value[2]) + "</w:p>")
     else:
@@ -48,6 +51,7 @@ content_types = (
     '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
     '<Default Extension="xml" ContentType="application/xml"/>'
     '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+    '<Override PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/>'
     "</Types>"
 )
 rels = (
@@ -58,7 +62,27 @@ rels = (
 )
 doc_rels = (
     '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>'
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/>'
+    "</Relationships>"
+)
+
+# Przypisy: separatory (nie treść) + komentarz autora z błędami + opis źródła (nie do poprawiania)
+FOOTNOTES = {
+    2: "Warto dodać że w zespołach międzynarodowych problem ten jest jeszcze wyraźniejszy, bo dochodzą różnice kulturowe.",
+    3: "Por. A. Kowalski, Komunikacja w organizacji ktora sie zmienia, Difin, Warszawa 2019, s. 112.",
+}
+footnotes = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    f'<w:footnotes xmlns:w="{W}">'
+    '<w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:footnote>'
+    '<w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>'
+    + "".join(
+        f'<w:footnote w:id="{i}"><w:p><w:r><w:rPr><w:vertAlign w:val="superscript"/></w:rPr><w:footnoteRef/></w:r>'
+        f'{run(" " + t)}</w:p></w:footnote>'
+        for i, t in FOOTNOTES.items()
+    )
+    + "</w:footnotes>"
 )
 
 with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as z:
@@ -66,4 +90,5 @@ with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as z:
     z.writestr("_rels/.rels", rels)
     z.writestr("word/document.xml", document)
     z.writestr("word/_rels/document.xml.rels", doc_rels)
+    z.writestr("word/footnotes.xml", footnotes)
 print("zapisano", OUT)

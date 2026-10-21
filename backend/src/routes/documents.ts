@@ -7,6 +7,7 @@ import Stripe from "stripe";
 import { prisma } from "../lib/prisma";
 import { TrackedDocx } from "../services/docx/trackedDocx";
 import { documentChars } from "../services/documentCorrector";
+import { createPreview, PreviewRefused } from "../services/documentPreview";
 import {
   CHARS_PER_PAGE,
   DOCUMENT_PACKAGES,
@@ -18,6 +19,17 @@ import {
 } from "../services/documentJobs";
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+
+const guestKeyConfigured = () => !!process.env.ANTHROPIC_API_KEY_GUEST;
+
+const PREVIEW_MESSAGES: Record<string, [number, string]> = {
+  PREVIEW_DISABLED: [503, "Bezpłatne próbki są chwilowo niedostępne."],
+  PREVIEW_USED: [403, "Bezpłatną próbkę można zobaczyć raz na konto."],
+  PREVIEW_IP_LIMIT: [429, "Z tej sieci wykorzystano już limit bezpłatnych próbek."],
+  PREVIEW_DAILY_LIMIT: [429, "Dzisiejsza pula bezpłatnych próbek się wyczerpała. Spróbuj jutro."],
+  PREVIEW_BUSY: [429, "Próbka jest już przygotowywana."],
+  PREVIEW_NO_TEXT: [400, "Nie znaleźliśmy w dokumencie akapitów z tekstem do próbki."],
+};
 const MAX_UNPAID_DOCUMENTS = 5;
 const MAX_UPLOADS_PER_DAY = 20;
 
@@ -55,6 +67,10 @@ function publicDocument(d: any) {
     createdAt: d.createdAt,
     completedAt: d.completedAt,
     downloadable: d.status === "DONE" && !d.filesDeletedAt,
+    // Wynik bezpłatnej próbki (bez kosztu - to dane wewnętrzne)
+    preview: d.preview
+      ? { paragraphs: d.preview.paragraphs, chars: d.preview.chars, corrections: d.preview.corrections }
+      : null,
   };
 }
 
@@ -145,8 +161,44 @@ export async function documentRoutes(fastify: FastifyInstance) {
       orderBy: { createdAt: "desc" },
       take: 50,
     });
-    return docs.map(publicDocument);
+    // Próbka przysługuje raz na konto - przycisk tylko przy nieopłaconym dokumencie
+    const previewUsed = docs.some((d) => d.previewAt) ||
+      (await prisma.document.count({ where: { userId, previewAt: { not: null } } })) > 0;
+    return docs.map((d) => ({
+      ...publicDocument(d),
+      canPreview: !previewUsed && d.status === "AWAITING_PAYMENT" && !d.filesDeletedAt && guestKeyConfigured(),
+    }));
   });
+
+  // Bezpłatna próbka ~2 stron (limity w services/documentPreview.ts)
+  fastify.post(
+    "/api/documents/:id/preview",
+    { config: { rateLimit: { max: 3, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      const userId = await requireUser(request, reply);
+      if (!userId) return;
+      const { id } = request.params as { id: string };
+      const doc = await ownDocument(id, userId);
+      if (!doc || doc.filesDeletedAt) {
+        return reply.status(404).send({ error: "NOT_FOUND", message: "Nie znaleziono dokumentu" });
+      }
+      if (doc.preview) return { preview: publicDocument(doc).preview };
+      if (doc.status !== "AWAITING_PAYMENT") {
+        return reply.status(400).send({ error: "ALREADY_PAID", message: "Ten dokument jest już opłacony" });
+      }
+      try {
+        const preview = await createPreview(id, userId, request.ip);
+        return { preview: { paragraphs: preview.paragraphs, chars: preview.chars, corrections: preview.corrections } };
+      } catch (error: any) {
+        if (error instanceof PreviewRefused) {
+          const [status, message] = PREVIEW_MESSAGES[error.code];
+          return reply.status(status).send({ error: error.code, message });
+        }
+        console.error("[Documents] Błąd próbki:", error);
+        return reply.status(500).send({ error: "PREVIEW_FAILED", message: "Nie udało się przygotować próbki. Spróbuj ponownie za chwilę." });
+      }
+    },
+  );
 
   fastify.post("/api/documents/:id/checkout", async (request, reply) => {
     const userId = await requireUser(request, reply);

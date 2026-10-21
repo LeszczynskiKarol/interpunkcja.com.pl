@@ -25,12 +25,24 @@ interface Segment {
   locked: boolean;
 }
 
+// Część dokumentu: treść główna albo przypisy (osobne pliki XML w archiwum .docx)
+export type PartKind = "body" | "footnote" | "endnote";
+
 export interface Paragraph {
   index: number;
   element: Element;
   text: string;
   editable: boolean;
+  part: PartKind;
+  // Identyfikator przypisu (w:footnote/w:endnote w:id) dla akapitów z przypisów
+  noteId?: string;
 }
+
+const PARTS: { kind: PartKind; path: string; container?: string }[] = [
+  { kind: "body", path: "word/document.xml" },
+  { kind: "footnote", path: "word/footnotes.xml", container: "footnote" },
+  { kind: "endnote", path: "word/endnotes.xml", container: "endnote" },
+];
 
 export interface CommentInput {
   // Fragment poprawionego tekstu, przy którym ma się pojawić komentarz
@@ -100,30 +112,52 @@ function paragraphSegments(p: Element): { segments: Segment[]; text: string; edi
 
 export class TrackedDocx {
   private zip: JSZip;
+  // Dokument XML, w którym tworzymy nowe elementy - ustawiany na część
+  // edytowanego akapitu (treść albo przypisy)
   private doc: Document;
+  private parts: { path: string; doc: Document }[];
   private comments: { id: number; text: string }[] = [];
   private nextId = 9000; // id zmian i komentarzy - poza zakresem typowym dla Worda
   private date = new Date().toISOString().replace(/\.\d+Z$/, "Z");
   readonly paragraphs: Paragraph[] = [];
 
-  private constructor(zip: JSZip, doc: Document) {
+  private constructor(zip: JSZip, parts: { kind: PartKind; path: string; container?: string; doc: Document }[]) {
     this.zip = zip;
-    this.doc = doc;
-    const body = doc.getElementsByTagNameNS(W, "body")[0];
-    descendants(body, "p").forEach((element, index) => {
-      const { text, editable } = paragraphSegments(element);
-      this.paragraphs.push({ index, element, text, editable });
-    });
+    this.parts = parts.map(({ path, doc }) => ({ path, doc }));
+    this.doc = parts[0].doc;
+    let index = 0;
+    for (const part of parts) {
+      let containers: Element[];
+      if (part.kind === "body") {
+        containers = [part.doc.getElementsByTagNameNS(W, "body")[0]];
+      } else {
+        // Separatory przypisów (w:type="separator" itp.) to linie, nie treść
+        containers = descendants(part.doc.documentElement, part.container!).filter(
+          (c) => !c.getAttributeNS(W, "type") || c.getAttributeNS(W, "type") === "normal",
+        );
+      }
+      for (const container of containers) {
+        for (const element of descendants(container, "p")) {
+          const { text, editable } = paragraphSegments(element);
+          const noteId = part.kind === "body" ? undefined : container.getAttributeNS(W, "id") || undefined;
+          this.paragraphs.push({ index: index++, element, text, editable, part: part.kind, noteId });
+        }
+      }
+    }
   }
 
   static async load(buffer: Buffer): Promise<TrackedDocx> {
     const zip = await JSZip.loadAsync(buffer);
     assertSaneArchive(zip);
-    const entry = zip.file("word/document.xml");
-    if (!entry) throw new Error("INVALID_DOCX");
-    const xml = await readLimited(entry, MAX_DOCUMENT_XML_BYTES);
-    const doc = new DOMParser().parseFromString(xml, "text/xml");
-    return new TrackedDocx(zip, doc);
+    if (!zip.file("word/document.xml")) throw new Error("INVALID_DOCX");
+    const parts: { kind: PartKind; path: string; container?: string; doc: Document }[] = [];
+    for (const part of PARTS) {
+      const entry = zip.file(part.path);
+      if (!entry) continue;
+      const xml = await readLimited(entry, MAX_DOCUMENT_XML_BYTES);
+      parts.push({ ...part, doc: new DOMParser().parseFromString(xml, "text/xml") });
+    }
+    return new TrackedDocx(zip, parts);
   }
 
   private el(local: string, attrs: Record<string, string> = {}): Element {
@@ -254,6 +288,18 @@ export class TrackedDocx {
     return true;
   }
 
+  // Komentarz do poprawek w przypisie - na odnośniku przypisu w treści głównej
+  private attachNoteComment(paragraph: Paragraph, texts: string[]) {
+    if (!paragraph.noteId || !texts.length) return;
+    const local = paragraph.part === "footnote" ? "footnoteReference" : "endnoteReference";
+    const body = this.parts[0].doc;
+    const ref = descendants(body.documentElement, local).find((r) => r.getAttributeNS(W, "id") === paragraph.noteId);
+    const run = ref?.parentNode as Element | undefined;
+    if (!run || !isW(run, "r")) return;
+    this.doc = body;
+    this.attachComment(run, run, `W przypisie: ${texts.join(" ")}`);
+  }
+
   private attachComment(first: Element, last: Element, text: string) {
     const id = String(this.nextId++);
     const start = this.el("commentRangeStart", { id });
@@ -274,6 +320,8 @@ export class TrackedDocx {
   applyParagraph(paragraph: Paragraph, corrected: string, comments: CommentInput[] = []): EditStats {
     const stats: EditStats = { applied: 0, skipped: 0 };
     if (!paragraph.editable || corrected === paragraph.text) return stats;
+    // Nowe elementy muszą powstać w tym samym dokumencie XML co akapit (treść albo przypisy)
+    this.doc = paragraph.element.ownerDocument;
 
     const oldTokens = tokenize(paragraph.text);
     const newTokens = tokenize(corrected);
@@ -337,16 +385,27 @@ export class TrackedDocx {
     }
 
     // Od końca - wcześniejsze przesunięcia w tekście akapitu nie zmieniają się
+    const noteComments: string[] = [];
     for (let i = hunks.length - 1; i >= 0; i--) {
       const h = hunks[i];
-      if (this.applyHunk(paragraph.element, h.a, h.b, h.insert, commentFor.get(i))) stats.applied++;
-      else stats.skipped++;
+      // Komentarz wewnątrz przypisu psuje otwieranie pliku w LibreOffice - w przypisach
+      // zbieramy wyjaśnienia i przypinamy je do odnośnika przypisu w treści
+      const inNote = paragraph.part !== "body";
+      if (this.applyHunk(paragraph.element, h.a, h.b, h.insert, inNote ? undefined : commentFor.get(i))) {
+        stats.applied++;
+        if (inNote && commentFor.has(i)) noteComments.unshift(commentFor.get(i)!);
+      } else {
+        stats.skipped++;
+      }
     }
+    this.attachNoteComment(paragraph, noteComments);
     return stats;
   }
 
   async toBuffer(): Promise<Buffer> {
-    this.zip.file("word/document.xml", new XMLSerializer().serializeToString(this.doc));
+    for (const part of this.parts) {
+      this.zip.file(part.path, new XMLSerializer().serializeToString(part.doc));
+    }
     if (this.comments.length) await this.writeComments();
     return this.zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
   }

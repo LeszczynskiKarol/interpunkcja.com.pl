@@ -39,7 +39,7 @@ const TIERS = [
       "Wgrywasz plik .docx, np. pracę dyplomową",
       "Poprawki w trybie śledzenia zmian Worda",
       "Komentarz z regułą przy każdej poprawce",
-      "Formatowanie i bibliografia nietknięte",
+      "Bezpłatna próbka 2 stron przed zakupem",
     ],
     cta: "Korekta pracy dyplomowej",
     href: "/korekta-pracy-dyplomowej",

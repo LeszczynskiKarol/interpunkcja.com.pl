@@ -199,11 +199,16 @@ model Document {
   completedAt     DateTime?
   // Pliki kasowane po 30 dniach (polityka prywatności) - wiersz zostaje do rozliczeń
   filesDeletedAt  DateTime?
+  // Bezpłatna próbka (~2 strony): 1 na konto, wynik jako podgląd w panelu
+  previewAt       DateTime?
+  previewIp       String?
+  preview         Json?
 
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
+  @@index([previewIp])
 }
 
 enum DocumentStatus {
