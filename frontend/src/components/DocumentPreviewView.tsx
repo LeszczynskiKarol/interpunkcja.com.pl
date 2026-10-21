@@ -72,6 +72,10 @@ export function DocumentPreviewView({ preview }: { preview: DocumentPreview }) {
           )}
         </div>
       ))}
+      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+        Tak poprawimy całą pracę, łącznie z przypisami. Zaznacz zgodę nad listą dokumentów i kliknij
+        „Zapłać” przy tym pliku - gotowy plik .docx dostaniesz zwykle w kilka minut.
+      </p>
     </div>
   );
 }
