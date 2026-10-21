@@ -73,7 +73,7 @@ export class GoogleAuthService {
       throw new Error("GOOGLE_TOKEN_EXCHANGE_FAILED");
     }
 
-    return response.json();
+    return (await response.json()) as GoogleTokenResponse;
   }
 
   /**
@@ -95,7 +95,7 @@ export class GoogleAuthService {
       throw new Error("GOOGLE_USERINFO_FAILED");
     }
 
-    return response.json();
+    return (await response.json()) as GoogleUserInfo;
   }
 
   /**

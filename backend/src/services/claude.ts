@@ -106,6 +106,97 @@ function getAnthropicClient(): Anthropic {
   return anthropicClient;
 }
 
+// ============================================
+// MODEL - wybierany zmienną CLAUDE_MODEL w .env
+// ============================================
+// Profile zmierzone w teście z 21.10.2026 (40 tekstów, ocena przez Claude Opus 5.5):
+// Sonnet 5.5 + schemat: ocena 8,10 vs 7,79 dla Sonnet 4.5, mediana 6,2 s vs 12,7 s.
+// Koszt: ceny $ za 1M tokenów (input, output).
+interface ModelProfile {
+  price: [number, number];
+  params: Pick<
+    Anthropic.MessageCreateParams,
+    "thinking" | "output_config"
+  >;
+}
+
+// Schemat odpowiedzi - wymusza poprawny JSON (bez niego ok. 1 na 40 odpowiedzi
+// nie dawało się sparsować) i w teście poprawił też trafność poprawek
+const CATEGORIES = ["interpunkcja", "ortografia", "pisownia", "gramatyka", "stylistyka"];
+
+const RESULT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["correctedText", "corrections", "summary"],
+  properties: {
+    correctedText: { type: "string" },
+    corrections: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["original", "corrected", "position", "category", "rule", "explanation"],
+        properties: {
+          original: { type: "string" },
+          corrected: { type: "string" },
+          position: {
+            type: "object",
+            additionalProperties: false,
+            required: ["start", "end"],
+            properties: { start: { type: "integer" }, end: { type: "integer" } },
+          },
+          category: { type: "string", enum: CATEGORIES },
+          rule: { type: "string" },
+          explanation: { type: "string" },
+        },
+      },
+    },
+    summary: {
+      type: "object",
+      additionalProperties: false,
+      required: CATEGORIES,
+      properties: Object.fromEntries(CATEGORIES.map((c) => [c, { type: "integer" }])),
+    },
+  },
+};
+
+const MODEL_PROFILES: Record<string, ModelProfile> = {
+  "claude-sonnet-5-5": {
+    price: [2, 10],
+    // Bez myślenia - korekta krótkiego tekstu nie zyskuje na nim, a wydłuża czas
+    params: {
+      thinking: { type: "between_tools" },
+      output_config: {
+        effort: "medium",
+        format: { type: "json_schema", schema: RESULT_SCHEMA },
+      },
+    },
+  },
+  "claude-haiku-5-5": {
+    price: [0.1, 0.5],
+    params: {
+      thinking: { type: "disabled" },
+      output_config: {
+        effort: "low",
+        format: { type: "json_schema", schema: RESULT_SCHEMA },
+      },
+    },
+  },
+  // Wycofywany 30.11.2026 - zostawiony tylko na wypadek szybkiego powrotu
+  "claude-sonnet-4-5-20250929": { price: [3, 15], params: {} },
+};
+
+const DEFAULT_MODEL = "claude-sonnet-5-5";
+
+function getModel(): { model: string; profile: ModelProfile } {
+  const model = process.env.CLAUDE_MODEL || DEFAULT_MODEL;
+  const profile = MODEL_PROFILES[model];
+  if (!profile) {
+    throw new Error(`Nieznany CLAUDE_MODEL: ${model}`);
+  }
+  return { model, profile };
+}
+
 // Typy błędów - odpowiadają temu co obiecujemy na landingach
 export type ErrorCategory =
   | "interpunkcja" // przecinki, kropki, średniki, etc.
@@ -142,81 +233,53 @@ export interface CheckResult {
     totalTokens: number;
     responseTimeMs: number;
     stopReason: string;
+    estimatedCostUsd: number;
   };
 }
 
-const SYSTEM_PROMPT = `Jesteś profesjonalnym korektorem tekstów polskich z wieloletnim doświadczeniem. Analizujesz tekst KOMPLEKSOWO pod kątem wszystkich rodzajów błędów językowych.
+// Wersja 2 (21.10.2026): interpunkcja jako główne zadanie z pełną listą reguł,
+// bez wykrzyczanych zakazów - nowsze modele czytają je dosłownie i za mało poprawiają.
+const SYSTEM_PROMPT = `Jesteś doświadczonym korektorem tekstów polskich. Twoim głównym zadaniem jest interpunkcja - użytkownicy przychodzą do serwisu przede wszystkim po to, żeby mieć pewność, że przecinki i inne znaki stoją we właściwych miejscach. Przy okazji poprawiasz też ortografię, pisownię łączną i rozdzielną, gramatykę oraz rażące błędy stylistyczne.
 
-## KATEGORIE BŁĘDÓW DO WYKRYWANIA:
+## Jak sprawdzać interpunkcję
 
-### 1. INTERPUNKCJA (category: "interpunkcja")
-- Brakujące przecinki przed spójnikami: że, który, która, które, gdy, ponieważ, gdyż, jeśli, jeżeli, chociaż, mimo że, dlatego że, tak że, żeby, aby, bo, lecz, ale (na początku zdania podrzędnego)
-- Zbędne przecinki (np. przed "i" łączącym równorzędne części)
-- Przecinki w zdaniach wtrąconych (trzeba otoczyć z obu stron)
-- Przecinki przy wyliczeniach
-- Kropki, średniki, dwukropki, myślniki
-- Cudzysłowy i nawiasy
-- Znaki zapytania i wykrzykniki
+Przejdź przez tekst zdanie po zdaniu. W każdym zdaniu wskaż orzeczenia i ustal granice zdań składowych - przecinek najczęściej brakuje właśnie na granicy dwóch zdań. Następnie sprawdź każdy z poniższych przypadków:
 
-### 2. ORTOGRAFIA (category: "ortografia")
-- Literówki i przejęzyczenia
-- Błędy w pisowni ó/u (góra/gura, chór/chur)
-- Błędy w pisowni rz/ż (morze/może, rzeka/żeka)
-- Błędy w pisowni ch/h (chodzić/hodzić)
-- Błędy w pisowni ą/ę/en/em/on/om
-- Wielkie i małe litery
+- Zdanie podrzędne zaczynające się od spójnika lub zaimka: że, żeby, aby, by, bo, ponieważ, gdyż, jeśli, jeżeli, gdy, kiedy, chociaż, choć, mimo że, zanim, dopóki, odkąd, skoro, jakby, niż (gdy wprowadza zdanie), który/która/które, czy, co, gdzie, dokąd, jak, dlaczego, ile, kto. Przecinek stawiamy przed takim zdaniem i - jeśli zdanie podrzędne jest wplecione w środek nadrzędnego - także po nim (np. "Zespół, który nad tym pracuje, ma doświadczenie").
+- Spójniki złożone: przecinek stoi przed całym wyrażeniem (", mimo że", ", dlatego że", ", chyba że", ", podczas gdy", ", zwłaszcza że"), a nie w jego środku.
+- Imiesłowowy równoważnik zdania (formy na -ąc, -łszy, -wszy) oddzielamy przecinkiem od reszty zdania z obu stron.
+- Zdania współrzędne: przecinek przed ale, lecz, a, jednak, więc, zatem, dlatego, czyli, natomiast, tylko (w znaczeniu "lecz"); brak przecinka przed i, oraz, lub, albo, ani, bądź, czy (łączącymi równorzędne części), chyba że spójnik się powtarza ("i… i…", "albo… albo…") albo po nim następuje wtrącenie.
+- Zdania współrzędne zestawione bez spójnika oddzielamy przecinkiem.
+- Wtrącenia, dopowiedzenia, wołacze, wykrzykniki ("niestety", "oczywiście" w funkcji wtrącenia, "Panie Marku") wydzielamy przecinkami z obu stron.
+- Wyliczenia, porównania (jak, niż przed zdaniem lub dłuższym członem), daty, liczby.
+- Zbędne przecinki: między podmiotem a orzeczeniem, przed "i" łączącym równorzędne człony, po okoliczniku na początku zdania (chyba że jest rozbudowany i stanowi wtrącenie).
+- Pozostałe znaki: kropki (także w skrótach), średniki, dwukropki, myślniki i półpauzy, cudzysłowy, nawiasy, znaki zapytania i wykrzykniki.
 
-### 3. PISOWNIA ŁĄCZNA I ROZDZIELNA (category: "pisownia")
-To NAJCZĘSTSZE błędy Polaków! Zwracaj szczególną uwagę:
-- "na pewno" - ROZDZIELNIE (błąd: napewno)
-- "naprawdę" - ŁĄCZNIE (błąd: na prawdę)
-- "w ogóle" - ROZDZIELNIE (błąd: wogóle)
-- "ponadto" - ŁĄCZNIE
-- "poza tym" - ROZDZIELNIE
-- "sprzed" - ŁĄCZNIE (błąd: z przed)
-- "zza" - ŁĄCZNIE (błąd: z za)
-- "przede mną" - ROZDZIELNIE
-- "bynajmniej" - ŁĄCZNIE
-- "jakkolwiek" - ŁĄCZNIE
-- "niemniej" - ŁĄCZNIE (błąd: nie mniej)
-- Partykuła "nie" z różnymi częściami mowy
+Poprawiaj każdy błąd interpunkcyjny, który wynika z reguł - także drobny i także wtedy, gdy tekst jest poza tym dobry. Nie zmieniaj natomiast miejsc, w których norma dopuszcza obie wersje (przecinek fakultatywny), ani nie przepisuj zdań.
 
-### 4. GRAMATYKA (category: "gramatyka")
-- Błędne formy czasowników:
-  * "wziąć" nie "wziąść"
-  * "poszedłem" nie "poszłem"
-  * "włączam" nie "włanczam"
-  * "wyłączać" nie "wyłanczać"
-- Błędna odmiana rzeczowników i przymiotników
-- Błędy w składni (szyk zdania)
-- Niepoprawne formy trybu przypuszczającego ("zrobiłbym" nie "bym zrobił" na początku zdania)
-- Błędy w łączeniu czasownika z rzeczownikiem (rekcja)
+## Pozostałe kategorie
 
-### 5. STYLISTYKA (category: "stylistyka")
-- Pleonazmy (wyrażenia redundantne):
-  * "cofnąć się do tyłu" → "cofnąć się"
-  * "spaść w dół" → "spaść"
-  * "wznieść się do góry" → "wznieść się"
-  * "aktualna teraźniejszość" → "teraźniejszość"
-  * "okres czasu" → "okres" lub "czas"
-  * "wspólna współpraca" → "współpraca"
-  * "kontynuować dalej" → "kontynuować"
-- Powtórzenia tych samych słów w bliskim sąsiedztwie
-- Niezręczne konstrukcje składniowe
-- Błędne użycie słów w kontekście (np. "robić wrażenie" zamiast "wywierać wrażenie")
+- ortografia: literówki, ó/u, rz/ż, ch/h, ą/ę, wielkie i małe litery;
+- pisownia: pisownia łączna i rozdzielna (na pewno, naprawdę, w ogóle, sprzed, zza, niemniej, "nie" z częściami mowy);
+- gramatyka: błędne formy (wziąć, poszedłem, włączać), odmiana, rekcja, składnia;
+- stylistyka: pleonazmy (cofnąć się do tyłu, okres czasu), powtórzenia, błędne związki wyrazowe.
 
-## ZASADY ANALIZY:
+Oznaczaj tylko rzeczywiste błędy, a styl poprawiaj oszczędnie - to korekta, nie redakcja.
 
-1. Analizuj tekst zdanie po zdaniu, zwracając uwagę na KONTEKST
-2. Dla każdego błędu określ właściwą kategorię
-3. Podaj KONKRETNĄ regułę językową (np. "Przecinek przed spójnikiem 'że'")
-4. Napisz KRÓTKIE, ale POMOCNE wyjaśnienie (1-2 zdania) - tak, żeby użytkownik zrozumiał i nauczył się
-5. Pozycje (start, end) muszą dokładnie odpowiadać fragmentowi w oryginalnym tekście
+## Opis każdej poprawki
 
-## FORMAT ODPOWIEDZI (JSON):
+- category: "interpunkcja", "ortografia", "pisownia", "gramatyka" albo "stylistyka";
+- rule: konkretna reguła, np. "Przecinek przed spójnikiem »że«" albo "Imiesłowowy równoważnik zdania";
+- explanation: 1-2 zdania przystępnym językiem, tak żeby użytkownik zrozumiał regułę i zapamiętał ją na przyszłość;
+- original i corrected: krótki fragment z błędem i jego poprawiona wersja (dla przecinka wystarczy słowo przed nim i po nim);
+- position: start i end tego fragmentu w oryginalnym tekście (indeksy znaków), tak żeby interfejs mógł go podświetlić.
+
+## Format odpowiedzi
+
+Zwróć wyłącznie obiekt JSON:
 
 {
-  "correctedText": "pełny tekst z naniesionymi WSZYSTKIMI poprawkami",
+  "correctedText": "pełny tekst z naniesionymi wszystkimi poprawkami",
   "corrections": [
     {
       "original": "dokładny fragment z błędem",
@@ -224,24 +287,19 @@ To NAJCZĘSTSZE błędy Polaków! Zwracaj szczególną uwagę:
       "position": { "start": 0, "end": 10 },
       "category": "interpunkcja|ortografia|pisownia|gramatyka|stylistyka",
       "rule": "Nazwa konkretnej reguły",
-      "explanation": "Wyjaśnienie dlaczego to błąd i jak zapamiętać poprawną formę"
+      "explanation": "Wyjaśnienie reguły"
     }
   ],
   "summary": {
-    "interpunkcja": 2,
-    "ortografia": 1,
-    "pisownia": 1,
+    "interpunkcja": 0,
+    "ortografia": 0,
+    "pisownia": 0,
     "gramatyka": 0,
     "stylistyka": 0
   }
 }
 
-## WAŻNE:
-- Jeśli tekst jest w pełni poprawny, zwróć pustą tablicę corrections
-- NIE wymyślaj błędów - oznaczaj tylko RZECZYWISTE błędy
-- Bądź precyzyjny w pozycjach - muszą umożliwić podświetlenie błędu w interfejsie
-- Przy pisowni łącznej/rozdzielnej ZAWSZE sprawdzaj słownik (to częsty błąd nawet u korektorów!)
-- Wyjaśnienia pisz przystępnym językiem, nie akademickim`;
+Jeśli tekst jest w pełni poprawny, zwróć pustą tablicę corrections i niezmieniony correctedText.`;
 
 export async function checkPunctuation(text: string): Promise<CheckResult> {
   const startTime = Date.now();
@@ -278,9 +336,10 @@ ${text}
   console.log(truncateText(userMessage, 300));
 
   const anthropic = getAnthropicClient();
+  const { model, profile } = getModel();
 
   log(COLORS.yellow, "API", "Wysyłanie requestu do Anthropic API...");
-  log(COLORS.dim, "API", `Model: claude-sonnet-4-5-20250929`);
+  log(COLORS.dim, "API", `Model: ${model}`);
   log(COLORS.dim, "API", `Max tokens: 64000`);
 
   // ============================================
@@ -288,17 +347,22 @@ ${text}
   // ============================================
   let response;
   try {
-    response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 64000,
-      messages: [
-        {
-          role: "user",
-          content: userMessage,
-        },
-      ],
-      system: SYSTEM_PROMPT,
-    });
+    // Streaming - przy max_tokens 64000 SDK nie pozwala na zwykłe zapytanie
+    // (ryzyko timeoutu), a długie teksty Lifetime potrzebują dużego limitu
+    response = await anthropic.messages
+      .stream({
+        model,
+        max_tokens: 64000,
+        messages: [
+          {
+            role: "user",
+            content: userMessage,
+          },
+        ],
+        system: SYSTEM_PROMPT,
+        ...profile.params,
+      })
+      .finalMessage();
   } catch (apiError: any) {
     log(COLORS.red, "ERROR", `Błąd API: ${apiError.message}`);
     throw apiError;
@@ -316,9 +380,8 @@ ${text}
     const outputTokens = response.usage?.output_tokens || 0;
     const totalTokens = inputTokens + outputTokens;
 
-    // Szacunkowy koszt (Claude Sonnet 4.5: $3/1M input, $15/1M output)
-    const inputCost = (inputTokens / 1_000_000) * 3;
-    const outputCost = (outputTokens / 1_000_000) * 15;
+    const inputCost = (inputTokens / 1_000_000) * profile.price[0];
+    const outputCost = (outputTokens / 1_000_000) * profile.price[1];
     const totalCost = inputCost + outputCost;
 
     logBox(
@@ -339,9 +402,21 @@ Stop reason: ${response.stop_reason}
     );
   }
 
-  const content = response.content[0];
-  if (content.type !== "text") {
-    log(COLORS.red, "ERROR", `Nieoczekiwany typ odpowiedzi: ${content.type}`);
+  if (response.stop_reason === "refusal") {
+    log(COLORS.red, "ERROR", "Model odmówił sprawdzenia tekstu (refusal)");
+    throw new Error("Model refused to check the text");
+  }
+
+  // Nowe modele mogą zwrócić przed tekstem blok "thinking" - bierzemy blok tekstowy
+  const content = response.content.find(
+    (block): block is Anthropic.TextBlock => block.type === "text",
+  );
+  if (!content) {
+    log(
+      COLORS.red,
+      "ERROR",
+      `Brak bloku tekstowego w odpowiedzi: ${response.content.map((b) => b.type).join(", ")}`,
+    );
     throw new Error("Unexpected response type");
   }
 
@@ -450,7 +525,7 @@ Stylistyka:   ${summary.stylistyka}
       errorCount: corrections.length,
       summary,
       _debug: {
-        model: "claude-sonnet-4-5-20250929",
+        model,
         inputTokens: response.usage?.input_tokens || 0,
         outputTokens: response.usage?.output_tokens || 0,
         totalTokens:
@@ -458,6 +533,10 @@ Stylistyka:   ${summary.stylistyka}
           (response.usage?.output_tokens || 0),
         responseTimeMs: responseTime,
         stopReason: response.stop_reason || "unknown",
+        estimatedCostUsd:
+          ((response.usage?.input_tokens || 0) * profile.price[0] +
+            (response.usage?.output_tokens || 0) * profile.price[1]) /
+          1_000_000,
       },
     };
   } catch (error: any) {

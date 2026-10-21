@@ -104,10 +104,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
           totalTokens: result._debug.totalTokens,
           responseTimeMs: result._debug.responseTimeMs,
           stopReason: result._debug.stopReason,
-          // Szacunkowy koszt (Claude Sonnet 4.5: $3/1M input, $15/1M output)
-          estimatedCostUsd:
-            (result._debug.inputTokens / 1_000_000) * 3 +
-            (result._debug.outputTokens / 1_000_000) * 15,
+          estimatedCostUsd: result._debug.estimatedCostUsd,
           summary: result.summary,
         }
       : null;
