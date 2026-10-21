@@ -114,6 +114,21 @@ export async function checkPunctuation(text: string): Promise<CheckResponse> {
   return res.data;
 }
 
+// Sprawdzanie pisowni słownikiem (Hunspell, bez AI i bez limitu sprawdzeń)
+export const SPELLCHECK_MAX_CHARS = 5000;
+
+export interface SpellingIssue {
+  word: string;
+  start: number;
+  end: number;
+  suggestions: string[];
+}
+
+export async function checkSpelling(text: string): Promise<SpellingIssue[]> {
+  const res = await api.post("/api/spellcheck", { text });
+  return res.data.issues;
+}
+
 export async function getCheckStatus(): Promise<CheckStatusResponse> {
   const res = await api.get("/api/check/status");
   return res.data;

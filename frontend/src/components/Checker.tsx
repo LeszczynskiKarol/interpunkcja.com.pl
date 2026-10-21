@@ -1,5 +1,5 @@
 // frontend/src/components/Checker.tsx
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,7 +14,14 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { checkPunctuation, getCheckStatus, type Correction } from "../lib/api";
+import {
+  checkPunctuation,
+  checkSpelling,
+  getCheckStatus,
+  SPELLCHECK_MAX_CHARS,
+  type Correction,
+  type SpellingIssue,
+} from "../lib/api";
 import { useAuthStore } from "../stores/authStore";
 import { clsx } from "clsx";
 import { TopUpModal } from "./TopUpModal";
@@ -35,6 +42,17 @@ export function Checker() {
   const [corrections, setCorrections] = useState<Correction[]>([]);
   const [correctedText, setCorrectedText] = useState<string>("");
   const [showResult, setShowResult] = useState(false);
+  // Pierwsza warstwa: słownik (Hunspell) - wynik od razu, zanim odpowie AI,
+  // a po wyczerpaniu limitu AI jako jedyne dostępne sprawdzenie
+  const [spelling, setSpelling] = useState<{
+    text: string;
+    issues: SpellingIssue[];
+    aiLimitReached: boolean;
+  } | null>(null);
+  // Czy AI odpowiedziało w bieżącym sprawdzeniu - wtedy wynik słownika jest zbędny
+  const aiAnswered = useRef(false);
+  // Odmowa z powodu limitu może przyjść przed wynikiem słownika
+  const aiLimitHit = useRef(false);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpPackages, setTopUpPackages] = useState<TopUpPackage[]>([]);
 
@@ -98,6 +116,8 @@ export function Checker() {
         errors: data.errorCount,
         bonus: !!data.usedBonusCheck,
       });
+      aiAnswered.current = true;
+      setSpelling(null);
       setCorrections(data.corrections);
       setCorrectedText(data.correctedText);
       setShowResult(true);
@@ -128,6 +148,8 @@ export function Checker() {
       if (error.response?.status === 429) {
         const responseData = error.response.data;
         trackEvent("limit_reached", { plan: user?.plan });
+        aiLimitHit.current = true;
+        setSpelling((s) => (s ? { ...s, aiLimitReached: true } : s));
         const reason: string =
           responseData.message || responseData.reason || "";
 
@@ -169,7 +191,38 @@ export function Checker() {
       toast.error(`Tekst przekracza limit ${maxChars} znaków`);
       return;
     }
+    aiAnswered.current = false;
+    aiLimitHit.current = false;
     checkMutation.mutate(text);
+    setSpelling(null);
+    if (text.length <= SPELLCHECK_MAX_CHARS) {
+      const checked = text;
+      checkSpelling(checked)
+        .then((issues) =>
+          setSpelling((s) =>
+            aiAnswered.current
+              ? s
+              : { text: checked, issues, aiLimitReached: aiLimitHit.current },
+          ),
+        )
+        .catch(() => undefined); // słownik jest dodatkiem - błąd nie przeszkadza AI
+    }
+  };
+
+  const applySpelling = (issue: SpellingIssue, suggestion: string) => {
+    if (!spelling || text !== spelling.text) return;
+    const next = text.slice(0, issue.start) + suggestion + text.slice(issue.end);
+    const delta = suggestion.length - (issue.end - issue.start);
+    setText(next);
+    setSpelling({
+      ...spelling,
+      text: next,
+      issues: spelling.issues
+        .filter((i) => i !== issue)
+        .map((i) =>
+          i.start > issue.start ? { ...i, start: i.start + delta, end: i.end + delta } : i,
+        ),
+    });
   };
 
   const handleCopy = () => {
@@ -179,6 +232,7 @@ export function Checker() {
 
   const handleReset = () => {
     setText("");
+    setSpelling(null);
     setCorrections([]);
     setCorrectedText("");
     setShowResult(false);
@@ -551,6 +605,46 @@ export function Checker() {
           </button>
         )}
       </div>
+
+      {/* Wynik słownika: podgląd w trakcie sprawdzania AI albo zastępstwo po limicie */}
+      {spelling && (checkMutation.isPending || spelling.aiLimitReached) && (
+        <div className="mt-4 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+            {spelling.aiLimitReached
+              ? "Dzisiejszy limit sprawdzeń AI się wyczerpał, więc pisownię sprawdziliśmy słownikiem. Słownik nie widzi przecinków ani błędów zależnych od kontekstu."
+              : "Wstępny wynik ze słownika. AI sprawdza jeszcze przecinki i kontekst…"}
+          </p>
+          {spelling.issues.length === 0 ? (
+            <p className="text-sm font-medium text-green-700 dark:text-green-400">
+              Słownik nie znalazł literówek.
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {spelling.issues.map((issue) => (
+                <li
+                  key={`${issue.start}-${issue.word}`}
+                  className="flex flex-wrap items-center gap-1 text-sm"
+                >
+                  <span className="line-through decoration-red-500 text-gray-800 dark:text-gray-200">
+                    {issue.word}
+                  </span>
+                  {issue.suggestions.slice(0, 3).map((sug) => (
+                    <button
+                      key={sug}
+                      type="button"
+                      onClick={() => applySpelling(issue, sug)}
+                      disabled={text !== spelling.text}
+                      className="px-2 py-0.5 rounded bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 hover:bg-green-200 disabled:opacity-50"
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Wyniki */}
       <AnimatePresence>
