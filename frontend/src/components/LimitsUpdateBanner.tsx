@@ -52,7 +52,7 @@ export function LimitsUpdateBanner() {
               to="/cennik"
               className="underline font-medium hover:text-blue-100"
             >
-              przejdź na Premium
+              zobacz cennik
             </Link>
             .
           </p>

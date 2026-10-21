@@ -523,8 +523,8 @@ export function Checker() {
                       Tekst przekracza maksymalny limit
                     </p>
                     <p className="text-amber-700 dark:text-amber-300 text-sm mt-1">
-                      Maksymalny limit to 10 000 znaków (Premium) lub 50 000
-                      (Lifetime). Podziel tekst na mniejsze części.
+                      Jedno sprawdzenie obejmuje do 10 000 znaków. Podziel tekst
+                      na części albo wgraj cały plik .docx w korekcie dokumentu.
                     </p>
                   </>
                 ) : (
@@ -547,11 +547,11 @@ export function Checker() {
                       </button>
 
                       <Link
-                        to="/cennik"
+                        to="/panel/dokumenty"
                         className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
                       >
                         <Crown className="w-4 h-4" />
-                        Przejdź na Premium
+                        Korekta całego dokumentu (od 39 zł)
                       </Link>
                     </div>
 
@@ -768,15 +768,15 @@ export function Checker() {
                     Potrzebujesz więcej sprawdzeń?
                   </h3>
                   <p className="text-blue-100 mb-4">
-                    Przejdź na Premium i korzystaj bez ograniczeń, lub dokup
-                    pojedyncze sprawdzenia.
+                    Dokup sprawdzenia (od 5 zł, bez abonamentu) albo wgraj cały
+                    dokument .docx do korekty.
                   </p>
                   <div className="flex flex-wrap gap-3">
                     <Link
                       to="/cennik"
                       className="px-6 py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors"
                     >
-                      Zobacz plany →
+                      Zobacz cennik →
                     </Link>
                     <button
                       onClick={openTopUpModal}

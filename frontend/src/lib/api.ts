@@ -129,6 +129,73 @@ export async function checkSpelling(text: string): Promise<SpellingIssue[]> {
   return res.data.issues;
 }
 
+// Korekta całego dokumentu .docx
+export interface DocumentPackage {
+  id: string;
+  maxPages: number;
+  amount: number;
+  label: string;
+}
+
+export type DocumentStatus = "AWAITING_PAYMENT" | "PAID" | "PROCESSING" | "DONE" | "FAILED";
+
+export interface CorrectionDocument {
+  id: string;
+  fileName: string;
+  pages: number;
+  chars: number;
+  amount: number;
+  packageId: string;
+  status: DocumentStatus;
+  progressDone: number;
+  progressTotal: number;
+  corrections: number | null;
+  createdAt: string;
+  completedAt: string | null;
+  downloadable: boolean;
+}
+
+export async function getDocumentPackages(): Promise<{ charsPerPage: number; packages: DocumentPackage[] }> {
+  const res = await api.get("/api/documents/packages");
+  return res.data;
+}
+
+export async function listDocuments(): Promise<CorrectionDocument[]> {
+  const res = await api.get("/api/documents");
+  return res.data;
+}
+
+export async function uploadDocument(file: File): Promise<CorrectionDocument> {
+  const form = new FormData();
+  form.append("file", file);
+  // Bez tego nagłówka axios (domyślny JSON instancji) zamieniłby FormData na JSON
+  const res = await api.post("/api/documents", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
+}
+
+export async function startDocumentCheckout(id: string): Promise<string> {
+  // Zgoda na rozpoczęcie usługi przed upływem terminu odstąpienia (zaznaczona w panelu)
+  const res = await api.post(`/api/documents/${id}/checkout`, { consent: true });
+  return res.data.url;
+}
+
+export async function verifyDocumentPayment(id: string, sessionId: string): Promise<CorrectionDocument> {
+  const res = await api.post(`/api/documents/${id}/verify`, { sessionId });
+  return res.data;
+}
+
+export async function downloadDocument(doc: CorrectionDocument): Promise<void> {
+  const res = await api.get(`/api/documents/${doc.id}/download`, { responseType: "blob" });
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = doc.fileName.replace(/\.docx$/i, "") + " - korekta.docx";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export async function getCheckStatus(): Promise<CheckStatusResponse> {
   const res = await api.get("/api/check/status");
   return res.data;

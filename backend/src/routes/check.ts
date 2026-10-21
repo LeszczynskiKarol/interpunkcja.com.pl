@@ -207,18 +207,7 @@ export async function checkRoutes(fastify: FastifyInstance) {
       });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { plan: true },
-    });
-
-    if (!user || user.plan === "FREE") {
-      return reply.status(403).send({
-        error: "PREMIUM_REQUIRED",
-        message:
-          "Historia sprawdzeń jest dostępna tylko dla Premium i Lifetime",
-      });
-    }
+    // Historia dostępna dla wszystkich kont - teksty i tak przechowujemy 90 dni
 
     const history = await prisma.check.findMany({
       where: { userId },

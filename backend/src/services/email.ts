@@ -304,4 +304,41 @@ export class EmailService {
       html,
     });
   }
+
+  async sendDocumentReady(to: string, fileName: string, corrections: number) {
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const link = `${process.env.FRONTEND_URL}/panel/dokumenty`;
+    const html = `
+    <!DOCTYPE html>
+    <html>
+      <head><meta charset="UTF-8"></head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2>Korekta dokumentu jest gotowa</h2>
+          <p>Sprawdziliśmy plik <strong>${esc(fileName)}</strong> i nanieśliśmy na niego poprawki (${corrections}).</p>
+          <p>Poprawki są w pliku jako zmiany śledzone Worda, a przy każdej jest komentarz z regułą.
+          W Wordzie zaakceptujesz je na karcie <em>Recenzja</em> - pojedynczo albo wszystkie naraz.</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${link}" style="display: inline-block; padding: 12px 24px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">
+              Pobierz poprawiony plik →
+            </a>
+          </p>
+          <p style="color: #666; font-size: 13px;">Plik będzie do pobrania przez 30 dni, potem usuniemy go z serwera.</p>
+        </div>
+      </body>
+    </html>
+    `;
+    try {
+      await transporter.sendMail({
+        from: `${process.env.EMAIL_FROM_NAME || "Interpunkcja.com.pl"} <${
+          process.env.EMAIL_FROM || process.env.SMTP_USER
+        }>`,
+        to,
+        subject: "Korekta Twojego dokumentu jest gotowa",
+        html,
+      });
+    } catch (error) {
+      console.error("❌ Document ready email error:", error);
+    }
+  }
 }

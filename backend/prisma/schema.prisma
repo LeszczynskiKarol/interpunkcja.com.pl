@@ -8,52 +8,54 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String?
-  name          String?
-  plan          Plan      @default(FREE)
-  role          Role      @default(USER)
-  
+  id           String  @id @default(uuid())
+  email        String  @unique
+  passwordHash String?
+  name         String?
+  plan         Plan    @default(FREE)
+  role         Role    @default(USER)
+
   // OAuth / Auth Provider
-  authProvider  AuthProvider @default(LOCAL)
-  googleId      String?      @unique
-  avatarUrl     String?
-  
+  authProvider AuthProvider @default(LOCAL)
+  googleId     String?      @unique
+  avatarUrl    String?
+
   // Email verification
   emailVerified           Boolean   @default(false)
   emailVerificationToken  String?   @unique
   emailVerificationExpiry DateTime?
-  
+
   // Password reset
-  passwordResetToken      String?   @unique
-  passwordResetExpiry     DateTime?
-  
+  passwordResetToken  String?   @unique
+  passwordResetExpiry DateTime?
+
   // Refresh token
-  refreshToken  String?
-  lastLogin     DateTime?
-  
+  refreshToken String?
+  lastLogin    DateTime?
+
   // Stripe
   stripeCustomerId String? @unique
-  
+
   // Bonus sprawdzenia (dokupione)
-  bonusChecks   Int       @default(0)
+  bonusChecks               Int       @default(0)
   // Ręczne nadpisanie miesięcznego licznika przez admina (null = nie nadpisuje)
-  monthlyCountOverride        Int?
-  monthlyCountOverrideSetAt   DateTime?
+  monthlyCountOverride      Int?
+  monthlyCountOverrideSetAt DateTime?
   // IP tracking (anti-abuse)
-  registrationIp  String?
-  lastIp          String?
-  
+  registrationIp            String?
+  lastIp                    String?
+
   // Status
-  isActive      Boolean   @default(true)
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  checks           Check[]
-  dailyUsage       DailyUsage[]
-  creditPurchases  CreditPurchase[]
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checks          Check[]
+  dailyUsage      DailyUsage[]
+  creditPurchases CreditPurchase[]
+  documents       Document[]
+
   @@index([registrationIp])
 }
 
@@ -63,24 +65,24 @@ enum AuthProvider {
 }
 
 model Check {
-  id              String   @id @default(uuid())
-  userId          String?
-  visitorId       String?
-  originalText    String
-  correctedText   String
-  corrections     Json
-  charCount       Int
-  errorCount      Int
-  usedBonusCheck  Boolean  @default(false)  // Czy użyto bonus sprawdzenia
-  ipAddress       String?
+  id             String  @id @default(uuid())
+  userId         String?
+  visitorId      String?
+  originalText   String
+  correctedText  String
+  corrections    Json
+  charCount      Int
+  errorCount     Int
+  usedBonusCheck Boolean @default(false) // Czy użyto bonus sprawdzenia
+  ipAddress      String?
 
   // Metadata z procesu korekty (tokeny, koszt, czas)
-  metadata        Json?
-  
-  createdAt       DateTime @default(now())
-  
-  user            User?    @relation(fields: [userId], references: [id])
-  
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([visitorId])
   @@index([createdAt])
@@ -89,15 +91,15 @@ model Check {
 }
 
 model DailyUsage {
-  id          String   @id @default(uuid())
-  userId      String?
-  visitorId   String?
-  date        DateTime @db.Date
-  checkCount  Int      @default(0)
-  charCount   Int      @default(0)
-  
-  user        User?    @relation(fields: [userId], references: [id])
-  
+  id         String   @id @default(uuid())
+  userId     String?
+  visitorId  String?
+  date       DateTime @db.Date
+  checkCount Int      @default(0)
+  charCount  Int      @default(0)
+
+  user User? @relation(fields: [userId], references: [id])
+
   @@unique([userId, date])
   @@unique([visitorId, date])
   @@index([date])
@@ -105,17 +107,17 @@ model DailyUsage {
 
 // Historia zakupów dodatkowych sprawdzeń
 model CreditPurchase {
-  id              String   @id @default(uuid())
+  id              String         @id @default(uuid())
   userId          String
-  amount          Int      // Kwota w groszach (np. 500 = 5 PLN)
-  creditsGranted  Int      // Ile sprawdzeń przyznano
-  stripeSessionId String   @unique
+  amount          Int // Kwota w groszach (np. 500 = 5 PLN)
+  creditsGranted  Int // Ile sprawdzeń przyznano
+  stripeSessionId String         @unique
   status          PurchaseStatus @default(PENDING)
-  createdAt       DateTime @default(now())
+  createdAt       DateTime       @default(now())
   completedAt     DateTime?
-  
-  user            User     @relation(fields: [userId], references: [id])
-  
+
+  user User @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([stripeSessionId])
 }
@@ -139,36 +141,75 @@ enum Role {
 }
 
 model Category {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
-  slug        String    @unique
+  slug        String   @unique
   description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  articles    Article[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  articles Article[]
 }
 
 model Article {
-  id          String    @id @default(uuid())
-  title       String
-  slug        String    @unique
-  content     String    @db.Text
-  excerpt     String?   @db.Text
-  categoryId  String
-  
+  id         String  @id @default(uuid())
+  title      String
+  slug       String  @unique
+  content    String  @db.Text
+  excerpt    String? @db.Text
+  categoryId String
+
   metaTitle       String?
   metaDescription String?
-  
+
   published   Boolean   @default(true)
   publishedAt DateTime?
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  category    Category  @relation(fields: [categoryId], references: [id])
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+
   @@index([categoryId])
   @@index([slug])
   @@index([published])
+}
+
+// Korekta całego dokumentu .docx (pakiety jednorazowe 39 / 79 / 149 zł)
+model Document {
+  id              String         @id @default(uuid())
+  userId          String
+  fileName        String
+  chars           Int
+  pages           Int
+  packageId       String
+  amount          Int // grosze
+  status          DocumentStatus @default(AWAITING_PAYMENT)
+  stripeSessionId String?        @unique
+  progressDone    Int            @default(0)
+  progressTotal   Int            @default(0)
+  corrections     Int?
+  report          Json?
+  costUsd         Float?
+  error           String?
+  createdAt       DateTime       @default(now())
+  // Zgoda konsumenta na rozpoczęcie usługi przed upływem terminu odstąpienia (art. 38 u.p.k.)
+  consentAt       DateTime?
+  paidAt          DateTime?
+  completedAt     DateTime?
+  // Pliki kasowane po 30 dniach (polityka prywatności) - wiersz zostaje do rozliczeń
+  filesDeletedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum DocumentStatus {
+  AWAITING_PAYMENT
+  PAID
+  PROCESSING
+  DONE
+  FAILED
 }

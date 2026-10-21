@@ -35,9 +35,15 @@ const content = {
 
 **Konto** – indywidualne konto Użytkownika w Serwisie, utworzone po rejestracji (przez email lub Google).
 
-**Usługa** – usługa sprawdzania interpunkcji tekstu świadczona drogą elektroniczną przez Usługodawcę.
+**Usługa** – usługa sprawdzania i korekty tekstu (interpunkcja, ortografia, pisownia, gramatyka) świadczona drogą elektroniczną przez Usługodawcę.
 
-**Plan** – wybrany przez Użytkownika wariant Usługi (Free, Premium, Lifetime).
+**Plan Free** – bezpłatny wariant Usługi dostępny po założeniu Konta.
+
+**Doładowanie** – odpłatny pakiet dodatkowych sprawdzeń tekstu.
+
+**Korekta Dokumentu** – odpłatna, jednorazowa usługa korekty całego pliku .docx opisana w §3 ust. 5.
+
+**Strona** – 1800 znaków tekstu ze spacjami.
 
 **Umowa** – umowa o świadczenie usług drogą elektroniczną zawierana między Użytkownikiem a Usługodawcą.
 
@@ -45,42 +51,35 @@ const content = {
       },
       {
         title: "§3. Rodzaje i zakres usług",
-        content: `1. Serwis świadczy usługę sprawdzania interpunkcji w tekstach w języku polskim przy wykorzystaniu technologii sztucznej inteligencji (AI).
+        content: `1. Serwis świadczy usługę sprawdzania i korekty tekstów w języku polskim przy wykorzystaniu technologii sztucznej inteligencji (AI) oraz słownika ortograficznego.
 
 2. Usługa polega na:
-   a) Analizie tekstu pod kątem błędów interpunkcyjnych
+   a) Analizie tekstu pod kątem błędów interpunkcyjnych, ortograficznych, pisowni łącznej i rozdzielnej oraz gramatycznych
    b) Wskazaniu miejsc wymagających korekty
    c) Zaproponowaniu poprawnej wersji tekstu
-   d) Wyjaśnieniu zastosowanych reguł interpunkcyjnych (w zależności od Planu)
+   d) Wyjaśnieniu zastosowanych reguł
 
-3. Dostępne Plany:
+3. Bez zakładania Konta Użytkownik może:
+   a) Sprawdzić pisownię tekstu słownikiem (do 5000 znaków na raz)
+   b) Raz na dobę sprawdzić z użyciem AI tekst do 300 znaków, w ramach dziennej puli dostępnej dla wszystkich Użytkowników bez Konta
 
-**Plan Free (bezpłatny):**
-Plan Free (bezpłatny):
-- Do 2 sprawdzeń dziennie
-- Do 20 sprawdzeń miesięcznie
-- Maksymalnie 500 znaków na sprawdzenie
-- Maksymalnie 1000 znaków dziennie
-- Podstawowe poprawki bez pełnych wyjaśnień
-- Brak historii sprawdzeń
+4. Plan Free (bezpłatny, po założeniu Konta):
+- Do 2 sprawdzeń AI dziennie i 20 miesięcznie
+- Maksymalnie 500 znaków na sprawdzenie i 1000 znaków dziennie
+- Wyjaśnienie reguły przy każdej poprawce
 - Limity obowiązują również w ujęciu IP – z jednego adresu sieciowego można wykonać maksymalnie 3 darmowe sprawdzenia dziennie i 30 miesięcznie
+- Doładowania: 10 sprawdzeń za 5 zł, 25 za 10 zł, 60 za 20 zł; dokupione sprawdzenia obejmują tekst do 10 000 znaków i nie wygasają
 
-**Plan Premium (29 zł/miesiąc):**
-- Do 100 sprawdzeń dziennie
-- Maksymalnie 10 000 znaków na sprawdzenie
-- Maksymalnie 100 000 znaków dziennie
-- Pełne wyjaśnienia reguł interpunkcyjnych
-- Historia sprawdzeń (90 dni)
+5. Korekta Dokumentu:
+   a) Użytkownik posiadający Konto przesyła plik w formacie .docx
+   b) Przed złożeniem zamówienia Serwis wylicza liczbę Stron i cenę: 39 zł za dokument do 20 Stron, 79 zł do 60 Stron, 149 zł do 150 Stron; dokumenty dłuższe wyceniane są indywidualnie
+   c) Po zapłacie Usługodawca przekazuje plik do automatycznej korekty i udostępnia w Koncie ten sam plik z poprawkami w trybie śledzenia zmian oraz komentarzem przy każdej poprawce, zwykle w ciągu kilkunastu minut
+   d) Korekta obejmuje interpunkcję, ortografię, pisownię łączną i rozdzielną oraz gramatykę; nie obejmuje zmian stylu, cytatów z innych źródeł, terminologii, nazw własnych ani bibliografii
+   e) Użytkownik decyduje, które poprawki przyjmuje; poprawki nie są nanoszone na tekst bez jego akceptacji w edytorze
+   f) Pliki są przechowywane przez 30 dni od przesłania, a następnie trwale usuwane
+   g) Jeżeli korekta nie zostanie wykonana z przyczyn technicznych, Usługodawca ponawia ją albo zwraca całą zapłaconą kwotę
 
-**Plan Lifetime (299 zł jednorazowo):**
-- Nieograniczona liczba sprawdzeń
-- Maksymalnie 50 000 znaków na sprawdzenie
-- Bez limitu dziennego znaków
-- Pełne wyjaśnienia reguł interpunkcyjnych
-- Historia sprawdzeń (90 dni)
-- Dożywotni dostęp do wszystkich funkcji
-
-4. Usługodawca zastrzega sobie prawo do modyfikacji limitów i funkcji poszczególnych Planów.`,
+6. Usługodawca zastrzega sobie prawo do modyfikacji limitów i funkcji Usługi; zmiana nie dotyczy zamówień już opłaconych.`,
       },
       {
         title: "§4. Rejestracja i konto użytkownika",
@@ -158,28 +157,19 @@ Plan Free (bezpłatny):
       },
       {
         title: "§6. Płatności",
-        content: `1. Płatności za Plany płatne (Premium, Lifetime) realizowane są za pośrednictwem operatora płatności Stripe.
+        content: `1. Płatności za Doładowania i Korektę Dokumentu są jednorazowe i realizowane za pośrednictwem operatora płatności Stripe. Serwis nie prowadzi płatności cyklicznych (abonamentów).
 
 2. Dostępne metody płatności:
    a) Karta płatnicza (Visa, Mastercard)
-   b) BLIK - wyłącznie przy płatnościach jednorazowych (Plan Lifetime, doładowania)
+   b) BLIK
 
-3. Plan Premium:
-   a) Jest subskrypcją odnawianą co miesiąc
-   b) Opłata pobierana jest z góry za kolejny okres rozliczeniowy
-   c) Użytkownik może anulować subskrypcję w dowolnym momencie
-   d) Po anulowaniu dostęp Premium jest utrzymany do końca opłaconego okresu
+3. Umowa o Korektę Dokumentu zostaje zawarta z chwilą zaksięgowania płatności.
 
-4. Plan Lifetime:
-   a) Jest płatnością jednorazową
-   b) Zapewnia dożywotni dostęp do funkcji Premium
-   c) Nie podlega zwrotowi (z wyjątkiem przypadków określonych w §8)
+4. Ceny podane w Serwisie są cenami brutto (zawierają VAT).
 
-5. Ceny podane w Serwisie są cenami brutto (zawierają VAT).
+5. Usługodawca wystawia faktury na życzenie Użytkownika.
 
-6. Usługodawca wystawia faktury na życzenie Użytkownika.
-
-7. Metoda rejestracji (email lub Google) nie wpływa na dostępne metody płatności ani ceny.`,
+6. Metoda rejestracji (email lub Google) nie wpływa na dostępne metody płatności ani ceny.`,
       },
       {
         title: "§7. Prawa własności intelektualnej",
@@ -192,7 +182,7 @@ Plan Free (bezpłatny):
 4. Teksty wprowadzone przez Użytkowników:
    a) Są przetwarzane wyłącznie w celu świadczenia Usługi
    b) Nie są wykorzystywane do trenowania modeli AI
-   c) Nie są przechowywane dłużej niż to niezbędne do świadczenia Usługi (z wyjątkiem historii sprawdzeń w Planach Premium/Lifetime)
+   c) Są przechowywane przez 90 dni (sprawdzane teksty) albo 30 dni (pliki Korekty Dokumentu), zgodnie z Polityką Prywatności
    d) Nie są udostępniane osobom trzecim
 
 5. Zabrania się kopiowania, modyfikowania, rozpowszechniania lub wykorzystywania materiałów z Serwisu bez zgody Usługodawcy.`,
@@ -212,7 +202,7 @@ Plan Free (bezpłatny):
    b) Konsument został poinformowany przed rozpoczęciem świadczenia, że po spełnieniu świadczenia utraci prawo odstąpienia
    c) Konsument wyraził zgodę na rozpoczęcie świadczenia przed upływem terminu do odstąpienia
 
-6. W przypadku Planu Lifetime, jeśli Użytkownik skorzystał z Usługi przed odstąpieniem, jest zobowiązany do zapłaty za świadczenie spełnione do chwili odstąpienia (proporcjonalnie).`,
+6. Korekta Dokumentu rozpoczyna się niezwłocznie po zapłacie. Składając zamówienie, Konsument wyraża zgodę na rozpoczęcie świadczenia przed upływem terminu do odstąpienia i przyjmuje do wiadomości, że po wykonaniu korekty utraci prawo odstąpienia od umowy. Bez tej zgody zamówienia nie można złożyć.`,
       },
       {
         title: "§9. Odpowiedzialność",
@@ -336,7 +326,13 @@ Plan Free (bezpłatny):
 
 **Service/Services** – the punctuation checking service provided electronically by the Provider.
 
-**Plan** – the variant of the Service selected by the User (Free, Premium, Lifetime).
+**Free Plan** – the free variant of the Service available after creating an Account.
+
+**Top-up** – a paid package of additional text checks.
+
+**Document Proofreading** – a paid, one-time proofreading service for an entire .docx file described in §3(5).
+
+**Page** – 1,800 characters of text including spaces.
 
 **Agreement** – the agreement for the provision of electronic services concluded between the User and the Provider.
 
@@ -344,39 +340,35 @@ Plan Free (bezpłatny):
       },
       {
         title: "§3. Types and Scope of Services",
-        content: `1. The Service provides punctuation checking for Polish language texts using artificial intelligence (AI) technology.
+        content: `1. The Service provides checking and proofreading of Polish texts using artificial intelligence (AI) and a spelling dictionary.
 
 2. The Service consists of:
-   a) Analyzing text for punctuation errors
-   b) Identifying areas requiring correction
-   c) Suggesting a correct version of the text
-   d) Explaining applied punctuation rules (depending on the Plan)
+   a) Analysing the text for punctuation, spelling, word-separation and grammar errors
+   b) Indicating places that require correction
+   c) Proposing the correct version of the text
+   d) Explaining the applied rules
 
-3. Available Plans:
+3. Without creating an Account, the User may:
+   a) Check the spelling of a text with a dictionary (up to 5,000 characters at a time)
+   b) Once a day, check a text of up to 300 characters with AI, within a daily pool available to all Users without an Account
 
-**Free Plan:**
-- Up to 5 checks per day
-- Maximum 500 characters per check
-- Maximum 2,000 characters per day
-- Basic corrections without full explanations
-- No check history
+4. Free Plan (free of charge, after creating an Account):
+- Up to 2 AI checks per day and 20 per month
+- Up to 500 characters per check and 1,000 characters per day
+- An explanation of the rule for every correction
+- Limits also apply per IP address – a maximum of 3 free checks per day and 30 per month from one network address
+- Top-ups: 10 checks for PLN 5, 25 for PLN 10, 60 for PLN 20; purchased checks cover texts of up to 10,000 characters and do not expire
 
-**Premium Plan (29 PLN/month):**
-- Up to 100 checks per day
-- Maximum 10,000 characters per check
-- Maximum 100,000 characters per day
-- Full punctuation rule explanations
-- Check history (90 days)
+5. Document Proofreading:
+   a) A User with an Account uploads a file in .docx format
+   b) Before placing the order, the Service calculates the number of Pages and the price: PLN 39 for a document of up to 20 Pages, PLN 79 for up to 60 Pages, PLN 149 for up to 150 Pages; longer documents are priced individually
+   c) After payment, the Service Provider proofreads the file automatically and makes the same file available in the Account with corrections as tracked changes and a comment on each correction, usually within several minutes
+   d) Proofreading covers punctuation, spelling, word separation and grammar; it does not include changes of style, quotations from other sources, terminology, proper names or bibliography
+   e) The User decides which corrections to accept; corrections are not applied to the text without the User's acceptance in the editor
+   f) Files are stored for 30 days from upload and then permanently deleted
+   g) If proofreading cannot be completed for technical reasons, the Service Provider repeats it or refunds the full amount paid
 
-**Lifetime Plan (299 PLN one-time):**
-- Unlimited checks
-- Maximum 50,000 characters per check
-- No daily character limit
-- Full punctuation rule explanations
-- Check history (90 days)
-- Lifetime access to all features
-
-4. The Provider reserves the right to modify limits and features of individual Plans.`,
+6. The Service Provider reserves the right to modify the limits and features of the Service; changes do not apply to orders already paid for.`,
       },
       {
         title: "§4. Registration and User Account",
@@ -448,28 +440,19 @@ Plan Free (bezpłatny):
       },
       {
         title: "§6. Payments",
-        content: `1. Payments for paid Plans (Premium, Lifetime) are processed through the payment operator Stripe.
+        content: `1. Payments for Top-ups and Document Proofreading are one-time payments processed by the payment operator Stripe. The Service does not offer recurring payments (subscriptions).
 
 2. Available payment methods:
    a) Credit/debit card (Visa, Mastercard)
-   b) BLIK - only for one-time payments (Lifetime Plan, top-ups)
+   b) BLIK
 
-3. Premium Plan:
-   a) Is a subscription renewed monthly
-   b) Payment is charged in advance for the next billing period
-   c) User may cancel the subscription at any time
-   d) After cancellation, Premium access is maintained until the end of the paid period
+3. The Document Proofreading agreement is concluded when the payment is received.
 
-4. Lifetime Plan:
-   a) Is a one-time payment
-   b) Provides lifetime access to Premium features
-   c) Is non-refundable (except as specified in §8)
+4. Prices shown in the Service are gross prices (including VAT).
 
-5. Prices displayed in the Service are gross prices (including VAT).
+5. The Service Provider issues invoices at the User's request.
 
-6. The Provider issues invoices upon User request.
-
-7. The registration method (email or Google) does not affect available payment methods or prices.`,
+6. The registration method (email or Google) does not affect available payment methods or prices.`,
       },
       {
         title: "§7. Intellectual Property Rights",
@@ -482,7 +465,7 @@ Plan Free (bezpłatny):
 4. Texts entered by Users:
    a) Are processed solely for the purpose of providing the Service
    b) Are not used to train AI models
-   c) Are not stored longer than necessary for providing the Service (except for check history in Premium/Lifetime Plans)
+   c) Are stored for 90 days (checked texts) or 30 days (Document Proofreading files), as described in the Privacy Policy
    d) Are not shared with third parties
 
 5. Copying, modifying, distributing, or using materials from the Service without the Provider's consent is prohibited.`,
@@ -502,7 +485,7 @@ Plan Free (bezpłatny):
    b) The Consumer was informed before the start of provision that they would lose the right of withdrawal after full performance
    c) The Consumer agreed to the commencement of provision before the withdrawal period
 
-6. In case of the Lifetime Plan, if the User used the Service before withdrawal, they are obligated to pay for the service provided up to the moment of withdrawal (proportionally).`,
+6. Document Proofreading starts immediately after payment. By placing the order, the Consumer consents to the performance starting before the withdrawal period expires and acknowledges that they will lose the right of withdrawal once the proofreading is completed. The order cannot be placed without this consent.`,
       },
       {
         title: "§9. Liability",
@@ -615,7 +598,7 @@ export function TermsOfServicePage() {
 
         <p className="text-gray-600 dark:text-gray-400 mb-8">
           {t.lastUpdate}:{" "}
-          {new Date().toLocaleDateString(language === "pl" ? "pl-PL" : "en-US")}
+          {language === "pl" ? "21 października 2026" : "October 21, 2026"}
         </p>
 
         <div className="space-y-8">

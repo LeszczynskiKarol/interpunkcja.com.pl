@@ -166,7 +166,7 @@ export function PaymentSuccessPage() {
             <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                Pełne wyjaśnienia błędów (jak Premium)
+                Teksty do 10 000 znaków na raz
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />

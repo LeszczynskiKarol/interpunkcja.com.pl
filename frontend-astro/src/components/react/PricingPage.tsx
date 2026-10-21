@@ -1,297 +1,173 @@
-// frontend/src/pages/PricingPage.tsx
-import { Check, X } from "lucide-react";
-import { Link } from "react-router-dom";
+// Cennik: darmowe konto, doładowania do krótkich tekstów, pakiety korekty dokumentów.
+import { Check, FileText, MessageSquare, Zap } from "lucide-react";
+
+const TOPUPS = [
+  { price: "5 zł", checks: "10 sprawdzeń" },
+  { price: "10 zł", checks: "25 sprawdzeń" },
+  { price: "20 zł", checks: "60 sprawdzeń" },
+];
+
+const DOCUMENTS = [
+  { price: "39 zł", pages: "do 20 stron", chars: "36 000 znaków", example: "artykuł, raport, rozdział" },
+  { price: "79 zł", pages: "do 60 stron", chars: "108 000 znaków", example: "praca licencjacka" },
+  { price: "149 zł", pages: "do 150 stron", chars: "270 000 znaków", example: "praca magisterska" },
+];
+
+const FAQ = [
+  {
+    q: "Jak liczycie strony?",
+    a: "Strona to 1800 znaków ze spacjami - tak liczą wydawnictwa i korektorzy. Po wgraniu pliku od razu pokazujemy liczbę stron i cenę. Płacisz dopiero wtedy, gdy ją zaakceptujesz.",
+  },
+  {
+    q: "Jak wygląda poprawiony plik?",
+    a: "Dostajesz ten sam plik .docx z poprawkami w trybie śledzenia zmian Worda. Przy każdej poprawce jest komentarz z regułą i krótkim wyjaśnieniem. Poprawki akceptujesz lub odrzucasz na karcie Recenzja - pojedynczo albo wszystkie naraz.",
+  },
+  {
+    q: "Co poprawiacie, a czego nie ruszamy?",
+    a: "Poprawiamy interpunkcję, ortografię, pisownię łączną i rozdzielną oraz gramatykę. Nie zmieniamy stylu autora, cytatów z innych źródeł, terminologii, nazw własnych ani bibliografii. Formatowanie, przypisy i tabele zostają bez zmian.",
+  },
+  {
+    q: "Ile trwa korekta dokumentu?",
+    a: "Zwykle kilka minut, przy pracy magisterskiej kilkanaście. Postęp widzisz w panelu, a gdy skończymy, wyślemy e-mail.",
+  },
+  {
+    q: "Mój dokument ma ponad 150 stron albo jest w innym formacie.",
+    a: "Obsługujemy pliki .docx. Plik .doc, .odt albo .pdf otwórz w Wordzie i zapisz jako .docx. Dokumenty dłuższe niż 150 stron wycenimy indywidualnie - napisz do nas.",
+  },
+  {
+    q: "Czy sprawdzenia z doładowania wygasają?",
+    a: "Nie. Dokupione sprawdzenia zostają na koncie do wykorzystania, a każde obejmuje tekst do 10 000 znaków.",
+  },
+  {
+    q: "Jak mogę zapłacić?",
+    a: "Kartą płatniczą albo BLIK-iem. Płatności obsługuje Stripe. To płatności jednorazowe - nie ma żadnego abonamentu.",
+  },
+];
 
 export function PricingPage() {
-  const user: { plan?: string } | null = null;
-  const isAuthenticated = false;
-
-  const plans = [
-    {
-      id: "FREE",
-      name: "Free",
-      price: "0",
-      period: "",
-      description: "Idealne na początek",
-      features: [
-        { text: "2 sprawdzenia dziennie", included: true },
-        { text: "Do 500 znaków na raz", included: true },
-        { text: "Podstawowe poprawki", included: true },
-        { text: "Wyjaśnienia reguł", included: true },
-        { text: "Historia sprawdzeń", included: false },
-        { text: "Priorytetowe wsparcie", included: false },
-      ],
-      cta: isAuthenticated ? "Twój obecny plan" : "Załóż darmowe konto",
-      ctaLink: isAuthenticated ? null : "/rejestracja",
-      highlighted: false,
-      current: user?.plan === "FREE",
-    },
-    {
-      id: "PREMIUM",
-      name: "Premium",
-      price: "29",
-      period: "/mies",
-      description: "Dla profesjonalistów",
-      features: [
-        { text: "100 sprawdzeń dziennie", included: true },
-        { text: "Do 10 000 znaków na raz", included: true },
-        { text: "Pełne poprawki z AI", included: true },
-        { text: "Wyjaśnienia reguł", included: true },
-        { text: "Historia sprawdzeń", included: true },
-        { text: "Priorytetowe wsparcie", included: false },
-      ],
-      cta: user?.plan === "PREMIUM" ? "Twój obecny plan" : "Wybierz Premium",
-      ctaLink: user?.plan === "PREMIUM" ? null : "/platnosc/premium",
-      highlighted: true,
-      current: user?.plan === "PREMIUM",
-      badge: "Najpopularniejszy",
-    },
-    {
-      id: "LIFETIME",
-      name: "Lifetime",
-      price: "299",
-      period: " jednorazowo",
-      description: "Płacisz raz, masz na zawsze",
-      features: [
-        { text: "Bez limitów sprawdzeń", included: true },
-        { text: "Do 50 000 znaków na raz", included: true },
-        { text: "Pełne poprawki z AI", included: true },
-        { text: "Wyjaśnienia reguł", included: true },
-        { text: "Historia sprawdzeń", included: true },
-        { text: "Priorytetowe wsparcie", included: true },
-      ],
-      cta: user?.plan === "LIFETIME" ? "Twój obecny plan" : "Kup Lifetime",
-      ctaLink: user?.plan === "LIFETIME" ? null : "/platnosc/lifetime",
-      highlighted: false,
-      current: user?.plan === "LIFETIME",
-      badge: "Najlepsza wartość",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 py-16">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Wybierz plan dla siebie
-          </h1>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
+      <div className="max-w-6xl mx-auto px-4 py-16">
+        <div className="text-center mb-14">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Cennik</h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Zacznij za darmo, przejdź na wyższy plan gdy potrzebujesz więcej
-            możliwości
+            Bez abonamentu. Krótkie teksty sprawdzisz za darmo, a za dłuższe i całe dokumenty płacisz
+            raz.
           </p>
         </div>
 
-        {/* Plans grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative rounded-2xl p-8 ${
-                plan.highlighted
-                  ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-xl scale-105"
-                  : "bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700"
-              }`}
+        <div className="grid md:grid-cols-2 gap-6 mb-16">
+          <div className="rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Darmowe konto</h2>
+            <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">0 zł</div>
+            <ul className="space-y-3 mb-8">
+              {[
+                "2 sprawdzenia AI dziennie, do 500 znaków każde",
+                "Wyjaśnienie reguły przy każdej poprawce",
+                "Sprawdzanie pisowni słownikiem bez limitu",
+                "Bez karty płatniczej",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <a
+              href="/rejestracja"
+              className="block text-center py-3 rounded-xl font-semibold border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white hover:border-blue-500"
             >
-              {/* Badge */}
-              {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      plan.highlighted
-                        ? "bg-amber-400 text-amber-900"
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    }`}
-                  >
-                    {plan.badge}
-                  </span>
+              Załóż darmowe konto
+            </a>
+          </div>
+
+          <div className="rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+              <Zap className="w-6 h-6 text-amber-500" />
+              Doładowanie
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Dodatkowe sprawdzenia AI do 10 000 znaków każde. Nie wygasają.
+            </p>
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              {TOPUPS.map((t) => (
+                <div key={t.price} className="rounded-xl bg-gray-50 dark:bg-gray-900 p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{t.price}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t.checks}</div>
                 </div>
-              )}
-
-              {/* Current plan badge */}
-              {plan.current && (
-                <div className="absolute -top-3 right-4">
-                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-500 text-white">
-                    Aktywny
-                  </span>
-                </div>
-              )}
-
-              {/* Plan header */}
-              <div className="text-center mb-6">
-                <h2
-                  className={`text-2xl font-bold mb-2 ${
-                    plan.highlighted
-                      ? "text-white"
-                      : "text-gray-900 dark:text-white"
-                  }`}
-                >
-                  {plan.name}
-                </h2>
-                <p
-                  className={`text-sm ${
-                    plan.highlighted
-                      ? "text-blue-100"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  {plan.description}
-                </p>
-              </div>
-
-              {/* Price */}
-              <div className="text-center mb-6">
-                <span
-                  className={`text-5xl font-bold ${
-                    plan.highlighted
-                      ? "text-white"
-                      : "text-gray-900 dark:text-white"
-                  }`}
-                >
-                  {plan.price}
-                </span>
-                <span
-                  className={`text-lg ${
-                    plan.highlighted
-                      ? "text-blue-100"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  {plan.price !== "0" && " zł"}
-                  {plan.period}
-                </span>
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    {feature.included ? (
-                      <Check
-                        className={`w-5 h-5 flex-shrink-0 ${
-                          plan.highlighted ? "text-green-300" : "text-green-500"
-                        }`}
-                      />
-                    ) : (
-                      <X
-                        className={`w-5 h-5 flex-shrink-0 ${
-                          plan.highlighted
-                            ? "text-blue-300"
-                            : "text-gray-300 dark:text-gray-600"
-                        }`}
-                      />
-                    )}
-                    <span
-                      className={`text-sm ${
-                        feature.included
-                          ? plan.highlighted
-                            ? "text-white"
-                            : "text-gray-700 dark:text-gray-300"
-                          : plan.highlighted
-                          ? "text-blue-200"
-                          : "text-gray-400 dark:text-gray-500"
-                      }`}
-                    >
-                      {feature.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              {plan.ctaLink ? (
-                <Link
-                  to={plan.ctaLink}
-                  className={`block w-full py-3 text-center font-medium rounded-xl transition-colors ${
-                    plan.highlighted
-                      ? "bg-white text-blue-600 hover:bg-blue-50"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              ) : (
-                <button
-                  disabled
-                  className={`block w-full py-3 text-center font-medium rounded-xl ${
-                    plan.current
-                      ? plan.highlighted
-                        ? "bg-white/20 text-white cursor-default"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-default"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  {plan.cta}
-                </button>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
-
-        {/* FAQ */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
-            Często zadawane pytania
-          </h2>
-
-          <div className="space-y-4">
-            <details className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-              <summary className="font-medium text-gray-900 dark:text-white cursor-pointer">
-                Jak działa limit sprawdzeń?
-              </summary>
-              <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
-                Limit sprawdzeń resetuje się codziennie o północy. Każde
-                kliknięcie "Sprawdź interpunkcję" to jedno sprawdzenie. Limit
-                znaków to maksymalna długość tekstu w jednym sprawdzeniu.
-              </p>
-            </details>
-
-            <details className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-              <summary className="font-medium text-gray-900 dark:text-white cursor-pointer">
-                Czy mogę anulować subskrypcję?
-              </summary>
-              <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
-                Tak, subskrypcję Premium możesz anulować w dowolnym momencie w
-                ustawieniach konta. Po anulowaniu będziesz mieć dostęp do
-                Premium do końca opłaconego okresu.
-              </p>
-            </details>
-
-            <details className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-              <summary className="font-medium text-gray-900 dark:text-white cursor-pointer">
-                Co oznacza plan Lifetime?
-              </summary>
-              <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
-                Plan Lifetime to jednorazowa płatność, która daje Ci dostęp do
-                wszystkich funkcji na zawsze. Bez odnawianej subskrypcji, bez
-                dodatkowych opłat.
-              </p>
-            </details>
-
-            <details className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-              <summary className="font-medium text-gray-900 dark:text-white cursor-pointer">
-                Jakie metody płatności akceptujecie?
-              </summary>
-              <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
-                Akceptujemy karty płatnicze (Visa, Mastercard). Plan Lifetime
-                i doładowania opłacisz też BLIK-iem.
-              </p>
-            </details>
+            <a
+              href="/panel"
+              className="block text-center py-3 rounded-xl font-semibold border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white hover:border-blue-500"
+            >
+              Doładuj w panelu
+            </a>
           </div>
         </div>
 
-        {/* Final CTA */}
-        <div className="mt-16 text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Masz pytania? Napisz do nas!
+        <section id="dokumenty" className="mb-16 scroll-mt-24">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 flex items-center justify-center gap-2">
+              <FileText className="w-8 h-8 text-blue-600" />
+              Korekta całego dokumentu
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Wgraj pracę dyplomową, artykuł albo raport w formacie .docx. Odeślemy ten sam plik z
+              poprawkami w trybie śledzenia zmian Worda i komentarzem przy każdej poprawce.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 mb-6">
+            {DOCUMENTS.map((d, i) => (
+              <div
+                key={d.price}
+                className={`rounded-2xl border-2 p-6 text-center ${
+                  i === 1
+                    ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                }`}
+              >
+                <div className="text-4xl font-bold text-gray-900 dark:text-white">{d.price}</div>
+                <div className="text-lg font-medium text-gray-800 dark:text-gray-200">{d.pages}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">{d.chars}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">np. {d.example}</div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col items-center gap-3">
+            <a
+              href="/panel/dokumenty"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg hover:bg-blue-700 shadow-lg"
+            >
+              <FileText className="w-5 h-5" />
+              Wgraj dokument i sprawdź cenę
+            </a>
+            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <MessageSquare className="w-4 h-4" />
+              Cenę zobaczysz przed płatnością. Potrzebne jest darmowe konto.
+            </p>
+          </div>
+        </section>
+
+        <section className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+            Często zadawane pytania
+          </h2>
+          <div className="space-y-4">
+            {FAQ.map((f) => (
+              <div key={f.q} className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-2">{f.q}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{f.a}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-gray-600 dark:text-gray-400 mt-8">
+            Masz inne pytanie? Napisz na{" "}
+            <a href="mailto:kontakt@ecopywriting.pl" className="text-blue-600 hover:underline">
+              kontakt@ecopywriting.pl
+            </a>
           </p>
-          <Link
-            to="/kontakt"
-            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-          >
-            Skontaktuj się z nami →
-          </Link>
-        </div>
+        </section>
       </div>
     </div>
   );

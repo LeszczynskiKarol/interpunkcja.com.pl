@@ -4,6 +4,7 @@ import { z } from "zod";
 import Stripe from "stripe";
 import { prisma } from "../lib/prisma";
 import { addBonusChecks, TOPUP_PACKAGES } from "../services/limits";
+import { markDocumentPaid } from "../services/documentJobs";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
@@ -537,6 +538,12 @@ export async function paymentRoutes(fastify: FastifyInstance) {
               }
               console.log(`User ${userId} received ${credits} bonus checks`);
             }
+            break;
+          }
+
+          // Korekta dokumentu - zapas na wypadek, gdyby klient nie wrócił ze Stripe
+          if (type === "document" && session.metadata?.documentId) {
+            await markDocumentPaid(session.metadata.documentId, session.id);
             break;
           }
 

@@ -314,7 +314,8 @@ function PlanTab() {
       features: [
         "2 sprawdzenia dziennie",
         "Do 500 znaków",
-        "Podstawowe poprawki",
+        "Wyjaśnienie każdej poprawki",
+        "Historia sprawdzeń",
       ],
     },
     PREMIUM: {
@@ -446,13 +447,13 @@ function PlanTab() {
             Potrzebujesz więcej?
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Przejdź na Premium i korzystaj bez ograniczeń!
+            Dokup sprawdzenia od 5 zł albo zleć korektę całego dokumentu .docx od 39 zł. Bez abonamentu.
           </p>
           <a
             href="/cennik"
             className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Zobacz plany →
+            Zobacz cennik →
           </a>
         </div>
       )}

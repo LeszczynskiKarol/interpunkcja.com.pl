@@ -91,7 +91,7 @@ function logBox(title: string, content: string, color: string = COLORS.white) {
 
 // ============================================
 
-function getAnthropicClient(
+export function getAnthropicClient(
   apiKey: string | undefined = process.env.ANTHROPIC_API_KEY,
 ): Anthropic {
   let anthropicClient = apiKey ? anthropicClients.get(apiKey) : undefined;
@@ -192,7 +192,7 @@ const MODEL_PROFILES: Record<string, ModelProfile> = {
 
 const DEFAULT_MODEL = "claude-sonnet-5-5";
 
-function getModel(): { model: string; profile: ModelProfile } {
+export function getModel(): { model: string; profile: ModelProfile } {
   const model = process.env.CLAUDE_MODEL || DEFAULT_MODEL;
   const profile = MODEL_PROFILES[model];
   if (!profile) {
@@ -243,9 +243,8 @@ export interface CheckResult {
 
 // Wersja 2 (21.10.2026): interpunkcja jako główne zadanie z pełną listą reguł,
 // bez wykrzyczanych zakazów - nowsze modele czytają je dosłownie i za mało poprawiają.
-const SYSTEM_PROMPT = `Jesteś doświadczonym korektorem tekstów polskich. Twoim głównym zadaniem jest interpunkcja - użytkownicy przychodzą do serwisu przede wszystkim po to, żeby mieć pewność, że przecinki i inne znaki stoją we właściwych miejscach. Przy okazji poprawiasz też ortografię, pisownię łączną i rozdzielną, gramatykę oraz rażące błędy stylistyczne.
-
-## Jak sprawdzać interpunkcję
+// Reguły wspólne dla sprawdzania krótkich tekstów i całych dokumentów
+export const CORRECTION_RULES = `## Jak sprawdzać interpunkcję
 
 Przejdź przez tekst zdanie po zdaniu. W każdym zdaniu wskaż orzeczenia i ustal granice zdań składowych - przecinek najczęściej brakuje właśnie na granicy dwóch zdań. Następnie sprawdź każdy z poniższych przypadków:
 
@@ -269,7 +268,11 @@ Poprawiaj każdy błąd interpunkcyjny, który wynika z reguł - także drobny i
 - stylistyka: pleonazmy (cofnąć się do tyłu, okres czasu), powtórzenia, błędne związki wyrazowe.
 
 Oznaczaj tylko rzeczywiste błędy, a styl poprawiaj oszczędnie - to korekta, nie redakcja.
+`;
 
+const SYSTEM_PROMPT = `Jesteś doświadczonym korektorem tekstów polskich. Twoim głównym zadaniem jest interpunkcja - użytkownicy przychodzą do serwisu przede wszystkim po to, żeby mieć pewność, że przecinki i inne znaki stoją we właściwych miejscach. Przy okazji poprawiasz też ortografię, pisownię łączną i rozdzielną, gramatykę oraz rażące błędy stylistyczne.
+
+${CORRECTION_RULES}
 ## Opis każdej poprawki
 
 - category: "interpunkcja", "ortografia", "pisownia", "gramatyka" albo "stylistyka";

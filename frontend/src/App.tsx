@@ -36,6 +36,7 @@ import { AdminArticles } from "./pages/admin/AdminArticles";
 import { AdminPurchases } from "./pages/admin/AdminPurchases";
 import { AdminCorrectionDebug } from "./pages/admin/AdminCorrectionDebug";
 import { AdminAPIAnalytics } from "./pages/admin/AdminAPIAnalytics";
+import { DocumentsPage } from "./pages/DocumentsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -118,6 +119,16 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <AccountPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/panel/dokumenty"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <DocumentsPage />
                     </Layout>
                   </ProtectedRoute>
                 }

@@ -40,7 +40,7 @@ Jeśli zdecydujesz się na rejestrację lub logowanie przez Google, pobieramy na
 Dane te są pobierane jednorazowo podczas pierwszego logowania przez Google i przechowywane w naszej bazie danych. Nie mamy dostępu do Twojego hasła Google ani innych danych z konta Google.
 
 **Dane transakcyjne:**
-- Historia płatności (dla użytkowników Premium)
+- Historia płatności (doładowania, korekta dokumentów)
 - Identyfikator klienta Stripe
 - Informacje o wybranym planie subskrypcji
 
@@ -137,8 +137,12 @@ W każdym przypadku zapewniamy odpowiedni poziom ochrony danych zgodny z wymogam
 - Po usunięciu konta dane są usuwane w ciągu 30 dni
 - Google ID i powiązane dane są usuwane wraz z kontem
 
+**Pliki przesłane do korekty dokumentu:**
+- 30 dni od przesłania - plik oryginalny i plik z poprawkami są potem trwale usuwane z serwera
+- Zostają wyłącznie dane rozliczeniowe zamówienia (nazwa pliku, liczba stron, cena, data)
+
 **Sprawdzane teksty (wszyscy użytkownicy):**
-- 90 dni od daty sprawdzenia - w tym czasie służą do wyświetlania historii (Premium/Lifetime) oraz do poprawy jakości usługi
+- 90 dni od daty sprawdzenia - w tym czasie służą do wyświetlania historii sprawdzeń oraz do poprawy jakości usługi
 - Po 90 dniach treść tekstu i wynik korekty są automatycznie usuwane; zostają wyłącznie dane statystyczne (liczba znaków i błędów, data)
 - Możesz poprosić o wcześniejsze usunięcie swoich tekstów, pisząc na adres kontaktowy
 
@@ -301,7 +305,7 @@ If you choose to register or sign in with Google, we collect the following data 
 This data is fetched once during your first Google sign-in and stored in our database. We do not have access to your Google password or any other data from your Google account.
 
 **Transaction Data:**
-- Payment history (for Premium users)
+- Payment history (top-ups, document proofreading)
 - Stripe customer identifier
 - Subscription plan information
 
@@ -398,8 +402,12 @@ In all cases, we ensure an adequate level of data protection in accordance with 
 - After deletion, data is removed within 30 days
 - Google ID and associated data are deleted along with the account
 
+**Files uploaded for document proofreading:**
+- 30 days from upload - the original file and the corrected file are then permanently deleted from the server
+- Only the order's billing data remains (file name, number of pages, price, date)
+
 **Checked texts (all users):**
-- 90 days from the check date - during this time they are used to display history (Premium/Lifetime) and to improve service quality
+- 90 days from the check date - during this time they are used to display check history and to improve service quality
 - After 90 days the text content and correction result are deleted automatically; only statistical data remains (character and error counts, date)
 - You may request earlier deletion of your texts by contacting us
 

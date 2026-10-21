@@ -200,7 +200,7 @@ export function TopUpModal({
           <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
             <li className="flex items-center gap-2">
               <Check className="w-3 h-3 text-green-500" />
-              Pełne wyjaśnienia błędów (jak Premium)
+              Teksty do 10 000 znaków na raz
             </li>
             <li className="flex items-center gap-2">
               <Check className="w-3 h-3 text-green-500" />

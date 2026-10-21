@@ -75,6 +75,14 @@ export function Header() {
             >
               Sprawdź tekst
             </a>
+            {isAuthenticated && (
+              <a
+                href="/panel/dokumenty"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Korekta dokumentu
+              </a>
+            )}
 
             {/* Zasady dropdown - TYLKO gdy niezalogowany */}
             {!isAuthenticated && (
@@ -238,6 +246,15 @@ export function Header() {
               >
                 Sprawdź tekst
               </a>
+              {isAuthenticated && (
+                <a
+                  href="/panel/dokumenty"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                >
+                  Korekta dokumentu
+                </a>
+              )}
 
               {/* Mobile categories - TYLKO gdy niezalogowany */}
               {!isAuthenticated && (

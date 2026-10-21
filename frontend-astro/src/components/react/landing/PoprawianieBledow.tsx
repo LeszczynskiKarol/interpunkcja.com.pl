@@ -20,13 +20,14 @@ import {
   Wrench,
   Hammer,
 } from "lucide-react";
+import { PricingTeaser } from "../PricingTeaser";
 
 // Dane FAQ i schema.org na poziomie modulu — uzywane tez w <head> strony Astro
 export const faq = [
   {
     question: "Jak szybko AI poprawia błędy w tekście?",
     answer:
-      "Nasz korektor AI poprawia błędy w kilkanaście sekund (do 10 000 znaków na raz w Premium). Sztuczna inteligencja Claude analizuje cały tekst jednocześnie, wykrywając błędy ortograficzne, interpunkcyjne i gramatyczne.",
+      "Nasz korektor AI poprawia błędy w kilkanaście sekund (do 10 000 znaków na raz z doładowaniem). Sztuczna inteligencja Claude analizuje cały tekst jednocześnie, wykrywając błędy ortograficzne, interpunkcyjne i gramatyczne.",
   },
   {
     question: "Jakie błędy potrafi poprawić korektor?",
@@ -36,7 +37,7 @@ export const faq = [
   {
     question: "Czy poprawianie błędów jest darmowe?",
     answer:
-      "Tak! Oferujemy darmowy plan z 2 sprawdzeniami dziennie (do 500 znaków każde). Dla intensywniejszego użycia polecamy Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i pełnymi wyjaśnieniami.",
+      "Tak. Darmowe konto daje 2 sprawdzenia AI dziennie (do 500 znaków każde) z wyjaśnieniem każdej poprawki, a sprawdzanie pisowni słownikiem działa bez limitu. Dłuższe teksty sprawdzisz po doładowaniu (od 5 zł za 10 sprawdzeń do 10 000 znaków), a całą pracę dyplomową albo inny dokument .docx - w pakiecie od 39 zł.",
   },
   {
     question: "Czy AI wyjaśnia poprawiane błędy?",
@@ -46,7 +47,7 @@ export const faq = [
   {
     question: "Czy mogę poprawić długi dokument?",
     answer:
-      "W planie Free możesz poprawiać do 500 znaków. Plan Premium i Lifetime pozwalają na poprawianie do 10 000 znaków na raz (około 5 stron A4). Dłuższe dokumenty możesz poprawiać częściami.",
+      "Na darmowym koncie AI sprawdzi naraz do 500 znaków, a z doładowaniem do 10 000 znaków (około 5 stron A4). Całą pracę albo dłuższy dokument wgrasz jako plik .docx w pakiecie od 39 zł - poprawki dostaniesz w trybie śledzenia zmian Worda, z komentarzem przy każdej.",
   },
   {
     question: "Czym różni się od korektora w Wordzie?",
@@ -455,7 +456,7 @@ export function PoprawianieBledow() {
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
               ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Wyniki w kilkanaście sekund &nbsp;
-              ✓ Lifetime 299 zł
+              ✓ Korekta całej pracy od 39 zł
             </p>
           </div>
         </header>
@@ -749,130 +750,7 @@ export function PoprawianieBledow() {
           </div>
         </section>
 
-        {/* Cennik */}
-        <section className="py-16 px-4 bg-white dark:bg-gray-800">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Cennik poprawiania błędów
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400">
-                Wybierz plan dopasowany do Twoich potrzeb
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Free */}
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Free
-                </h3>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                  0 zł
-                </div>
-                <ul className="space-y-3 mb-6 text-sm">
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />2 sprawdzenia
-                    dziennie
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Do 500 znaków
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Podstawowe poprawki
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-400">
-                    <X className="w-4 h-4" />
-                    Pełne wyjaśnienia
-                  </li>
-                </ul>
-                <Link
-                  to="/rejestracja"
-                  className="block w-full py-3 text-center bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                >
-                  Załóż darmowe konto
-                </Link>
-              </div>
-
-              {/* Premium */}
-              <div className="bg-gradient-to-br from-red-600 to-orange-600 rounded-2xl p-6 text-white relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
-                  POPULARNY
-                </div>
-                <h3 className="text-xl font-bold mb-2">Premium</h3>
-                <div className="text-4xl font-bold mb-1">29 zł</div>
-                <p className="text-red-100 text-sm mb-4">/miesiąc</p>
-                <ul className="space-y-3 mb-6 text-sm">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    100 poprawek dziennie
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    Do 10 000 znaków
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    Pełne wyjaśnienia
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    Historia poprawek
-                  </li>
-                </ul>
-                <Link
-                  to="/rejestracja"
-                  className="block w-full py-3 text-center bg-white text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Wybierz Premium
-                </Link>
-              </div>
-
-              {/* Lifetime */}
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border-2 border-amber-500 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                  <Infinity className="w-3 h-3" />
-                  LIFETIME
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Lifetime
-                </h3>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                  299 zł
-                </div>
-                <p className="text-amber-600 dark:text-amber-400 text-sm font-medium mb-4">
-                  Jednorazowo, na zawsze!
-                </p>
-                <ul className="space-y-3 mb-6 text-sm">
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Wszystko z Premium
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Dożywotni dostęp
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Bez limitów dziennych
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    VIP support
-                  </li>
-                </ul>
-                <Link
-                  to="/rejestracja"
-                  className="block w-full py-3 text-center bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors"
-                >
-                  Kup Lifetime
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        <PricingTeaser />
 
         {/* FAQ */}
         <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900/50">
@@ -977,7 +855,7 @@ export function PoprawianieBledow() {
             </Link>
             <p className="text-red-100 mt-6 text-sm">
               ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Wyniki w kilkanaście sekund &nbsp;
-              ✓ Lifetime 299 zł
+              ✓ Korekta całej pracy od 39 zł
             </p>
           </div>
         </section>

@@ -36,7 +36,8 @@ export function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Sprawdź czy użytkownik ma dostęp do historii
-  const hasAccess = user?.plan === "PREMIUM" || user?.plan === "LIFETIME";
+  // Historia dostępna dla wszystkich kont (wcześniej tylko Premium/Lifetime)
+  const hasAccess = !!user;
 
   const {
     data: history,
@@ -72,14 +73,13 @@ export function HistoryPage() {
             Historia sprawdzeń
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Historia sprawdzeń jest dostępna tylko dla użytkowników Premium i
-            Lifetime.
+            Zaloguj się, aby zobaczyć historię sprawdzeń.
           </p>
           <a
             href="/cennik"
             className="inline-block px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Przejdź na Premium →
+            Zobacz cennik →
           </a>
         </div>
       </div>

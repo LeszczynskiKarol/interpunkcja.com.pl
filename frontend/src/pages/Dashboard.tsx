@@ -71,27 +71,27 @@ export function Dashboard() {
         <Checker />
       </main>
 
-      {/* Upgrade CTA for free users */}
-      {user?.plan === "FREE" && (
+      {/* Korekta całego dokumentu */}
+      {(
         <section className="px-4 pb-8">
           <div className="max-w-4xl mx-auto">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold mb-2">
-                    Potrzebujesz więcej sprawdzeń?
+                    Masz pracę dyplomową albo dłuższy dokument?
                   </h3>
                   <p className="text-blue-100">
-                    Przejdź na Premium i korzystaj bez ograniczeń: 100 sprawdzeń
-                    dziennie, do 10 000 znaków!
+                    Wgraj plik .docx - odeślemy go z poprawkami w trybie śledzenia
+                    zmian i komentarzem przy każdej. Od 39 zł.
                   </p>
                 </div>
-                <a
-                  href="/cennik"
+                <Link
+                  to="/panel/dokumenty"
                   className="flex-shrink-0 px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
                 >
-                  Zobacz cennik →
-                </a>
+                  Sprawdź dokument →
+                </Link>
               </div>
             </div>
           </div>

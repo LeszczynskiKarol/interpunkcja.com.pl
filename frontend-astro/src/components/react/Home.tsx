@@ -25,6 +25,7 @@ import {
   Infinity,
 } from "lucide-react";
 import { PunctuationDemo } from "./PunctuationDemo";
+import { PricingTeaser } from "./PricingTeaser";
 
 interface Category {
   id: string;
@@ -97,7 +98,7 @@ export function Home({ categories, latestArticles, children }: HomeProps) {
       icon: FileText,
       title: "Długie teksty do 10 000 znaków",
       description:
-        "Plan Premium pozwala sprawdzać nawet bardzo długie dokumenty - artykuły, prace naukowe, raporty.",
+        "Całe dokumenty - prace dyplomowe, artykuły, raporty - sprawdzisz jako plik .docx z poprawkami w trybie śledzenia zmian Worda.",
     },
   ];
 
@@ -183,9 +184,9 @@ export function Home({ categories, latestArticles, children }: HomeProps) {
       us: "Do 10 000 znaków",
     },
     {
-      aspect: "Cena lifetime",
-      others: "Brak opcji",
-      us: "299 zł na zawsze",
+      aspect: "Korekta całej pracy",
+      others: "Ręcznie, akapit po akapicie",
+      us: "Plik .docx ze zmianami śledzonymi, od 39 zł",
     },
   ];
 
@@ -203,7 +204,7 @@ export function Home({ categories, latestArticles, children }: HomeProps) {
     {
       question: "Ile kosztuje korzystanie z korektora?",
       answer:
-        "Oferujemy darmowy plan z 2 sprawdzeniami dziennie (do 500 znaków). Plan Premium kosztuje 29 zł/miesiąc i daje 100 sprawdzeń dziennie do 10 000 znaków. Mamy też plan Lifetime za jednorazowe 299 zł - płacisz raz, korzystasz na zawsze!",
+        "Darmowe konto daje 2 sprawdzenia AI dziennie (do 500 znaków każde) z wyjaśnieniem każdej poprawki, a sprawdzanie pisowni słownikiem działa bez limitu. Dłuższe teksty sprawdzisz po doładowaniu (od 5 zł za 10 sprawdzeń do 10 000 znaków), a całą pracę dyplomową albo inny dokument .docx - w pakiecie od 39 zł.",
     },
     {
       question: "Jakie błędy interpunkcyjne wykrywa AI?",
@@ -213,7 +214,7 @@ export function Home({ categories, latestArticles, children }: HomeProps) {
     {
       question: "Czy mogę sprawdzać długie dokumenty?",
       answer:
-        "W planie FREE możesz sprawdzać teksty do 500 znaków. Plan Premium i Lifetime pozwalają na sprawdzanie tekstów do 10 000 znaków na raz - to około 5 stron A4.",
+        "Na darmowym koncie AI sprawdzi naraz do 500 znaków, a z doładowaniem do 10 000 znaków (około 5 stron A4). Całą pracę albo dłuższy dokument wgrasz jako plik .docx w pakiecie od 39 zł - poprawki dostaniesz w trybie śledzenia zmian Worda, z komentarzem przy każdej.",
     },
     {
       question: "Czym różni się od innych korektorów?",
@@ -225,7 +226,7 @@ export function Home({ categories, latestArticles, children }: HomeProps) {
   const stats = [
     { value: "90+", label: "Artykułów o zasadach" },
     { value: "100%", label: "Po polsku" },
-    { value: "10 000", label: "Znaków na raz (Premium)" },
+    { value: "10 000", label: "Znaków na raz (doładowanie)" },
     { value: "24/7", label: "Dostępność" },
   ];
 
@@ -614,147 +615,7 @@ export function Home({ categories, latestArticles, children }: HomeProps) {
           </section>
         )}
 
-        {/* Pricing Section */}
-        <section className="py-20 px-4 bg-white dark:bg-gray-800">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Prosty i przejrzysty cennik
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400">
-                Wybierz plan dopasowany do Twoich potrzeb
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Free */}
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Free
-                </h3>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                  0 zł
-                </div>
-                <ul className="space-y-3 mb-6 text-sm">
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />2 sprawdzenia
-                    dziennie
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Do 500 znaków
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Podstawowe poprawki
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
-                    <X className="w-4 h-4" />
-                    Pełne wyjaśnienia
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
-                    <X className="w-4 h-4" />
-                    Historia sprawdzeń
-                  </li>
-                </ul>
-                <Link
-                  to="/rejestracja"
-                  className="block w-full py-3 text-center bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                >
-                  Załóż darmowe konto
-                </Link>
-              </div>
-
-              {/* Premium */}
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-6 text-white relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
-                  POPULARNY
-                </div>
-                <h3 className="text-xl font-bold mb-2">Premium</h3>
-                <div className="text-4xl font-bold mb-1">
-                  29 zł
-                  <span className="text-lg font-normal opacity-80">/mies</span>
-                </div>
-                <p className="text-blue-100 text-sm mb-4">
-                  lub 290 zł/rok (oszczędzasz 17%)
-                </p>
-                <ul className="space-y-3 mb-6 text-sm">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    100 sprawdzeń dziennie
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    Do 10 000 znaków
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    Pełne wyjaśnienia reguł
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    Historia sprawdzeń
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4" />
-                    Priorytetowe wsparcie
-                  </li>
-                </ul>
-                <Link
-                  to="/rejestracja"
-                  className="block w-full py-3 text-center bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-colors"
-                >
-                  Wybierz Premium
-                </Link>
-              </div>
-
-              {/* Lifetime */}
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border-2 border-green-500 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                  <Infinity className="w-3 h-3" />
-                  LIFETIME
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Lifetime
-                </h3>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                  299 zł
-                </div>
-                <p className="text-green-600 dark:text-green-400 text-sm font-medium mb-4">
-                  Jednorazowo, na zawsze!
-                </p>
-                <ul className="space-y-3 mb-6 text-sm">
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Wszystko z Premium
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Dożywotni dostęp
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Wszystkie przyszłe funkcje
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    Bez miesięcznych opłat
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />
-                    VIP support
-                  </li>
-                </ul>
-                <Link
-                  to="/rejestracja"
-                  className="block w-full py-3 text-center bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Kup Lifetime
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        <PricingTeaser />
 
         {/* Latest Articles */}
         {latestArticles?.articles && latestArticles.articles.length > 0 && (
@@ -853,7 +714,7 @@ export function Home({ categories, latestArticles, children }: HomeProps) {
             </Link>
             <p className="text-blue-100 mt-6 text-sm">
               ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
-              &nbsp; ✓ Plan Lifetime 299 zł
+              &nbsp; ✓ Korekta całej pracy od 39 zł
             </p>
           </div>
         </section>
