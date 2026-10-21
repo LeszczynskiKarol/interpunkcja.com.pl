@@ -39,6 +39,11 @@ export class GuestCheckRefused extends Error {
 
 // Zapytania w toku - blokują równoległe żądania z jednego IP, zanim trafią do bazy
 const inFlight = new Set<string>();
+// Sprawdzenia w toku z wszystkich adresów. AI pracuje kilka sekund, a wiersz trafia
+// do bazy dopiero po odpowiedzi - bez tej rezerwacji wiele równoczesnych zapytań
+// z różnych adresów przechodziło limit łączny i pułap kosztu, zanim którekolwiek
+// zostało policzone. Backend działa w jednym procesie, więc licznik w pamięci wystarcza.
+let globalInFlight = 0;
 
 export function guestEnabled(): boolean {
   return !!process.env.ANTHROPIC_API_KEY_GUEST && !!process.env.RECAPTCHA_SECRET_KEY;
@@ -94,15 +99,15 @@ async function assertGlobalLimits() {
   ]);
 
   const cap = dailyCostCap();
-  if (cost + COST_RESERVE_USD > cap) {
+  if (cost + globalInFlight * COST_RESERVE_USD > cap) {
     notifyOnce("cost", `osiągnięty pułap kosztu ${cap} USD / 24 h (wydane ${cost.toFixed(3)} USD). Goście dostają tylko słownik.`);
     throw new GuestCheckRefused("GUEST_LIMIT_GLOBAL");
   }
-  if (lastDay >= daily) {
+  if (lastDay + globalInFlight > daily) {
     notifyOnce("daily", `wyczerpany limit dzienny ${daily} sprawdzeń (30% wczorajszych użytkowników sprawdzania pisowni).`);
     throw new GuestCheckRefused("GUEST_LIMIT_GLOBAL");
   }
-  if (lastHour >= hourly) {
+  if (lastHour + globalInFlight > hourly) {
     notifyOnce("hourly", `wyczerpany limit godzinowy ${hourly} sprawdzeń - nagły wzrost ruchu.`);
     throw new GuestCheckRefused("GUEST_LIMIT_GLOBAL");
   }
@@ -140,28 +145,40 @@ export async function runGuestCheck(params: {
     if (!captcha.success) throw new GuestCheckRefused("RECAPTCHA_FAILED");
 
     await assertPersonalLimits(ip, visitorId);
-    await assertGlobalLimits();
 
-    const result = await checkPunctuation(text, { apiKey: process.env.ANTHROPIC_API_KEY_GUEST });
-
-    await prisma.check.create({
-      data: {
-        userId: null,
-        visitorId,
-        ipAddress: ip,
-        originalText: text,
-        correctedText: result.correctedText,
-        corrections: JSON.parse(JSON.stringify(result.corrections)),
-        charCount: text.length,
-        errorCount: result.errorCount,
-        metadata: result._debug
-          ? JSON.parse(JSON.stringify({ ...result._debug, summary: result.summary, guest: true }))
-          : undefined,
-      },
-    });
-
-    return result;
+    // Rezerwacja przed sprawdzeniem limitu łącznego: inkrementacja jest synchroniczna,
+    // więc równoległe zapytania widzą swoje rezerwacje mimo await w środku
+    globalInFlight++;
+    try {
+      await assertGlobalLimits();
+      return await runReserved(text, ip, visitorId);
+    } finally {
+      globalInFlight--;
+    }
   } finally {
     inFlight.delete(ip);
   }
+}
+
+// Wywołanie AI i zapis - wiersz trafia do bazy, zanim rezerwacja zostanie zwolniona
+async function runReserved(text: string, ip: string, visitorId: string): Promise<CheckResult> {
+  const result = await checkPunctuation(text, { apiKey: process.env.ANTHROPIC_API_KEY_GUEST });
+
+  await prisma.check.create({
+    data: {
+      userId: null,
+      visitorId,
+      ipAddress: ip,
+      originalText: text,
+      correctedText: result.correctedText,
+      corrections: JSON.parse(JSON.stringify(result.corrections)),
+      charCount: text.length,
+      errorCount: result.errorCount,
+      metadata: result._debug
+        ? JSON.parse(JSON.stringify({ ...result._debug, summary: result.summary, guest: true }))
+        : undefined,
+    },
+  });
+
+  return result;
 }

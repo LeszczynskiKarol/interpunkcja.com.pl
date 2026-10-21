@@ -69,6 +69,12 @@ export async function verifyRecaptcha(
       };
     }
 
+    // Token wydany dla innej strony (np. przechwycony z innej witryny z tym kluczem)
+    if (data.hostname && !/(^|\.)interpunkcja\.com\.pl$|^localhost$/.test(data.hostname)) {
+      console.warn(`reCAPTCHA hostname mismatch: ${data.hostname}`);
+      return { success: false, error: "Hostname mismatch" };
+    }
+
     // Sprawdź akcję (opcjonalnie)
     if (expectedAction && data.action !== expectedAction) {
       console.warn(

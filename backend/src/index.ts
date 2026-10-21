@@ -27,7 +27,11 @@ dotenv.config();
 const fastify = Fastify({
   logger: true,
   disableRequestLogging: true,
-  trustProxy: true,
+  // Tylko nginx z localhosta. Przy `true` request.ip był pierwszym adresem z
+  // X-Forwarded-For, który klient może wpisać sam - każdy limit per IP dało się
+  // obejść podrobionym nagłówkiem (sprawdzone 21.10.2026). Z listą zaufanych
+  // Fastify bierze ostatni adres, czyli ten dopisany przez nginx.
+  trustProxy: ["127.0.0.1", "::1"],
 });
 
 async function start() {
@@ -86,6 +90,23 @@ async function start() {
         message: "Błąd walidacji danych",
         details: JSON.parse(error.message),
       });
+    }
+
+    const statusCode = (error as any).statusCode as number | undefined;
+    if (statusCode === 429) {
+      return reply.status(429).send({
+        error: "RATE_LIMIT",
+        message: "Za dużo zapytań w krótkim czasie. Spróbuj ponownie za minutę.",
+      });
+    }
+    if (statusCode === 413) {
+      return reply.status(413).send({
+        error: "FILE_TOO_LARGE",
+        message: "Plik jest większy niż 15 MB",
+      });
+    }
+    if (statusCode && statusCode >= 400 && statusCode < 500) {
+      return reply.status(statusCode).send({ error: "BAD_REQUEST", message: error.message });
     }
 
     fastify.log.error(error);
