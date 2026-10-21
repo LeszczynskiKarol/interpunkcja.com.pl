@@ -98,17 +98,19 @@ async function assertGlobalLimits() {
     guestCostSince(new Date(now - DAY_MS)),
   ]);
 
-  const cap = dailyCostCap();
-  if (cost + globalInFlight * COST_RESERVE_USD > cap) {
-    notifyOnce("cost", `osiągnięty pułap kosztu ${cap} USD / 24 h (wydane ${cost.toFixed(3)} USD). Goście dostają tylko słownik.`);
+  // Najpierw limity liczby sprawdzeń - przy nagłej fali zapytań to one powinny
+  // zadziałać i trafić do alertu, a nie pułap kosztu liczony z samych rezerwacji
+  if (lastHour + globalInFlight > hourly) {
+    notifyOnce("hourly", `wyczerpany limit godzinowy ${hourly} sprawdzeń - nagły wzrost ruchu.`);
     throw new GuestCheckRefused("GUEST_LIMIT_GLOBAL");
   }
   if (lastDay + globalInFlight > daily) {
     notifyOnce("daily", `wyczerpany limit dzienny ${daily} sprawdzeń (30% wczorajszych użytkowników sprawdzania pisowni).`);
     throw new GuestCheckRefused("GUEST_LIMIT_GLOBAL");
   }
-  if (lastHour + globalInFlight > hourly) {
-    notifyOnce("hourly", `wyczerpany limit godzinowy ${hourly} sprawdzeń - nagły wzrost ruchu.`);
+  const cap = dailyCostCap();
+  if (cost + globalInFlight * COST_RESERVE_USD > cap) {
+    notifyOnce("cost", `osiągnięty pułap kosztu ${cap} USD / 24 h (wydane ${cost.toFixed(3)} USD, w toku ${globalInFlight}). Goście dostają tylko słownik.`);
     throw new GuestCheckRefused("GUEST_LIMIT_GLOBAL");
   }
 }
