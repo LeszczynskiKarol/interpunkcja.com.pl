@@ -37,6 +37,35 @@ const SPLIT_PREFIXES = new Set([
 ]);
 const CACHE_LIMIT = 20000;
 
+// Reforma pisowni od 1.01.2026 - słownik pl_PL jej nie zna. Przedrostki piszemy
+// łącznie (nibyartysta, quasinauka, półżartem, superpomysł), łącznik zostaje
+// tylko przed wielką literą (niby-Polak).
+const REFORM_PREFIXES = ["quasi", "ekstra", "super", "niby", "mega", "mini", "eko", "pół"];
+// "nie" łącznie z przymiotnikami i przysłówkami w stopniu wyższym i najwyższym
+// (niemilszy, nienajlepszy, nielepiej). Tylko te końcówki - inaczej przeszłoby
+// też "niewiem".
+const COMPARATIVE = /^(naj\p{L}{3,}|\p{L}{2,}(szy|sza|sze|szego|szej|szemu|szym|szych|szymi|szą|iej|ej))$/u;
+const NOT_COMPARATIVE = new Set(["więcej", "mniej", "bardziej", "najwięcej", "najmniej", "najbardziej"]);
+
+// Druga część słowa, które według reformy jest poprawne, o ile ta część jest poprawna
+function reformRest(word: string): string | null {
+  const lower = word.toLowerCase();
+  const prefix = REFORM_PREFIXES.find((p) => lower.startsWith(p) && lower.length - p.length >= 3);
+  if (prefix && /^\p{Ll}/u.test(word.slice(prefix.length))) return word.slice(prefix.length);
+  if (lower.startsWith("nie")) {
+    const rest = lower.slice(3);
+    if (COMPARATIVE.test(rest) && !NOT_COMPARATIVE.has(rest)) return rest;
+  }
+  return null;
+}
+
+// Dawny zapis z łącznikiem przed małą literą (niby-artysta, super-oferta)
+function oldHyphenated(word: string): string | null {
+  const m = /^(\p{L}+)-(\p{Ll}\p{L}*)$/u.exec(word);
+  if (!m || !REFORM_PREFIXES.includes(m[1].toLowerCase())) return null;
+  return m[1] + m[2];
+}
+
 // Wynik dla pojedynczego słowa: null = poprawne, tablica = podpowiedzi
 const cache = new Map<string, string[] | null>();
 
@@ -157,6 +186,23 @@ export async function checkSpelling(text: string): Promise<SpellingIssue[]> {
       if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value as string);
       cache.set(w, parseLine(lines[i], w));
     });
+
+    // Słowa odrzucone przez słownik, ale poprawne po reformie 2026
+    const candidates = unknown
+      .map((w) => ({ w, rest: cache.get(w) !== null ? reformRest(w) : null }))
+      .filter((c): c is { w: string; rest: string } => c.rest !== null);
+    if (candidates.length) {
+      const rests = [...new Set(candidates.map((c) => c.rest))];
+      const restLines = await queryWords(rests);
+      if (restLines.length === rests.length) {
+        const ok = new Set(rests.filter((r, i) => parseLine(restLines[i], r) === null));
+        for (const c of candidates) if (ok.has(c.rest)) cache.set(c.w, null);
+      }
+    }
+    for (const w of unknown) {
+      const joined = oldHyphenated(w);
+      if (joined && cache.get(w) === null) cache.set(w, [joined]);
+    }
   }
 
   return tokens

@@ -268,6 +268,23 @@ Poprawiaj każdy błąd interpunkcyjny, który wynika z reguł - także drobny i
 - stylistyka: pleonazmy (cofnąć się do tyłu, okres czasu), powtórzenia, błędne związki wyrazowe.
 
 Oznaczaj tylko rzeczywiste błędy, a styl poprawiaj oszczędnie - to korekta, nie redakcja.
+
+## Zmiany w pisowni obowiązujące od 1 stycznia 2026 r.
+
+Stosuj zasady w wersji Rady Języka Polskiego obowiązującej od 1.01.2026. Starsze słowniki i nawyki podpowiadają tu dawne formy - nie poprawiaj nowych form na stare:
+
+- nazwy mieszkańców miast i osiedli wielką literą: Warszawianin, Krakowianka, Gdańszczanie;
+- nazwy marek i firm użyte jako nazwy produktów wielką literą: jeździ czerwonym Fordem, pije Coca-Colę;
+- przymiotniki od imion i nazwisk na -ski, -cki małą literą (szekspirowski, mickiewiczowski styl); przymiotniki dzierżawcze na -owy, -in, -ów wolno pisać wielką albo małą (Zosina lalka i zosina lalka, Tadeuszowy dom i tadeuszowy dom) - obu wersji nie poprawiaj;
+- "czy by" zawsze rozdzielnie, tak jak "czy" z innymi wyrazami;
+- "nie" z imiesłowami przymiotnikowymi zawsze łącznie, także gdy imiesłów ma znaczenie czasownikowe (niepalący, nieprzeczytana książka, niezrobione zadanie);
+- "nie" z przymiotnikami i przysłówkami odprzymiotnikowymi łącznie także w stopniu wyższym i najwyższym (niemilszy, nienajlepszy, nielepiej, nieprędzej); rozdzielna pisownia zostaje w wyraźnych przeciwstawieniach (nie lepszy, lecz gorszy) - takich miejsc nie zmieniaj;
+- "pół" łącznie z wyrazem (półżartem, półserio, półprzytomny), z łącznikiem przed wielką literą (pół-Polka);
+- przedrostki łącznie, także niby- i quasi- (nibyartysta, quasinauka); łącznik tylko przed wielką literą (niby-Polak, super-Europejczyk); super, ekstra, mini, mega, eko wolno też pisać osobno (super pomysł, ekstra oferta), ale nie z łącznikiem;
+- "tuż-tuż", "tuż, tuż" i "tuż tuż" - wszystkie trzy zapisy poprawne;
+- wielką literą wszystkie człony nazw: obiektów miejskich (Plac Zbawiciela, Park Kościuszki, Most Poniatowskiego - ale ulica, aleja, rondo nadal małą: ulica Długa, aleja Róż), lokali i obiektów (Kawiarnia Literacka), nagród i wyróżnień (Nagroda Nobla), ciał niebieskich (Kometa Halleya); nazwy geograficzne z wyrazem pospolitym bez zmian (cieśnina Bosfor, jezioro Śniardwy).
+
+Jeśli autor użył formy sprzed 2026 r., która jest teraz błędna, popraw ją w kategorii "pisownia" lub "ortografia" i w wyjaśnieniu napisz, że to zasada obowiązująca od 1 stycznia 2026 r.
 `;
 
 const SYSTEM_PROMPT = `Jesteś doświadczonym korektorem tekstów polskich. Twoim głównym zadaniem jest interpunkcja - użytkownicy przychodzą do serwisu przede wszystkim po to, żeby mieć pewność, że przecinki i inne znaki stoją we właściwych miejscach. Przy okazji poprawiasz też ortografię, pisownię łączną i rozdzielną, gramatykę oraz rażące błędy stylistyczne.
