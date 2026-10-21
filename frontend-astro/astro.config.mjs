@@ -24,6 +24,16 @@ export default defineConfig({
     inlineStylesheets: "always",
   },
   vite: {
+    // Tylko `astro dev`: zapytania przeglądarki do /api (np. sprawdzanie
+    // pisowni) idą do lokalnego backendu albo - z DEV_API_PROXY - do prod
+    server: {
+      proxy: {
+        "/api": {
+          target: process.env.DEV_API_PROXY || "http://localhost:3000",
+          changeOrigin: true,
+        },
+      },
+    },
     resolve: {
       alias: {
         // Komponenty stron są skopiowane 1:1 z SPA (frontend/), więc importują

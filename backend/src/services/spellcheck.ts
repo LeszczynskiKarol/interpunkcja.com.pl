@@ -12,6 +12,12 @@ export interface SpellingIssue {
 }
 
 const MAX_SUGGESTIONS = 5;
+
+// Pierwsze człony typowych błędów pisowni łącznej ("napewno", "wogóle", "niewiem")
+const SPLIT_PREFIXES = new Set([
+  "w", "we", "z", "ze", "na", "po", "do", "od", "za", "o", "u", "przy", "przed",
+  "nad", "pod", "bez", "dla", "nie", "co", "jak", "ani", "by",
+]);
 const CACHE_LIMIT = 20000;
 
 // Wynik dla pojedynczego słowa: null = poprawne, tablica = podpowiedzi
@@ -94,8 +100,16 @@ function parseLine(line: string, word: string): string[] | null {
       .split(", ")
       .filter((s) => s && (word.includes("-") || !s.includes("-")));
     // Pisownia rozdzielna ("wogóle" -> "w ogóle") to najczęstszy przypadek,
-    // a Hunspell podaje ją zwykle dalej na liście
-    const split = list.filter((s) => s.replace(/ /g, "") === word);
+    // a Hunspell podaje ją zwykle dalej na liście. Tylko gdy pierwszy człon to
+    // przyimek lub partykuła - inaczej wygrywały rozbicia typu "wo gole".
+    const split = list.filter((s) => {
+      const [first, ...rest] = s.split(" ");
+      return (
+        rest.length > 0 &&
+        s.replace(/ /g, "") === word &&
+        SPLIT_PREFIXES.has(first.toLowerCase())
+      );
+    });
     return [...split, ...list.filter((s) => !split.includes(s))].slice(0, MAX_SUGGESTIONS);
   }
   return []; // "#" - brak podpowiedzi
