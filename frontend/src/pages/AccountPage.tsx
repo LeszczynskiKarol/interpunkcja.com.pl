@@ -312,7 +312,7 @@ function PlanTab() {
       name: "Free",
       price: "0 zł",
       features: [
-        "5 sprawdzeń dziennie",
+        "2 sprawdzenia dziennie",
         "Do 500 znaków",
         "Podstawowe poprawki",
       ],

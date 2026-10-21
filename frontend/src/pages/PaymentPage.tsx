@@ -219,12 +219,12 @@ export function PaymentPage() {
                 <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium text-gray-700 dark:text-gray-300">
                   Mastercard
                 </div>
-                <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium text-gray-700 dark:text-gray-300">
-                  BLIK
-                </div>
-                <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Przelewy24
-                </div>
+                {/* BLIK nie obsługuje subskrypcji - tylko Lifetime */}
+                {selectedPlan.id === "lifetime" && (
+                  <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium text-gray-700 dark:text-gray-300">
+                    BLIK
+                  </div>
+                )}
               </div>
             </div>
 

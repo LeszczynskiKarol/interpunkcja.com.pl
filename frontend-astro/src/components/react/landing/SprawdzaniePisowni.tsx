@@ -33,12 +33,12 @@ export const faq = [
   {
     question: "Jak działa sprawdzanie pisowni online?",
     answer:
-      "Nasz korektor wykorzystuje sztuczną inteligencję Claude do analizy tekstu. W przeciwieństwie do tradycyjnych słownikowych korektorów, AI analizuje kontekst całego zdania, rozumie znaczenie i wykrywa błędy, które inne narzędzia pomijają. Sprawdzenie tekstu zajmuje 2-3 sekundy.",
+      "Nasz korektor wykorzystuje sztuczną inteligencję Claude do analizy tekstu. W przeciwieństwie do tradycyjnych słownikowych korektorów, AI analizuje kontekst całego zdania, rozumie znaczenie i wykrywa błędy, które inne narzędzia pomijają. Sprawdzenie tekstu zajmuje kilkanaście sekund.",
   },
   {
     question: "Czy sprawdzanie pisowni jest darmowe?",
     answer:
-      "Tak! Oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków każde). To wystarczy do sprawdzenia emaili, postów czy krótkich tekstów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
+      "Tak! Oferujemy darmowy plan z 2 sprawdzeniami dziennie (do 500 znaków każde). To wystarczy do sprawdzenia emaili, postów czy krótkich tekstów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
   },
   {
     question: "Jakie błędy wykrywa korektor pisowni?",
@@ -58,7 +58,7 @@ export const faq = [
   {
     question: "Czy moje teksty są bezpieczne?",
     answer:
-      "Absolutnie tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane na serwerach po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest dla nas priorytetem.",
+      "Tak. Tekst trafia wyłącznie do modelu AI, który go sprawdza (Anthropic), i nie jest używany do trenowania modeli. Nie udostępniamy go innym firmom ani osobom. Szczegóły znajdziesz w polityce prywatności.",
   },
   {
     question: "Czym różni się od korektora w Wordzie?",
@@ -256,15 +256,10 @@ export function SprawdzaniePisowni() {
 
   // Statystyki błędów
   const errorStats = [
-    { type: "Przecinki", percent: 45, desc: "Najczęstszy typ błędów" },
-    {
-      type: "Pisownia łączna/rozdzielna",
-      percent: 25,
-      desc: "np. naprawdę, na pewno",
-    },
-    { type: "Literówki", percent: 15, desc: "Przypadkowe pomyłki" },
-    { type: "Ortografia ó/u, rz/ż", percent: 10, desc: "Klasyczne błędy" },
-    { type: "Inne", percent: 5, desc: "Gramatyka, stylistyka" },
+    { type: "Interpunkcja", percent: 82, desc: "przecinki, myślniki, cudzysłowy" },
+    { type: "Ortografia", percent: 9, desc: "ó/u, rz/ż, ch/h, wielkie litery" },
+    { type: "Gramatyka", percent: 5, desc: "odmiana, składnia" },
+    { type: "Stylistyka", percent: 4, desc: "powtórzenia, szyk zdania" },
   ];
 
   // FAQ
@@ -280,7 +275,7 @@ export function SprawdzaniePisowni() {
         </title>
         <meta
           name="description"
-          content="✓ Sprawdź pisownię online za darmo! Korektor pisowni AI wykrywa błędy ortograficzne, interpunkcyjne i gramatyczne. Sprawdzanie tekstu w 3 sekundy z wyjaśnieniami."
+          content="✓ Sprawdź pisownię online za darmo! Korektor pisowni AI wykrywa błędy ortograficzne, interpunkcyjne i gramatyczne. Sprawdzanie tekstu w kilkanaście sekund z wyjaśnieniami."
         />
         <meta
           name="keywords"
@@ -314,7 +309,7 @@ export function SprawdzaniePisowni() {
         />
         <meta
           name="twitter:description"
-          content="Korektor pisowni AI - sprawdź tekst w 3 sekundy!"
+          content="Korektor pisowni AI - sprawdź tekst w kilkanaście sekund!"
         />
 
         <meta name="robots" content="index, follow" />
@@ -408,8 +403,8 @@ export function SprawdzaniePisowni() {
             )}
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Bez karty kredytowej
-              &nbsp; ✓ Wyniki w 3 sekundy
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Bez karty kredytowej
+              &nbsp; ✓ Wyniki w kilkanaście sekund
             </p>
           </div>
         </header>
@@ -636,7 +631,7 @@ export function SprawdzaniePisowni() {
                 Statystyki błędów w tekstach
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-400">
-                Na podstawie analizy tysięcy sprawdzonych dokumentów
+                Udział typów błędów w poprawkach z ponad 200 tekstów sprawdzonych w serwisie
               </p>
             </div>
 
@@ -821,7 +816,7 @@ export function SprawdzaniePisowni() {
                 </div>
                 <ul className="space-y-3 mb-6 text-sm">
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />5 sprawdzeń
+                    <Check className="w-4 h-4 text-green-500" />2 sprawdzenia
                     dziennie
                   </li>
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
@@ -1025,7 +1020,7 @@ export function SprawdzaniePisowni() {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <p className="text-blue-100 mt-6 text-sm">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Bez karty kredytowej
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Bez karty kredytowej
               &nbsp; ✓ Lifetime 299 zł
             </p>
           </div>

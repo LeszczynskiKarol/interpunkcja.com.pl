@@ -21,7 +21,7 @@ export const LIMITS: Record<Plan, PlanLimits> = {
     maxChecksPerDay: 2,
     maxChecksPerMonth: 20,
     maxCharsPerDay: 1000,
-    showExplanations: false,
+    showExplanations: true,
     saveHistory: false,
   },
   PREMIUM: {

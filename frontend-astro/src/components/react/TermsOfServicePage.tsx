@@ -162,8 +162,7 @@ Plan Free (bezpłatny):
 
 2. Dostępne metody płatności:
    a) Karta płatnicza (Visa, Mastercard)
-   b) BLIK
-   c) Przelewy24
+   b) BLIK - wyłącznie przy płatnościach jednorazowych (Plan Lifetime, doładowania)
 
 3. Plan Premium:
    a) Jest subskrypcją odnawianą co miesiąc
@@ -453,8 +452,7 @@ Plan Free (bezpłatny):
 
 2. Available payment methods:
    a) Credit/debit card (Visa, Mastercard)
-   b) BLIK
-   c) Przelewy24
+   b) BLIK - only for one-time payments (Lifetime Plan, top-ups)
 
 3. Premium Plan:
    a) Is a subscription renewed monthly

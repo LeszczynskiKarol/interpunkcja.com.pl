@@ -63,7 +63,7 @@ export function Home({ categories, latestArticles }: HomeProps) {
       icon: Brain,
       title: "Sztuczna inteligencja Claude",
       description:
-        "Wykorzystujemy najnowszy model AI Claude do analizy tekstu - ten sam, któremu ufają największe firmy na świecie.",
+        "Tekst analizuje model AI Claude firmy Anthropic, który rozumie kontekst całego zdania, a nie tylko pojedyncze słowa.",
     },
     {
       icon: Lightbulb,
@@ -87,7 +87,7 @@ export function Home({ categories, latestArticles }: HomeProps) {
       icon: Shield,
       title: "Prywatność i bezpieczeństwo",
       description:
-        "Twoje teksty nie są przechowywane ani udostępniane. Sprawdzanie odbywa się w pełni poufnie.",
+        "Tekst sprawdza wyłącznie model AI. Nie udostępniamy go nikomu i nie służy do trenowania modeli.",
     },
     {
       icon: FileText,
@@ -194,12 +194,12 @@ export function Home({ categories, latestArticles }: HomeProps) {
     {
       question: "Czy moje teksty są bezpieczne?",
       answer:
-        "Tak! Twoje teksty są przetwarzane w czasie rzeczywistym i nie są nigdzie przechowywane. Po zamknięciu strony wszystkie dane są usuwane. Dbamy o Twoją prywatność.",
+        "Tak. Tekst trafia wyłącznie do modelu AI, który go sprawdza (Anthropic), i nie jest używany do trenowania modeli. Nie udostępniamy go innym firmom ani osobom. Szczegóły znajdziesz w polityce prywatności.",
     },
     {
       question: "Ile kosztuje korzystanie z korektora?",
       answer:
-        "Oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków). Plan Premium kosztuje 29 zł/miesiąc i daje 100 sprawdzeń dziennie do 10 000 znaków. Mamy też plan Lifetime za jednorazowe 299 zł - płacisz raz, korzystasz na zawsze!",
+        "Oferujemy darmowy plan z 2 sprawdzeniami dziennie (do 500 znaków). Plan Premium kosztuje 29 zł/miesiąc i daje 100 sprawdzeń dziennie do 10 000 znaków. Mamy też plan Lifetime za jednorazowe 299 zł - płacisz raz, korzystasz na zawsze!",
     },
     {
       question: "Jakie błędy interpunkcyjne wykrywa AI?",
@@ -219,9 +219,9 @@ export function Home({ categories, latestArticles }: HomeProps) {
   ];
 
   const stats = [
-    { value: "5000+", label: "Sprawdzonych tekstów" },
-    { value: "99%", label: "Dokładność AI" },
-    { value: "3 sek", label: "Średni czas analizy" },
+    { value: "90+", label: "Artykułów o zasadach" },
+    { value: "100%", label: "Po polsku" },
+    { value: "10 000", label: "Znaków na raz (Premium)" },
     { value: "24/7", label: "Dostępność" },
   ];
 
@@ -295,7 +295,7 @@ export function Home({ categories, latestArticles }: HomeProps) {
               <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
                 <CheckCircle className="w-5 h-5 text-green-500" />
                 <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  Sprawdzanie w 3 sekundy
+                  Sprawdzanie w kilkanaście sekund
                 </span>
               </div>
               <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
@@ -343,7 +343,7 @@ export function Home({ categories, latestArticles }: HomeProps) {
 
             {/* Trust indicators */}
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
             </p>
           </div>
         </header>
@@ -625,7 +625,7 @@ export function Home({ categories, latestArticles }: HomeProps) {
                 </div>
                 <ul className="space-y-3 mb-6 text-sm">
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />5 sprawdzeń
+                    <Check className="w-4 h-4 text-green-500" />2 sprawdzenia
                     dziennie
                   </li>
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
@@ -840,7 +840,7 @@ export function Home({ categories, latestArticles }: HomeProps) {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <p className="text-blue-100 mt-6 text-sm">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
               &nbsp; ✓ Plan Lifetime 299 zł
             </p>
           </div>

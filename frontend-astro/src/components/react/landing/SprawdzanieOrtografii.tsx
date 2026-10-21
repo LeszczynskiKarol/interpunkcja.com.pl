@@ -45,7 +45,7 @@ export const faq = [
   {
     question: "Czy sprawdzanie ortografii jest darmowe?",
     answer:
-      "Tak! Oferujemy darmowy plan z 5 sprawdzeniami dziennie do 500 znaków. To wystarczy do sprawdzenia krótkich tekstów, emaili czy postów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
+      "Tak! Oferujemy darmowy plan z 2 sprawdzeniami dziennie do 500 znaków. To wystarczy do sprawdzenia krótkich tekstów, emaili czy postów. Dla dłuższych dokumentów polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo).",
   },
   {
     question: "Czy mogę sprawdzić długi dokument, np. pracę magisterską?",
@@ -60,7 +60,7 @@ export const faq = [
   {
     question: "Czy moje teksty są bezpieczne i prywatne?",
     answer:
-      "Tak, Twoje teksty są w pełni bezpieczne. Przetwarzamy je w czasie rzeczywistym i nie przechowujemy ich na serwerach. Po zamknięciu strony wszystkie dane są usuwane. Nie udostępniamy tekstów osobom trzecim.",
+      "Tak. Tekst trafia wyłącznie do modelu AI, który go sprawdza (Anthropic), i nie jest używany do trenowania modeli. Nie udostępniamy go innym firmom ani osobom. Szczegóły znajdziesz w polityce prywatności.",
   },
   {
     question: "Czy korektor działa na telefonie?",
@@ -253,7 +253,7 @@ export function SprawdzanieOrtografii() {
     {
       feature: "Szybkość sprawdzania",
       others: "5-10 sekund",
-      us: "2-3 sekundy",
+      us: "kilkanaście sekund",
     },
     { feature: "Opcja lifetime", others: "Brak", us: "299 zł na zawsze" },
   ];
@@ -300,10 +300,10 @@ export function SprawdzanieOrtografii() {
 
   // Statystyki
   const stats = [
-    { value: "10 000+", label: "Sprawdzonych tekstów" },
-    { value: "99.2%", label: "Wykrytych błędów" },
-    { value: "< 3 sek", label: "Czas analizy" },
-    { value: "100%", label: "Prywatności" },
+    { value: "90+", label: "Artykułów o zasadach" },
+    { value: "10 000", label: "Znaków na raz" },
+    { value: "< 30 sek", label: "Czas analizy" },
+    { value: "24/7", label: "Dostępność" },
   ];
 
   // Schema.org structured data
@@ -318,7 +318,7 @@ export function SprawdzanieOrtografii() {
         </title>
         <meta
           name="description"
-          content="✓ Sprawdź ortografię online za darmo! Korektor ortografii AI wykrywa błędy w pisowni, literówki i błędy interpunkcyjne. Sprawdzanie pisowni w 3 sekundy z wyjaśnieniami."
+          content="✓ Sprawdź ortografię online za darmo! Korektor ortografii AI wykrywa błędy w pisowni, literówki i błędy interpunkcyjne. Sprawdzanie pisowni w kilkanaście sekund z wyjaśnieniami."
         />
         <meta
           name="keywords"
@@ -354,7 +354,7 @@ export function SprawdzanieOrtografii() {
         />
         <meta
           name="twitter:description"
-          content="Korektor ortografii AI - sprawdź pisownię w 3 sekundy!"
+          content="Korektor ortografii AI - sprawdź pisownię w kilkanaście sekund!"
         />
 
         <meta name="robots" content="index, follow" />
@@ -404,7 +404,7 @@ export function SprawdzanieOrtografii() {
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
               Wklej tekst i{" "}
               <strong className="text-gray-900 dark:text-white">
-                sprawdź pisownię w 3 sekundy
+                sprawdź pisownię w kilkanaście sekund
               </strong>
               . Sztuczna inteligencja wykryje błędy ortograficzne, literówki i
               błędy interpunkcyjne.
@@ -452,7 +452,7 @@ export function SprawdzanieOrtografii() {
             )}
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Rejestracja w 30 sekund
             </p>
           </div>
         </header>
@@ -723,7 +723,7 @@ export function SprawdzanieOrtografii() {
                 {
                   step: "3",
                   title: "Kliknij 'Sprawdź ortografię'",
-                  desc: "AI przeanalizuje Twój tekst w ciągu 2-3 sekund, sprawdzając ortografię i interpunkcję.",
+                  desc: "AI przeanalizuje Twój tekst w kilkanaście sekund, sprawdzając ortografię i interpunkcję.",
                 },
                 {
                   step: "4",
@@ -856,7 +856,7 @@ export function SprawdzanieOrtografii() {
                 </div>
                 <ul className="space-y-3 mb-6 text-sm">
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />5 sprawdzeń
+                    <Check className="w-4 h-4 text-green-500" />2 sprawdzenia
                     dziennie
                   </li>
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
@@ -1060,7 +1060,7 @@ export function SprawdzanieOrtografii() {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <p className="text-green-100 mt-6 text-sm">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Lifetime 299 zł
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Lifetime 299 zł
             </p>
           </div>
         </section>

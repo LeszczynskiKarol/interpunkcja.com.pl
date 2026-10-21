@@ -43,7 +43,7 @@ export const faq = [
   {
     question: "Czy korektor tekstu jest darmowy?",
     answer:
-      "Tak, oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków każde). Dla intensywniejszego użycia polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i nielimitowanymi sprawdzeniami.",
+      "Tak, oferujemy darmowy plan z 2 sprawdzeniami dziennie (do 500 znaków każde). Dla intensywniejszego użycia polecamy plan Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i nielimitowanymi sprawdzeniami.",
   },
   {
     question: "Czy mogę sprawdzić długi dokument?",
@@ -58,7 +58,7 @@ export const faq = [
   {
     question: "Czy moje teksty są bezpieczne?",
     answer:
-      "Absolutnie tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane na serwerach po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest dla nas priorytetem.",
+      "Tak. Tekst trafia wyłącznie do modelu AI, który go sprawdza (Anthropic), i nie jest używany do trenowania modeli. Nie udostępniamy go innym firmom ani osobom. Szczegóły znajdziesz w polityce prywatności.",
   },
   {
     question: "Czym różni się od korektora w Microsoft Word?",
@@ -251,7 +251,7 @@ export function KorektorTekstu() {
       step: "2",
       title: "AI analizuje tekst",
       description:
-        "Sztuczna inteligencja Claude przeanalizuje Twój tekst w ciągu 2-3 sekund, sprawdzając wszystkie aspekty języka.",
+        "Sztuczna inteligencja Claude przeanalizuje Twój tekst w kilkanaście sekund, sprawdzając wszystkie aspekty języka.",
       icon: Cpu,
     },
     {
@@ -272,8 +272,8 @@ export function KorektorTekstu() {
 
   // Statystyki
   const stats = [
-    { value: "99.2%", label: "Skuteczność wykrywania" },
-    { value: "< 3 sek", label: "Czas analizy" },
+    { value: "90+", label: "Artykułów o zasadach" },
+    { value: "< 30 sek", label: "Czas analizy" },
     { value: "10 000", label: "Znaków na raz" },
     { value: "24/7", label: "Dostępność" },
   ];
@@ -332,7 +332,7 @@ export function KorektorTekstu() {
         </title>
         <meta
           name="description"
-          content="✓ Profesjonalny korektor tekstu online z AI! Sprawdza ortografię, interpunkcję i gramatykę w 3 sekundy. Wyjaśnienia każdej poprawki. Darmowe 5 sprawdzeń dziennie."
+          content="✓ Profesjonalny korektor tekstu online z AI! Sprawdza ortografię, interpunkcję i gramatykę w kilkanaście sekund. Wyjaśnienia każdej poprawki. Darmowe 2 sprawdzenia dziennie."
         />
         <meta
           name="keywords"
@@ -366,7 +366,7 @@ export function KorektorTekstu() {
         />
         <meta
           name="twitter:description"
-          content="Korektor tekstu AI - sprawdź tekst w 3 sekundy!"
+          content="Korektor tekstu AI - sprawdź tekst w kilkanaście sekund!"
         />
 
         <meta name="robots" content="index, follow" />
@@ -413,7 +413,7 @@ export function KorektorTekstu() {
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
               Profesjonalna{" "}
               <strong className="text-gray-900 dark:text-white">
-                korekta tekstu w 3 sekundy
+                korekta tekstu w kilkanaście sekund
               </strong>
               . Sztuczna inteligencja sprawdzi ortografię, interpunkcję i
               gramatykę z wyjaśnieniem każdego błędu.
@@ -461,7 +461,7 @@ export function KorektorTekstu() {
             )}
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Wyniki w 3 sekundy &nbsp;
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Wyniki w kilkanaście sekund &nbsp;
               ✓ Lifetime 299 zł
             </p>
           </div>
@@ -867,7 +867,7 @@ export function KorektorTekstu() {
                 </div>
                 <ul className="space-y-3 mb-6 text-sm">
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />5 sprawdzeń
+                    <Check className="w-4 h-4 text-green-500" />2 sprawdzenia
                     dziennie
                   </li>
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
@@ -1071,7 +1071,7 @@ export function KorektorTekstu() {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <p className="text-purple-100 mt-6 text-sm">
-              ✓ 5 sprawdzeń dziennie za darmo &nbsp; ✓ Wyniki w 3 sekundy &nbsp;
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Wyniki w kilkanaście sekund &nbsp;
               ✓ Lifetime 299 zł
             </p>
           </div>

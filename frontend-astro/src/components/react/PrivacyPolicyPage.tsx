@@ -97,7 +97,7 @@ Dane te są pobierane jednorazowo podczas pierwszego logowania przez Google i pr
 - Google LLC - usługa uwierzytelniania OAuth 2.0 (logowanie przez Google). Gdy logujesz się przez Google, Twoje dane (email, imię, zdjęcie profilowe) są pobierane z serwerów Google.
 
 **Dostawcy usług płatniczych:**
-- Stripe - obsługa płatności kartami, BLIK, Przelewy24
+- Stripe - obsługa płatności kartami i BLIK
 
 **Dostawcy usług analitycznych (za zgodą):**
 - Google LLC - Google Analytics, Google Tag Manager
@@ -355,7 +355,7 @@ This data is fetched once during your first Google sign-in and stored in our dat
 - Google LLC - OAuth 2.0 authentication service (Sign in with Google). When you sign in with Google, your data (email, name, profile picture) is fetched from Google servers.
 
 **Payment Service Providers:**
-- Stripe - card payments, BLIK, Przelewy24
+- Stripe - card and BLIK payments
 
 **Analytics Service Providers (with consent):**
 - Google LLC - Google Analytics, Google Tag Manager

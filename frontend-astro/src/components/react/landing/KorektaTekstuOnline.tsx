@@ -18,7 +18,6 @@ import {
   Globe,
   Infinity,
   Wand2,
-  Star,
   Laptop,
   Smartphone,
 } from "lucide-react";
@@ -28,7 +27,7 @@ export const faq = [
   {
     question: "Czym jest korekta tekstu online?",
     answer:
-      "Korekta tekstu online to automatyczne sprawdzanie i poprawianie błędów językowych za pomocą narzędzia internetowego. W przeciwieństwie do tradycyjnej korekty przez człowieka, korekta online jest natychmiastowa (2-3 sekundy), dostępna 24/7 i znacznie tańsza. Nasz korektor wykorzystuje sztuczną inteligencję Claude, która rozumie kontekst zdań.",
+      "Korekta tekstu online to automatyczne sprawdzanie i poprawianie błędów językowych za pomocą narzędzia internetowego. W przeciwieństwie do tradycyjnej korekty przez człowieka, korekta online jest natychmiastowa (kilkanaście sekund), dostępna 24/7 i znacznie tańsza. Nasz korektor wykorzystuje sztuczną inteligencję Claude, która rozumie kontekst zdań.",
   },
   {
     question: "Czy korekta online jest lepsza od korektora-człowieka?",
@@ -43,12 +42,12 @@ export const faq = [
   {
     question: "Ile kosztuje korekta tekstu online?",
     answer:
-      "Oferujemy darmowy plan z 5 sprawdzeniami dziennie (do 500 znaków). Premium kosztuje 29 zł/miesiąc (100 sprawdzeń, 10 000 znaków). Lifetime to jednorazowa płatność 299 zł za dostęp na zawsze bez limitów dziennych.",
+      "Oferujemy darmowy plan z 2 sprawdzeniami dziennie (do 500 znaków). Premium kosztuje 29 zł/miesiąc (100 sprawdzeń, 10 000 znaków). Lifetime to jednorazowa płatność 299 zł za dostęp na zawsze bez limitów dziennych.",
   },
   {
     question: "Czy moje teksty są bezpieczne?",
     answer:
-      "Tak, Twoje teksty są w pełni bezpieczne. Przetwarzamy je w czasie rzeczywistym i nie przechowujemy na serwerach po sprawdzeniu. Nie udostępniamy tekstów osobom trzecim. To przewaga nad tradycyjną korektą, gdzie tekst widzi obca osoba.",
+      "Tak. Tekst trafia wyłącznie do modelu AI, który go sprawdza (Anthropic), i nie jest używany do trenowania modeli. Nie udostępniamy go innym firmom ani osobom. Szczegóły znajdziesz w polityce prywatności.",
   },
   {
     question: "Czy mogę korygować długie dokumenty?",
@@ -72,7 +71,7 @@ export const schemaData = {
   "@type": "SoftwareApplication",
   name: "Korekta Tekstu Online - Interpunkcja.com.pl",
   description:
-    "Profesjonalna korekta tekstu online z AI. Sprawdzanie ortografii, interpunkcji i gramatyki w 3 sekundy. Wyjaśnienia każdej poprawki.",
+    "Profesjonalna korekta tekstu online z AI. Sprawdzanie ortografii, interpunkcji i gramatyki w kilkanaście sekund. Wyjaśnienia każdej poprawki.",
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Web",
   offers: {
@@ -113,9 +112,9 @@ export function KorektaTekstuOnline() {
     },
     {
       icon: Clock,
-      title: "Natychmiastowe wyniki",
+      title: "Szybkie wyniki",
       description:
-        "Korekta w 2-3 sekundy, niezależnie od długości tekstu. Bez czekania na korektora.",
+        "Korekta w kilkanaście sekund. Bez czekania na korektora.",
       color: "green",
     },
     {
@@ -127,9 +126,9 @@ export function KorektaTekstuOnline() {
     },
     {
       icon: Shield,
-      title: "100% prywatności",
+      title: "Prywatność",
       description:
-        "Teksty nie są przechowywane. Przetwarzanie w czasie rzeczywistym, bez śladu.",
+        "Tekst sprawdza wyłącznie model AI. Nie udostępniamy go nikomu i nie służy do trenowania modeli.",
       color: "orange",
     },
     {
@@ -152,7 +151,7 @@ export function KorektaTekstuOnline() {
   const onlineVsTraditional = [
     {
       aspect: "Czas oczekiwania",
-      online: "2-3 sekundy",
+      online: "kilkanaście sekund",
       traditional: "1-7 dni",
       winner: "online",
     },
@@ -188,7 +187,7 @@ export function KorektaTekstuOnline() {
     },
     {
       aspect: "Prywatność",
-      online: "Brak przechowywania tekstów",
+      online: "Tekst widzi tylko AI",
       traditional: "Tekst widzi korektor",
       winner: "online",
     },
@@ -248,43 +247,22 @@ export function KorektaTekstuOnline() {
 
   // Co sprawdza korekta
   const whatWeCheck = [
-    { name: "Błędy ortograficzne", percent: 100 },
-    { name: "Błędy interpunkcyjne", percent: 100 },
-    { name: "Pisownia łączna/rozdzielna", percent: 100 },
-    { name: "Błędy gramatyczne", percent: 95 },
-    { name: "Błędy stylistyczne", percent: 90 },
-    { name: "Pleonazmy i powtórzenia", percent: 85 },
+    { name: "Błędy ortograficzne" },
+    { name: "Błędy interpunkcyjne" },
+    { name: "Pisownia łączna/rozdzielna" },
+    { name: "Błędy gramatyczne" },
+    { name: "Błędy stylistyczne" },
+    { name: "Pleonazmy i powtórzenia" },
   ];
 
-  // Opinie użytkowników (przykładowe)
-  const testimonials = [
-    {
-      name: "Anna K.",
-      role: "Studentka prawa",
-      text: "Uratowało moją pracę magisterską! Korektor w Wordzie nie wykrył połowy błędów, które znalazł ten AI.",
-      rating: 5,
-    },
-    {
-      name: "Marek W.",
-      role: "Content Manager",
-      text: "Używam codziennie do sprawdzania artykułów przed publikacją. Lifetime to najlepsza inwestycja.",
-      rating: 5,
-    },
-    {
-      name: "Joanna S.",
-      role: "Freelancer",
-      text: "Wyjaśnienia przy każdej poprawce są świetne. Wreszcie rozumiem, dlaczego 'na pewno' pisze się rozdzielnie!",
-      rating: 5,
-    },
-  ];
 
   // FAQ
 
   // Stats
   const stats = [
-    { value: "10 000+", label: "Skorygowanych tekstów" },
-    { value: "99.2%", label: "Skuteczność" },
-    { value: "< 3 sek", label: "Czas korekty" },
+    { value: "90+", label: "Artykułów o zasadach" },
+    { value: "10 000", label: "Znaków na raz" },
+    { value: "< 30 sek", label: "Czas korekty" },
     { value: "24/7", label: "Dostępność" },
   ];
 
@@ -300,7 +278,7 @@ export function KorektaTekstuOnline() {
         </title>
         <meta
           name="description"
-          content="✓ Profesjonalna korekta tekstu online z AI! Sprawdź ortografię, interpunkcję i gramatykę w 3 sekundy. Wyjaśnienia każdej poprawki. Darmowe 5 sprawdzeń dziennie."
+          content="✓ Profesjonalna korekta tekstu online z AI! Sprawdź ortografię, interpunkcję i gramatykę w kilkanaście sekund. Wyjaśnienia każdej poprawki. Darmowe 2 sprawdzenia dziennie."
         />
         <meta
           name="keywords"
@@ -317,7 +295,7 @@ export function KorektaTekstuOnline() {
         />
         <meta
           property="og:description"
-          content="Profesjonalna korekta tekstu online z AI. Sprawdź tekst w 3 sekundy z wyjaśnieniami!"
+          content="Profesjonalna korekta tekstu online z AI. Sprawdź tekst w kilkanaście sekund z wyjaśnieniami!"
         />
         <meta property="og:type" content="website" />
         <meta
@@ -334,7 +312,7 @@ export function KorektaTekstuOnline() {
         />
         <meta
           name="twitter:description"
-          content="Korekta tekstu AI - sprawdź w 3 sekundy!"
+          content="Korekta tekstu AI - sprawdź w kilkanaście sekund!"
         />
 
         <meta name="robots" content="index, follow" />
@@ -381,7 +359,7 @@ export function KorektaTekstuOnline() {
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
               Profesjonalna{" "}
               <strong className="text-gray-900 dark:text-white">
-                korekta w 3 sekundy
+                korekta w kilkanaście sekund
               </strong>
               , dostępna 24/7 z każdego urządzenia. Sztuczna inteligencja
               sprawdzi ortografię, interpunkcję i gramatykę.
@@ -398,13 +376,13 @@ export function KorektaTekstuOnline() {
               <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
                 <CheckCircle className="w-5 h-5 text-indigo-500" />
                 <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  Wyniki w 3 sekundy
+                  Wyniki w kilkanaście sekund
                 </span>
               </div>
               <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
                 <CheckCircle className="w-5 h-5 text-indigo-500" />
                 <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  100% prywatności
+                  Wyjaśnienie każdej poprawki
                 </span>
               </div>
             </div>
@@ -429,7 +407,7 @@ export function KorektaTekstuOnline() {
             )}
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ 5 korekt dziennie za darmo &nbsp; ✓ Lifetime 299 zł na zawsze
+              ✓ 2 korekty dziennie za darmo &nbsp; ✓ Lifetime 299 zł na zawsze
             </p>
           </div>
         </header>
@@ -613,19 +591,11 @@ export function KorektaTekstuOnline() {
                   key={index}
                   className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700"
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between">
                     <span className="font-bold text-gray-900 dark:text-white">
                       {item.name}
                     </span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                      {item.percent}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-indigo-600 to-blue-600 h-2 rounded-full transition-all"
-                      style={{ width: `${item.percent}%` }}
-                    />
+                    <CheckCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                 </div>
               ))}
@@ -680,53 +650,6 @@ export function KorektaTekstuOnline() {
           </div>
         </section>
 
-        {/* Opinie */}
-        <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900/50">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Co mówią użytkownicy?
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400">
-                Opinie osób korzystających z korekty online
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {testimonials.map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
-                >
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="w-5 h-5 text-yellow-400 fill-current"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 italic">
-                    "{testimonial.text}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                      {testimonial.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900 dark:text-white">
-                        {testimonial.name}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {testimonial.role}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Urządzenia */}
         <section className="py-16 px-4 bg-white dark:bg-gray-800">
@@ -795,7 +718,7 @@ export function KorektaTekstuOnline() {
                 </div>
                 <ul className="space-y-3 mb-6 text-sm">
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />5 korekt
+                    <Check className="w-4 h-4 text-green-500" />2 korekty
                     dziennie
                   </li>
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
@@ -999,7 +922,7 @@ export function KorektaTekstuOnline() {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <p className="text-indigo-100 mt-6 text-sm">
-              ✓ 5 korekt dziennie za darmo &nbsp; ✓ Wyniki w 3 sekundy &nbsp; ✓
+              ✓ 2 korekty dziennie za darmo &nbsp; ✓ Wyniki w kilkanaście sekund &nbsp; ✓
               Lifetime 299 zł
             </p>
           </div>

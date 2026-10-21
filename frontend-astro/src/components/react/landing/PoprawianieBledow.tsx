@@ -26,7 +26,7 @@ export const faq = [
   {
     question: "Jak szybko AI poprawia błędy w tekście?",
     answer:
-      "Nasz korektor AI poprawia błędy w ciągu 2-3 sekund, niezależnie od długości tekstu (do 10 000 znaków). Sztuczna inteligencja Claude analizuje cały tekst jednocześnie, wykrywając błędy ortograficzne, interpunkcyjne i gramatyczne.",
+      "Nasz korektor AI poprawia błędy w kilkanaście sekund (do 10 000 znaków na raz w Premium). Sztuczna inteligencja Claude analizuje cały tekst jednocześnie, wykrywając błędy ortograficzne, interpunkcyjne i gramatyczne.",
   },
   {
     question: "Jakie błędy potrafi poprawić korektor?",
@@ -36,7 +36,7 @@ export const faq = [
   {
     question: "Czy poprawianie błędów jest darmowe?",
     answer:
-      "Tak! Oferujemy darmowy plan z 5 poprawkami dziennie (do 500 znaków każda). Dla intensywniejszego użycia polecamy Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i pełnymi wyjaśnieniami.",
+      "Tak! Oferujemy darmowy plan z 2 sprawdzeniami dziennie (do 500 znaków każde). Dla intensywniejszego użycia polecamy Premium (29 zł/mies) lub Lifetime (299 zł jednorazowo) z limitem 10 000 znaków i pełnymi wyjaśnieniami.",
   },
   {
     question: "Czy AI wyjaśnia poprawiane błędy?",
@@ -56,7 +56,7 @@ export const faq = [
   {
     question: "Czy moje teksty są bezpieczne?",
     answer:
-      "Tak. Teksty są przetwarzane w czasie rzeczywistym i nie są przechowywane po sprawdzeniu. Nie udostępniamy ich osobom trzecim. Twoja prywatność jest priorytetem.",
+      "Tak. Tekst trafia wyłącznie do modelu AI, który go sprawdza (Anthropic), i nie jest używany do trenowania modeli. Nie udostępniamy go innym firmom ani osobom. Szczegóły znajdziesz w polityce prywatności.",
   },
   {
     question: "Czy działa na telefonie?",
@@ -200,8 +200,8 @@ export function PoprawianieBledow() {
       icon: Clock,
       title: "Oszczędność czasu",
       description:
-        "AI poprawia błędy w 3 sekundy. Ręczna korekta długiego tekstu zajmuje godziny.",
-      stat: "< 3 sek",
+        "AI poprawia błędy w kilkanaście sekund. Ręczna korekta długiego tekstu zajmuje godziny.",
+      stat: "< 30 sek",
       statLabel: "czas poprawienia tekstu",
     },
   ];
@@ -307,10 +307,10 @@ export function PoprawianieBledow() {
 
   // Statystyki
   const stats = [
-    { value: "99.2%", label: "Skuteczność poprawek" },
-    { value: "< 3 sek", label: "Czas analizy" },
+    { value: "90+", label: "Artykułów o zasadach" },
+    { value: "< 30 sek", label: "Czas analizy" },
     { value: "10 000", label: "Znaków na raz" },
-    { value: "100%", label: "Prywatności" },
+    { value: "24/7", label: "Dostępność" },
   ];
 
   // Schema.org
@@ -325,7 +325,7 @@ export function PoprawianieBledow() {
         </title>
         <meta
           name="description"
-          content="✓ Automatyczne poprawianie błędów ortograficznych i interpunkcyjnych z AI! Wklej tekst i zobacz poprawki z wyjaśnieniami w 3 sekundy. Darmowe 5 sprawdzeń dziennie."
+          content="✓ Automatyczne poprawianie błędów ortograficznych i interpunkcyjnych z AI! Wklej tekst i zobacz poprawki z wyjaśnieniami w kilkanaście sekund. Darmowe 2 sprawdzenia dziennie."
         />
         <meta
           name="keywords"
@@ -342,7 +342,7 @@ export function PoprawianieBledow() {
         />
         <meta
           property="og:description"
-          content="Automatyczne poprawianie błędów z AI. Wklej tekst i zobacz poprawki z wyjaśnieniami w 3 sekundy!"
+          content="Automatyczne poprawianie błędów z AI. Wklej tekst i zobacz poprawki z wyjaśnieniami w kilkanaście sekund!"
         />
         <meta property="og:type" content="website" />
         <meta
@@ -359,7 +359,7 @@ export function PoprawianieBledow() {
         />
         <meta
           name="twitter:description"
-          content="Korektor AI - popraw błędy w 3 sekundy!"
+          content="Korektor AI - popraw błędy w kilkanaście sekund!"
         />
 
         <meta name="robots" content="index, follow" />
@@ -429,7 +429,7 @@ export function PoprawianieBledow() {
               <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
                 <CheckCircle className="w-5 h-5 text-red-500" />
                 <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  Poprawki w 3 sekundy
+                  Poprawki w kilkanaście sekund
                 </span>
               </div>
             </div>
@@ -454,7 +454,7 @@ export function PoprawianieBledow() {
             )}
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ✓ 5 poprawek dziennie za darmo &nbsp; ✓ Wyniki w 3 sekundy &nbsp;
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Wyniki w kilkanaście sekund &nbsp;
               ✓ Lifetime 299 zł
             </p>
           </div>
@@ -772,7 +772,7 @@ export function PoprawianieBledow() {
                 </div>
                 <ul className="space-y-3 mb-6 text-sm">
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Check className="w-4 h-4 text-green-500" />5 poprawek
+                    <Check className="w-4 h-4 text-green-500" />2 sprawdzenia
                     dziennie
                   </li>
                   <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
@@ -976,7 +976,7 @@ export function PoprawianieBledow() {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <p className="text-red-100 mt-6 text-sm">
-              ✓ 5 poprawek dziennie za darmo &nbsp; ✓ Wyniki w 3 sekundy &nbsp;
+              ✓ 2 sprawdzenia dziennie za darmo &nbsp; ✓ Wyniki w kilkanaście sekund &nbsp;
               ✓ Lifetime 299 zł
             </p>
           </div>

@@ -14,10 +14,10 @@ export function PricingPage() {
       period: "",
       description: "Idealne na początek",
       features: [
-        { text: "5 sprawdzeń dziennie", included: true },
+        { text: "2 sprawdzenia dziennie", included: true },
         { text: "Do 500 znaków na raz", included: true },
         { text: "Podstawowe poprawki", included: true },
-        { text: "Wyjaśnienia reguł", included: false },
+        { text: "Wyjaśnienia reguł", included: true },
         { text: "Historia sprawdzeń", included: false },
         { text: "Priorytetowe wsparcie", included: false },
       ],
@@ -273,8 +273,8 @@ export function PricingPage() {
                 Jakie metody płatności akceptujecie?
               </summary>
               <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
-                Akceptujemy karty płatnicze (Visa, Mastercard), BLIK, przelewy
-                online oraz tradycyjne przelewy bankowe.
+                Akceptujemy karty płatnicze (Visa, Mastercard). Plan Lifetime
+                i doładowania opłacisz też BLIK-iem.
               </p>
             </details>
           </div>
