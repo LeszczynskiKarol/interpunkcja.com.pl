@@ -1,4 +1,5 @@
 // frontend/src/pages/landing/KorektaTekstuOnline.tsx
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
@@ -98,7 +99,8 @@ export const faqSchema = {
 // zalogowani sa kierowani do /panel, wiec komponent jest wylaczony.
 const Checker = () => null;
 
-export function KorektaTekstuOnline() {
+// children: wyspa Astro ze sprawdzaniem pisowni (SpellChecker, client:load)
+export function KorektaTekstuOnline({ children }: { children?: ReactNode }) {
   const isAuthenticated = false;
 
   // Zalety korekty online
@@ -273,7 +275,7 @@ export function KorektaTekstuOnline() {
     <>
       <Helmet>
         <title>
-          Korekta Tekstu Online Za Darmo | Korektor AI 2025 -
+          Korekta Tekstu Online Za Darmo | Korektor AI -
           Interpunkcja.com.pl
         </title>
         <meta
@@ -291,7 +293,7 @@ export function KorektaTekstuOnline() {
 
         <meta
           property="og:title"
-          content="Korekta Tekstu Online Za Darmo | AI 2025"
+          content="Korekta Tekstu Online Za Darmo | AI"
         />
         <meta
           property="og:description"
@@ -387,8 +389,10 @@ export function KorektaTekstuOnline() {
               </div>
             </div>
 
+            {children && <div className="mb-8">{children}</div>}
+
             {/* CTA */}
-            {!isAuthenticated && (
+            {!children && !isAuthenticated && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                 <Link
                   to="/rejestracja"

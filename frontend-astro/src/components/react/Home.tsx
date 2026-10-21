@@ -1,4 +1,5 @@
 // frontend/src/pages/Home.tsx
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
@@ -52,9 +53,11 @@ const categoryDescriptions: Record<string, string> = {
 interface HomeProps {
   categories: Category[] | null;
   latestArticles: { articles: Article[] } | null;
+  // wyspa Astro ze sprawdzaniem pisowni (SpellChecker, client:load)
+  children?: ReactNode;
 }
 
-export function Home({ categories, latestArticles }: HomeProps) {
+export function Home({ categories, latestArticles, children }: HomeProps) {
   const isAuthenticated = false;
 
 
@@ -350,6 +353,12 @@ export function Home({ categories, latestArticles }: HomeProps) {
         </header>
 
         <PunctuationDemo />
+
+        {children && (
+          <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900">
+            {children}
+          </section>
+        )}
 
         {/* Stats Section */}
         <section className="py-12 bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">

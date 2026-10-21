@@ -90,11 +90,13 @@ function parseLine(line: string, word: string): string[] | null {
     return null; // poprawne (także jako złożenie lub forma pochodna)
   }
   if (line.startsWith("&")) {
-    const list = line.split(": ")[1] || "";
-    return list
+    const list = (line.split(": ")[1] || "")
       .split(", ")
-      .filter((s) => s && (word.includes("-") || !s.includes("-")))
-      .slice(0, MAX_SUGGESTIONS);
+      .filter((s) => s && (word.includes("-") || !s.includes("-")));
+    // Pisownia rozdzielna ("wogóle" -> "w ogóle") to najczęstszy przypadek,
+    // a Hunspell podaje ją zwykle dalej na liście
+    const split = list.filter((s) => s.replace(/ /g, "") === word);
+    return [...split, ...list.filter((s) => !split.includes(s))].slice(0, MAX_SUGGESTIONS);
   }
   return []; // "#" - brak podpowiedzi
 }

@@ -5,18 +5,22 @@ import {
   schemaData,
   faqSchema,
 } from "../components/react/landing/KorektaTekstuOnline";
+
+import { SpellChecker } from "../components/react/SpellChecker";
 ---
 
 <BaseLayout
-  title="Korekta Tekstu Online Za Darmo | Korektor AI 2025 - Interpunkcja.com.pl"
+  title="Korekta Tekstu Online Za Darmo | Korektor AI - Interpunkcja.com.pl"
   description="✓ Profesjonalna korekta tekstu online z AI! Sprawdź ortografię, interpunkcję i gramatykę w kilkanaście sekund. Wyjaśnienia każdej poprawki. Darmowe 2 sprawdzenia dziennie."
   keywords="korekta tekstu online, korekta online, korekta tekstu, korektor online, korekta tekstów, sprawdzanie tekstu online, korekta językowa, korekta AI, korektor tekstu online, korekta polska"
   canonical="https://www.interpunkcja.com.pl/korekta-tekstu-online"
-  ogTitle="Korekta Tekstu Online Za Darmo | AI 2025"
+  ogTitle="Korekta Tekstu Online Za Darmo | AI"
   ogDescription="Profesjonalna korekta tekstu online z AI. Sprawdź tekst w kilkanaście sekund z wyjaśnieniami!"
   twitterTitle="Korekta Tekstu Online Za Darmo | AI"
   twitterDescription="Korekta tekstu AI - sprawdź w kilkanaście sekund!"
   schemas={[schemaData, faqSchema]}
 >
-  <KorektaTekstuOnline />
+  <KorektaTekstuOnline>
+    <SpellChecker client:load />
+  </KorektaTekstuOnline>
 </BaseLayout>

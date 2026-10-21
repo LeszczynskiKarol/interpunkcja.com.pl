@@ -1,4 +1,5 @@
 // frontend/src/pages/landing/SprawdzaniePisowni.tsx
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
@@ -99,7 +100,8 @@ export const faqSchema = {
 // zalogowani sa kierowani do /panel, wiec komponent jest wylaczony.
 const Checker = () => null;
 
-export function SprawdzaniePisowni() {
+// children: wyspa Astro ze sprawdzaniem pisowni (SpellChecker, client:load)
+export function SprawdzaniePisowni({ children }: { children?: ReactNode }) {
   const isAuthenticated = false;
 
   // Typowe problemy z pisownią
@@ -271,7 +273,7 @@ export function SprawdzaniePisowni() {
     <>
       <Helmet>
         <title>
-          Sprawdzanie Pisowni Online Za Darmo | Korektor Tekstu AI 2025
+          Sprawdzanie Pisowni Online Za Darmo | Korektor Tekstu AI
         </title>
         <meta
           name="description"
@@ -383,8 +385,10 @@ export function SprawdzaniePisowni() {
               </div>
             </div>
 
+            {children && <div className="mb-8">{children}</div>}
+
             {/* CTA */}
-            {!isAuthenticated && (
+            {!children && !isAuthenticated && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                 <Link
                   to="/rejestracja"

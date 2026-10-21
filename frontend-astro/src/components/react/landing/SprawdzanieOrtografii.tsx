@@ -313,7 +313,7 @@ export function SprawdzanieOrtografii() {
     <>
       <Helmet>
         <title>
-          Sprawdzanie Ortografii Online Za Darmo | Korektor AI 2025 -
+          Sprawdzanie Ortografii Online Za Darmo | Korektor AI -
           Interpunkcja.com.pl
         </title>
         <meta

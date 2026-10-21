@@ -320,7 +320,7 @@ export function PoprawianieBledow() {
     <>
       <Helmet>
         <title>
-          Poprawianie Błędów Online Za Darmo | Korektor AI 2025 -
+          Poprawianie Błędów Online Za Darmo | Korektor AI -
           Interpunkcja.com.pl
         </title>
         <meta
@@ -338,7 +338,7 @@ export function PoprawianieBledow() {
 
         <meta
           property="og:title"
-          content="Poprawianie Błędów Online Za Darmo | AI 2025"
+          content="Poprawianie Błędów Online Za Darmo | AI"
         />
         <meta
           property="og:description"

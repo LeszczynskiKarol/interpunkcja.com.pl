@@ -327,7 +327,7 @@ export function KorektorTekstu() {
     <>
       <Helmet>
         <title>
-          Korektor Tekstu Online Za Darmo | Korekta AI 2025 -
+          Korektor Tekstu Online Za Darmo | Korekta AI -
           Interpunkcja.com.pl
         </title>
         <meta
@@ -345,7 +345,7 @@ export function KorektorTekstu() {
 
         <meta
           property="og:title"
-          content="Korektor Tekstu Online Za Darmo | AI 2025"
+          content="Korektor Tekstu Online Za Darmo | AI"
         />
         <meta
           property="og:description"

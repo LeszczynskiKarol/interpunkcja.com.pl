@@ -5,10 +5,12 @@ import {
   schemaData,
   faqSchema,
 } from "../components/react/landing/SprawdzaniePisowni";
+
+import { SpellChecker } from "../components/react/SpellChecker";
 ---
 
 <BaseLayout
-  title="Sprawdzanie Pisowni Online Za Darmo | Korektor Tekstu AI 2025"
+  title="Sprawdzanie Pisowni Online Za Darmo | Korektor Tekstu AI"
   description="✓ Sprawdź pisownię online za darmo! Korektor pisowni AI wykrywa błędy ortograficzne, interpunkcyjne i gramatyczne. Sprawdzanie tekstu w kilkanaście sekund z wyjaśnieniami."
   keywords="sprawdzanie pisowni, sprawdzanie pisowni online, korektor pisowni, sprawdzanie tekstu, korekta pisowni, korektor tekstu online, sprawdzanie błędów, poprawność pisowni, weryfikacja tekstu, korektor polski"
   canonical="https://www.interpunkcja.com.pl/sprawdzanie-pisowni"
@@ -18,5 +20,7 @@ import {
   twitterDescription="Korektor pisowni AI - sprawdź tekst w kilkanaście sekund!"
   schemas={[schemaData, faqSchema]}
 >
-  <SprawdzaniePisowni />
+  <SprawdzaniePisowni>
+    <SpellChecker client:load />
+  </SprawdzaniePisowni>
 </BaseLayout>
