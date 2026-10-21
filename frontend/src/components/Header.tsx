@@ -31,6 +31,11 @@ const categories = [
     slug: "ogolne-zasady-interpunkcji",
     description: "Zdania złożone, wyliczenia...",
   },
+  {
+    name: "Prace dyplomowe",
+    slug: "prace-dyplomowe",
+    description: "Przypisy, cytowanie, styl, korekta...",
+  },
 ];
 
 export function Header() {

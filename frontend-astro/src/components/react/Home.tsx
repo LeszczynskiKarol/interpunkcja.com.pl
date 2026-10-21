@@ -49,6 +49,8 @@ const categoryDescriptions: Record<string, string> = {
     "Zasady użycia przecinka, myślnika, cudzysłowu, nawiasu i innych znaków",
   "ogolne-zasady-interpunkcji":
     "Podstawowe reguły interpunkcji w zdaniach złożonych i wyliczeniach",
+  "prace-dyplomowe":
+    "Przypisy, cytowanie, styl naukowy i korekta pracy licencjackiej",
 };
 
 interface HomeProps {
