@@ -23,6 +23,7 @@ import {
   Globe,
   Infinity,
 } from "lucide-react";
+import { PunctuationDemo } from "./PunctuationDemo";
 
 interface Category {
   id: string;
@@ -347,6 +348,8 @@ export function Home({ categories, latestArticles }: HomeProps) {
             </p>
           </div>
         </header>
+
+        <PunctuationDemo />
 
         {/* Stats Section */}
         <section className="py-12 bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
