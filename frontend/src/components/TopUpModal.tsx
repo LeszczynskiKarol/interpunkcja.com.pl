@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { X, Loader2, Zap, Check, Gift, CreditCard } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../lib/api";
+import { trackEvent } from "../lib/analytics";
 
 interface TopUpPackage {
   id: string;
@@ -33,6 +34,12 @@ export function TopUpModal({
 
   const createCheckoutMutation = useMutation({
     mutationFn: async (packageId: string) => {
+      const pkg = packages.find((p) => p.id === packageId);
+      trackEvent("begin_checkout", {
+        currency: "PLN",
+        value: pkg ? pkg.amount / 100 : undefined,
+        item_id: packageId,
+      });
       const res = await api.post("/api/payments/create-topup-checkout", {
         packageId,
       });

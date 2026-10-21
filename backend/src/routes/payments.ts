@@ -208,6 +208,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
           creditsAdded: existingPurchase.creditsGranted,
           totalBonusChecks: user?.bonusChecks || 0,
           alreadyProcessed: true,
+          value: (session.amount_total ?? 0) / 100,
         };
       }
 
@@ -229,6 +230,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         success: true,
         creditsAdded: credits,
         totalBonusChecks: newBonusChecks,
+        value: (session.amount_total ?? 0) / 100,
       };
     } catch (error: any) {
       console.error("Topup verification error:", error);
@@ -448,6 +450,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
           creditsAdded: credits,
           totalBonusChecks: user?.bonusChecks || 0,
           plan: user?.plan,
+          value: (session.amount_total ?? 0) / 100,
         };
       }
 
@@ -460,7 +463,12 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         data: { plan },
       });
 
-      return { success: true, plan, type: "plan" };
+      return {
+        success: true,
+        plan,
+        type: "plan",
+        value: (session.amount_total ?? 0) / 100,
+      };
     } catch (error: any) {
       console.error("Payment verification error:", error);
       return reply.status(500).send({

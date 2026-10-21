@@ -84,6 +84,8 @@ export async function authRoutes(fastify: FastifyInstance) {
         refreshToken: result.refreshToken,
         user: JSON.stringify(result.user),
       });
+      // Dla GA4: odróżnienie rejestracji od logowania przez Google
+      if (result.isNewUser) params.set("new", "1");
 
       return reply.redirect(
         `${frontendUrl}/auth/callback?${params.toString()}`,

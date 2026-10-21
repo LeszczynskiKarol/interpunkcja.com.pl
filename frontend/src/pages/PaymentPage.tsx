@@ -12,6 +12,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuthStore } from "../stores/authStore";
 import { api } from "../lib/api";
+import { trackEvent } from "../lib/analytics";
 
 const PLANS = {
   premium: {
@@ -91,6 +92,11 @@ export function PaymentPage() {
   const handlePayment = async () => {
     setLoading(true);
     try {
+      trackEvent("begin_checkout", {
+        currency: "PLN",
+        value: selectedPlan.price,
+        item_id: selectedPlan.id,
+      });
       // Wywołaj backend, który utworzy sesję Stripe
       const response = await api.post("/api/payments/create-checkout", {
         plan: selectedPlan.id,

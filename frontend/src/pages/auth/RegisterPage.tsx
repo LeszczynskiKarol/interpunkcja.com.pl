@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { api } from "../../lib/api";
 import { useRecaptcha } from "../../hooks/useRecaptcha";
 import { GoogleButton } from "../../components/GoogleButton";
+import { trackEvent } from "../../lib/analytics";
 
 interface RegisterForm {
   email: string;
@@ -84,6 +85,7 @@ export function RegisterPage() {
         recaptchaToken,
       });
 
+      trackEvent("sign_up", { method: "email" });
       toast.success("Konto utworzone! Sprawdź swoją skrzynkę email.");
       navigate(`/sprawdz-email?email=${encodeURIComponent(data.email)}`);
     } catch (error: any) {

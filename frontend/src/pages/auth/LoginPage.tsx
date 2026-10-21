@@ -15,6 +15,7 @@ import { api } from "../../lib/api";
 import { useAuthStore } from "../../stores/authStore";
 import { useRecaptcha } from "../../hooks/useRecaptcha";
 import { GoogleButton } from "../../components/GoogleButton";
+import { trackEvent } from "../../lib/analytics";
 
 interface LoginFormData {
   email: string;
@@ -77,6 +78,7 @@ export function LoginPage() {
           refreshToken: response.data.refreshToken || "",
         });
 
+        trackEvent("login", { method: "email" });
         toast.success("Zalogowano pomyślnie!");
         navigate("/panel");
       }

@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../stores/authStore";
+import { trackEvent } from "../../lib/analytics";
 
 export function AuthCallbackPage() {
   const [searchParams] = useSearchParams();
@@ -58,6 +59,9 @@ export function AuthCallbackPage() {
           refreshToken,
         });
 
+        trackEvent(searchParams.get("new") === "1" ? "sign_up" : "login", {
+          method: "google",
+        });
         setStatus("success");
         toast.success(`Witaj, ${user.name || user.email}!`);
 

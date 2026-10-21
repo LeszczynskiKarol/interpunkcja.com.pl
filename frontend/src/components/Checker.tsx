@@ -19,6 +19,7 @@ import { useAuthStore } from "../stores/authStore";
 import { clsx } from "clsx";
 import { TopUpModal } from "./TopUpModal";
 import { Link } from "./HardLink";
+import { trackEvent } from "../lib/analytics";
 
 interface TopUpPackage {
   id: string;
@@ -91,6 +92,12 @@ export function Checker() {
   const checkMutation = useMutation({
     mutationFn: (text: string) => checkPunctuation(text),
     onSuccess: (data) => {
+      trackEvent("check_text", {
+        plan: user?.plan,
+        chars: text.length,
+        errors: data.errorCount,
+        bonus: !!data.usedBonusCheck,
+      });
       setCorrections(data.corrections);
       setCorrectedText(data.correctedText);
       setShowResult(true);
@@ -120,6 +127,7 @@ export function Checker() {
     onError: (error: any) => {
       if (error.response?.status === 429) {
         const responseData = error.response.data;
+        trackEvent("limit_reached", { plan: user?.plan });
         const reason: string =
           responseData.message || responseData.reason || "";
 

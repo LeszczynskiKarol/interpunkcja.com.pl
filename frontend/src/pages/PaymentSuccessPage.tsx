@@ -5,6 +5,7 @@ import { CheckCircle, Crown, Loader2, Gift, Zap } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
 import { api } from "../lib/api";
 import { useQueryClient } from "@tanstack/react-query";
+import { trackEvent } from "../lib/analytics";
 
 type PaymentType = "plan" | "topup";
 
@@ -51,6 +52,13 @@ export function PaymentSuccessPage() {
         }
 
         if (response.data.success) {
+          // GA4 deduplikuje zakupy po transaction_id, więc odświeżenie strony nie zawyży przychodu
+          trackEvent("purchase", {
+            transaction_id: sessionId,
+            currency: "PLN",
+            value: response.data.value,
+            item_id: response.data.type === "topup" ? "topup" : response.data.plan,
+          });
           setVerified(true);
           setResult({
             ...response.data,

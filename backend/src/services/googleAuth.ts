@@ -122,6 +122,8 @@ export class GoogleAuthService {
       },
     });
 
+    let isNewUser = false;
+
     if (user) {
       // Użytkownik istnieje - zaktualizuj dane Google jeśli brak
       if (!user.googleId) {
@@ -146,6 +148,7 @@ export class GoogleAuthService {
       }
     } else {
       // Nowy użytkownik - utwórz konto
+      isNewUser = true;
       user = await prisma.user.create({
         data: {
           email: googleUser.email.toLowerCase(),
@@ -188,6 +191,7 @@ export class GoogleAuthService {
       },
       token: jwtToken,
       refreshToken,
+      isNewUser,
     };
   }
 

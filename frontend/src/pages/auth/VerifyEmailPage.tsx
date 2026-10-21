@@ -5,6 +5,7 @@ import { XCircle, Loader2, Mail } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../stores/authStore";
+import { trackEvent } from "../../lib/analytics";
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -42,6 +43,7 @@ export function VerifyEmailPage() {
           refreshToken: response.data.refreshToken,
         });
 
+        trackEvent("email_verified");
         toast.success("Email zweryfikowany! Witaj!");
 
         setTimeout(() => {
