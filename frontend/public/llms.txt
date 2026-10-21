@@ -1,0 +1,7 @@
+# Interpunkcja.com.pl
+
+> Darmowe sprawdzanie interpunkcji online: korektor przecinków oparty na AI plus zasady polskiej interpunkcji z przykładami.
+
+## Najważniejsze strony
+
+- [Korektor interpunkcji](https://www.interpunkcja.com.pl/): wklej tekst i sprawdź przecinki
