@@ -41,8 +41,8 @@ const TIERS = [
       "Komentarz z regułą przy każdej poprawce",
       "Formatowanie i bibliografia nietknięte",
     ],
-    cta: "Sprawdź dokument",
-    href: "/cennik#dokumenty",
+    cta: "Korekta pracy dyplomowej",
+    href: "/korekta-pracy-dyplomowej",
     highlighted: true,
   },
 ];

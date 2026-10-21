@@ -5,6 +5,7 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../stores/authStore";
 import { trackEvent } from "../../lib/analytics";
+import { takeAfterLogin } from "../../lib/afterLogin";
 
 export function AuthCallbackPage() {
   const [searchParams] = useSearchParams();
@@ -67,7 +68,7 @@ export function AuthCallbackPage() {
 
         // Przekieruj do panelu po krótkiej chwili
         setTimeout(() => {
-          navigate("/panel", { replace: true });
+          navigate(takeAfterLogin(), { replace: true });
         }, 1500);
       } catch (err) {
         console.error("Auth callback error:", err);

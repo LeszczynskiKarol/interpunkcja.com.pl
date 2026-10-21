@@ -146,6 +146,9 @@ export function PricingPage() {
               <MessageSquare className="w-4 h-4" />
               Cenę zobaczysz przed płatnością. Potrzebne jest darmowe konto.
             </p>
+            <a href="/korekta-pracy-dyplomowej" className="text-sm text-blue-600 hover:underline">
+              Jak wygląda korekta pracy licencjackiej i magisterskiej →
+            </a>
           </div>
         </section>
 

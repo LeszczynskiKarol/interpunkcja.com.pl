@@ -1,0 +1,258 @@
+---
+// Strona pod frazy „korekta pracy licencjackiej / magisterskiej / dyplomowej (cena)”.
+// Statyczna - zakup odbywa się w panelu (/panel/dokumenty).
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const PACKAGES = [
+  { price: 39, pages: 20, chars: "36 000", fits: "artykuł, raport, rozdział, praca zaliczeniowa" },
+  { price: 79, pages: 60, chars: "108 000", fits: "praca licencjacka, praca inżynierska" },
+  { price: 149, pages: 150, chars: "270 000", fits: "praca magisterska" },
+];
+
+const FAQ = [
+  {
+    q: "Ile kosztuje korekta pracy licencjackiej?",
+    a: "Praca licencjacka ma zwykle 40–60 stron, więc mieści się w pakiecie za 79 zł. Cenę widzisz dokładnie po wgraniu pliku, zanim cokolwiek zapłacisz. Strona to 1800 znaków ze spacjami.",
+  },
+  {
+    q: "Ile kosztuje korekta pracy magisterskiej?",
+    a: "Praca magisterska do 150 stron (270 000 znaków) kosztuje 149 zł. Dłuższe prace i doktoraty wyceniamy indywidualnie.",
+  },
+  {
+    q: "Ile trwa korekta?",
+    a: "Zwykle kilka minut, przy pracy magisterskiej kilkanaście. Postęp widzisz w panelu, a gdy skończymy, dostaniesz e-mail.",
+  },
+  {
+    q: "Czy korekta zmieni moje zdania albo styl?",
+    a: "Nie. Poprawiamy interpunkcję, ortografię, pisownię łączną i rozdzielną oraz gramatykę. Styl, słownictwo i budowa zdań zostają Twoje. Każda poprawka jest zmianą śledzoną, więc możesz ją przyjąć albo odrzucić.",
+  },
+  {
+    q: "Co z cytatami, bibliografią i przypisami?",
+    a: "Cytatów z innych autorów, bibliografii, terminologii ani nazw własnych nie zmieniamy. Przypisów dolnych, nagłówków i stopek na razie nie sprawdzamy - poprawiamy treść główną pracy.",
+  },
+  {
+    q: "Czy promotor zobaczy, że praca była poprawiana?",
+    a: "Odsyłamy plik z poprawkami w trybie śledzenia zmian. Po ich przyjęciu (Recenzja → Akceptuj wszystkie zmiany) i usunięciu komentarzy dokument niczym nie różni się od zwykłego pliku Worda.",
+  },
+  {
+    q: "Czy to jest program antyplagiatowy?",
+    a: "Nie. Sprawdzamy poprawność językową, a nie oryginalność tekstu. Nie przesyłamy pracy do żadnych baz porównawczych.",
+  },
+  {
+    q: "Co się dzieje z moim plikiem?",
+    a: "Plik trafia wyłącznie do modelu AI, który go sprawdza, i nie jest używany do trenowania modeli. Po 30 dniach usuwamy z serwera zarówno oryginał, jak i wersję z poprawkami.",
+  },
+  {
+    q: "Mam plik .doc, .odt albo .pdf.",
+    a: "Obsługujemy pliki .docx. Otwórz pracę w Wordzie, LibreOffice albo Dokumentach Google i zapisz ją jako .docx (Plik → Zapisz jako / Pobierz → Microsoft Word).",
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: "Korekta pracy dyplomowej online",
+  serviceType: "Korekta językowa pracy licencjackiej i magisterskiej",
+  provider: { "@type": "Organization", name: "Interpunkcja.com.pl", url: "https://www.interpunkcja.com.pl" },
+  areaServed: "PL",
+  offers: PACKAGES.map((p) => ({
+    "@type": "Offer",
+    name: `Korekta dokumentu do ${p.pages} stron`,
+    price: p.price,
+    priceCurrency: "PLN",
+    url: "https://www.interpunkcja.com.pl/korekta-pracy-dyplomowej",
+  })),
+};
+---
+
+<BaseLayout
+  title="Korekta pracy dyplomowej online – licencjackiej i magisterskiej od 39 zł"
+  description="Korekta pracy licencjackiej i magisterskiej w kilka minut: interpunkcja, ortografia i gramatyka w trybie śledzenia zmian Worda, z komentarzem przy każdej poprawce. Praca licencjacka 79 zł, magisterska 149 zł."
+  keywords="korekta pracy dyplomowej, korekta pracy licencjackiej, korekta pracy magisterskiej, korekta pracy licencjackiej cena, korekta pracy magisterskiej cena, korekta prac dyplomowych, sprawdzenie pracy licencjackiej, korekta językowa pracy magisterskiej"
+  canonical="https://www.interpunkcja.com.pl/korekta-pracy-dyplomowej"
+  ogTitle="Korekta pracy dyplomowej online – od 39 zł"
+  ogDescription="Wgraj pracę w .docx i w kilka minut dostań poprawki w trybie śledzenia zmian Worda, z komentarzem przy każdej."
+  schemas={[serviceSchema, faqSchema]}
+>
+  <div class="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950">
+    <header class="max-w-5xl mx-auto px-4 pt-16 pb-12 text-center">
+      <p class="inline-block px-4 py-1.5 mb-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-medium">
+        Praca licencjacka 79 zł · magisterska 149 zł
+      </p>
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+        Korekta pracy dyplomowej online
+      </h1>
+      <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
+        Wgraj pracę licencjacką albo magisterską w pliku .docx. Po kilku minutach dostaniesz ten sam
+        plik z poprawkami interpunkcji, ortografii i gramatyki w trybie śledzenia zmian Worda, a przy
+        każdej poprawce komentarz z regułą.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a
+          href="/panel/dokumenty"
+          class="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg hover:bg-blue-700 shadow-lg"
+        >
+          Wgraj pracę i sprawdź cenę
+        </a>
+        <a
+          href="#przyklad"
+          class="inline-flex items-center justify-center px-8 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-semibold text-lg hover:border-blue-500"
+        >
+          Zobacz przykład
+        </a>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
+        Cenę widzisz przed płatnością · karta albo BLIK · potrzebne darmowe konto
+      </p>
+    </header>
+
+    <section class="max-w-5xl mx-auto px-4 pb-16">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white text-center mb-8">Cennik korekty pracy</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        {
+          PACKAGES.map((p, i) => (
+            <div
+              class={`rounded-2xl border-2 p-6 text-center ${
+                i === 1
+                  ? "border-blue-600 bg-white dark:bg-gray-800 shadow-lg"
+                  : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+              }`}
+            >
+              <div class="text-4xl font-bold text-gray-900 dark:text-white">{p.price} zł</div>
+              <div class="text-lg font-medium text-gray-800 dark:text-gray-200">do {p.pages} stron</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400 mb-3">{p.chars} znaków ze spacjami</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">{p.fits}</div>
+            </div>
+          ))
+        }
+      </div>
+      <p class="text-center text-gray-600 dark:text-gray-400 mt-6 max-w-3xl mx-auto">
+        Korekta u człowieka kosztuje zwykle od kilku do kilkunastu złotych za stronę i trwa kilka dni.
+        Tutaj płacisz raz za cały dokument, a wynik masz w kilka minut. Korektor AI nie zastąpi uwag
+        promotora do treści, ale wyłapie przecinki, literówki i błędy gramatyczne, na których traci się
+        punkty i dobre wrażenie.
+      </p>
+    </section>
+
+    <section id="przyklad" class="bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700 py-16 px-4 scroll-mt-20">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white text-center mb-3">Tak wygląda poprawiona praca</h2>
+        <p class="text-center text-gray-600 dark:text-gray-400 mb-10 max-w-3xl mx-auto">
+          Fragment pracy po korekcie, tak jak zobaczysz go w Wordzie. Wstawione znaki są podkreślone,
+          usunięte przekreślone, a na marginesie każda poprawka ma swoją regułę.
+        </p>
+        <div class="grid md:grid-cols-3 gap-4 items-start">
+          <div class="md:col-span-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 font-serif text-gray-900 dark:text-gray-100 leading-loose">
+            <p class="mb-4">
+              Pracując zdalnie<ins class="text-blue-700 dark:text-blue-300 underline decoration-2">,</ins><sup class="text-xs text-amber-600">1</sup>
+              pracownicy częściej korzystają z komunikatorów niż z poczty elektronicznej. Wynika to z tego<ins class="text-blue-700 dark:text-blue-300 underline decoration-2">,</ins><sup class="text-xs text-amber-600">2</sup>
+              że komunikatory pozwalają na szybszą wymianę informacji.
+            </p>
+            <p>
+              <del class="text-red-600 dark:text-red-400">Wogóle</del><ins class="text-blue-700 dark:text-blue-300 underline decoration-2">W ogóle</ins><sup class="text-xs text-amber-600">3</sup>
+              warto zauważyć, że menedżerowie <del class="text-red-600 dark:text-red-400">napewno</del><ins class="text-blue-700 dark:text-blue-300 underline decoration-2">na pewno</ins><sup class="text-xs text-amber-600">4</sup>
+              powinni dbać o regularny kontakt z zespołem.
+            </p>
+          </div>
+          <ol class="space-y-3 text-sm">
+            <li class="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 p-3 text-gray-800 dark:text-gray-200">
+              <b>1.</b> Imiesłowowy równoważnik zdania oddzielamy przecinkiem od reszty zdania.
+            </li>
+            <li class="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 p-3 text-gray-800 dark:text-gray-200">
+              <b>2.</b> Przecinek przed „że” wprowadzającym zdanie podrzędne.
+            </li>
+            <li class="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 p-3 text-gray-800 dark:text-gray-200">
+              <b>3.</b> „W ogóle” piszemy rozdzielnie.
+            </li>
+            <li class="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 p-3 text-gray-800 dark:text-gray-200">
+              <b>4.</b> „Na pewno” piszemy rozdzielnie.
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-5xl mx-auto px-4 py-16">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">Jak to działa</h2>
+      <ol class="grid md:grid-cols-4 gap-6">
+        {
+          [
+            ["Wgrywasz plik", "Zapisz pracę jako .docx i wgraj ją w panelu. Od razu policzymy strony i pokażemy cenę."],
+            ["Płacisz", "Kartą albo BLIK-iem, jednorazowo. Bez abonamentu i bez zakładania karty na stałe."],
+            ["Korektor sprawdza", "AI przechodzi przez całą pracę akapit po akapicie. Postęp widzisz w panelu."],
+            ["Akceptujesz poprawki", "Pobierasz plik i w Wordzie przyjmujesz poprawki pojedynczo albo wszystkie naraz."],
+          ].map(([title, text], i) => (
+            <li class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
+              <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center mb-3">{i + 1}</div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-1">{title}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">{text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700 py-16 px-4">
+      <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Co poprawiamy</h2>
+          <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+            <li>✓ Przecinki: przed „że”, „który”, „czy”, przy imiesłowach, wtrąceniach i wyliczeniach</li>
+            <li>✓ Pozostałe znaki: myślniki, dwukropki, średniki, cudzysłowy</li>
+            <li>✓ Ortografię i literówki</li>
+            <li>✓ Pisownię łączną i rozdzielną („na pewno”, „w ogóle”, „nie” z częściami mowy)</li>
+            <li>✓ Błędy gramatyczne i odmianę</li>
+          </ul>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
+            Zasady stosowane przez korektor opisujemy w poradnikach:
+            <a href="/ogolne-zasady-interpunkcji/kiedy-stawiamy-przecinek/" class="text-blue-600 hover:underline">kiedy stawiamy przecinek</a>
+            i
+            <a href="/ogolne-zasady-interpunkcji/najczestsze-bledy-interpunkcyjne/" class="text-blue-600 hover:underline">najczęstsze błędy interpunkcyjne</a>.
+          </p>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Czego nie ruszamy</h2>
+          <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+            <li>✗ Stylu i słownictwa - to Twoja praca</li>
+            <li>✗ Cytatów z innych autorów i bibliografii</li>
+            <li>✗ Terminologii fachowej i nazw własnych</li>
+            <li>✗ Formatowania, tabel, spisu treści i numeracji</li>
+            <li>✗ Przypisów dolnych, nagłówków i stopek (na razie ich nie sprawdzamy)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-3xl mx-auto px-4 py-16">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white text-center mb-8">Najczęstsze pytania</h2>
+      <div class="space-y-4">
+        {
+          FAQ.map((f) => (
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">{f.q}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{f.a}</p>
+            </div>
+          ))
+        }
+      </div>
+      <div class="text-center mt-10">
+        <a
+          href="/panel/dokumenty"
+          class="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg hover:bg-blue-700 shadow-lg"
+        >
+          Wgraj pracę i sprawdź cenę
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

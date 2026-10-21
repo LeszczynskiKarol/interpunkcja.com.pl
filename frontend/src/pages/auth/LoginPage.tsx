@@ -16,6 +16,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { useRecaptcha } from "../../hooks/useRecaptcha";
 import { GoogleButton } from "../../components/GoogleButton";
 import { trackEvent } from "../../lib/analytics";
+import { takeAfterLogin } from "../../lib/afterLogin";
 
 interface LoginFormData {
   email: string;
@@ -80,7 +81,7 @@ export function LoginPage() {
 
         trackEvent("login", { method: "email" });
         toast.success("Zalogowano pomyślnie!");
-        navigate("/panel");
+        navigate(takeAfterLogin());
       }
     } catch (error: any) {
       console.error("Login error:", error);

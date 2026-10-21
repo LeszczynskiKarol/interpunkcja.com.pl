@@ -11,6 +11,7 @@ const STATIC_PAGES = [
   { path: "/korektor-tekstu", priority: "0.9", changefreq: "monthly" },
   { path: "/poprawianie-bledow", priority: "0.9", changefreq: "monthly" },
   { path: "/korekta-tekstu-online", priority: "0.9", changefreq: "monthly" },
+  { path: "/korekta-pracy-dyplomowej", priority: "0.9", changefreq: "monthly" },
   { path: "/cennik", priority: "0.8", changefreq: "monthly" },
   { path: "/partnerzy", priority: "0.4", changefreq: "yearly" },
   { path: "/polityka-prywatnosci", priority: "0.3", changefreq: "yearly" },

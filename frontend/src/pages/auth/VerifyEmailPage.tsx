@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../stores/authStore";
 import { trackEvent } from "../../lib/analytics";
+import { takeAfterLogin } from "../../lib/afterLogin";
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -47,7 +48,7 @@ export function VerifyEmailPage() {
         toast.success("Email zweryfikowany! Witaj!");
 
         setTimeout(() => {
-          navigate("/panel");
+          navigate(takeAfterLogin());
         }, 1000);
       }
     } catch (error: any) {
