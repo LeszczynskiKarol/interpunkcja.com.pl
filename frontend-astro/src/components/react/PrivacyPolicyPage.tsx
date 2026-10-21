@@ -8,6 +8,7 @@ const content = {
     title: "Polityka Prywatności",
     meta: "Polityka prywatności serwisu Interpunkcja.com.pl",
     lastUpdate: "Ostatnia aktualizacja",
+    updatedAt: "21 października 2026",
     sections: [
       {
         title: "1. Administrator danych",
@@ -44,7 +45,7 @@ Dane te są pobierane jednorazowo podczas pierwszego logowania przez Google i pr
 - Informacje o wybranym planie subskrypcji
 
 **Dane o użytkowaniu serwisu:**
-- Historia sprawdzonych tekstów (tylko dla użytkowników Premium/Lifetime)
+- Treść sprawdzanych tekstów i wynik korekty (wszyscy użytkownicy, przez 90 dni)
 - Statystyki użycia (liczba sprawdzeń, liczba znaków)
 - Data i czas korzystania z usługi
 
@@ -79,6 +80,7 @@ Dane te są pobierane jednorazowo podczas pierwszego logowania przez Google i pr
 - Wykrywanie i zapobieganie nadużyciom
 - Dochodzenie lub obrona przed roszczeniami
 - Tworzenie statystyk i analiz wewnętrznych
+- Poprawa jakości usługi (ocena trafności poprawek i testowanie modeli AI na sprawdzonych tekstach)
 
 **Na podstawie obowiązku prawnego (art. 6 ust. 1 lit. c RODO):**
 - Prowadzenie dokumentacji księgowej
@@ -91,7 +93,7 @@ Dane te są pobierane jednorazowo podczas pierwszego logowania przez Google i pr
 
 **Dostawcy usług IT:**
 - Amazon Web Services (AWS) - hosting serwerów w UE (Frankfurt, Sztokholm)
-- Anthropic - dostawca technologii AI do sprawdzania tekstów (teksty są przetwarzane w celu świadczenia usługi, nie są przechowywane przez Anthropic)
+- Anthropic - dostawca technologii AI do sprawdzania tekstów (teksty są przetwarzane w celu świadczenia usługi i nie są wykorzystywane do trenowania modeli AI)
 
 **Dostawcy usług uwierzytelniania:**
 - Google LLC - usługa uwierzytelniania OAuth 2.0 (logowanie przez Google). Gdy logujesz się przez Google, Twoje dane (email, imię, zdjęcie profilowe) są pobierane z serwerów Google.
@@ -135,9 +137,10 @@ W każdym przypadku zapewniamy odpowiedni poziom ochrony danych zgodny z wymogam
 - Po usunięciu konta dane są usuwane w ciągu 30 dni
 - Google ID i powiązane dane są usuwane wraz z kontem
 
-**Historia sprawdzeń (Premium/Lifetime):**
-- 90 dni od daty sprawdzenia
-- Użytkownik może usunąć historię wcześniej
+**Sprawdzane teksty (wszyscy użytkownicy):**
+- 90 dni od daty sprawdzenia - w tym czasie służą do wyświetlania historii (Premium/Lifetime) oraz do poprawy jakości usługi
+- Po 90 dniach treść tekstu i wynik korekty są automatycznie usuwane; zostają wyłącznie dane statystyczne (liczba znaków i błędów, data)
+- Możesz poprosić o wcześniejsze usunięcie swoich tekstów, pisząc na adres kontaktowy
 
 **Dane transakcyjne i rozliczeniowe:**
 - 5 lat od końca roku podatkowego (wymóg prawny)
@@ -266,6 +269,7 @@ Odpowiadamy na zapytania w terminie 30 dni. W przypadku skomplikowanych spraw te
     title: "Privacy Policy",
     meta: "Privacy Policy for Interpunkcja.com.pl",
     lastUpdate: "Last updated",
+    updatedAt: "October 21, 2026",
     sections: [
       {
         title: "1. Data Controller",
@@ -302,7 +306,7 @@ This data is fetched once during your first Google sign-in and stored in our dat
 - Subscription plan information
 
 **Service Usage Data:**
-- History of checked texts (Premium/Lifetime users only)
+- Content of checked texts and correction results (all users, for 90 days)
 - Usage statistics (number of checks, character count)
 - Date and time of service usage
 
@@ -337,6 +341,7 @@ This data is fetched once during your first Google sign-in and stored in our dat
 - Detecting and preventing abuse
 - Pursuing or defending against claims
 - Creating statistics and internal analyses
+- Improving service quality (evaluating correction accuracy and testing AI models on checked texts)
 
 **Based on legal obligation (Art. 6(1)(c) GDPR):**
 - Maintaining accounting documentation
@@ -349,7 +354,7 @@ This data is fetched once during your first Google sign-in and stored in our dat
 
 **IT Service Providers:**
 - Amazon Web Services (AWS) - server hosting in EU (Frankfurt, Stockholm)
-- Anthropic - AI technology provider for text checking (texts are processed to provide the service, not stored by Anthropic)
+- Anthropic - AI technology provider for text checking (texts are processed to provide the service and are not used to train AI models)
 
 **Authentication Service Providers:**
 - Google LLC - OAuth 2.0 authentication service (Sign in with Google). When you sign in with Google, your data (email, name, profile picture) is fetched from Google servers.
@@ -393,9 +398,10 @@ In all cases, we ensure an adequate level of data protection in accordance with 
 - After deletion, data is removed within 30 days
 - Google ID and associated data are deleted along with the account
 
-**Check History (Premium/Lifetime):**
-- 90 days from the check date
-- User may delete history earlier
+**Checked texts (all users):**
+- 90 days from the check date - during this time they are used to display history (Premium/Lifetime) and to improve service quality
+- After 90 days the text content and correction result are deleted automatically; only statistical data remains (character and error counts, date)
+- You may request earlier deletion of your texts by contacting us
 
 **Transaction and Billing Data:**
 - 5 years from the end of the tax year (legal requirement)
@@ -542,7 +548,7 @@ export function PrivacyPolicyPage() {
 
         <p className="text-gray-600 dark:text-gray-400 mb-8">
           {t.lastUpdate}:{" "}
-          {new Date().toLocaleDateString(language === "pl" ? "pl-PL" : "en-US")}
+          {t.updatedAt}
         </p>
 
         <div className="space-y-8">
