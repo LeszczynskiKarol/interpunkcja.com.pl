@@ -74,8 +74,8 @@ export function AdminLayout() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40">
-        <div className="p-6">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40 flex flex-col">
+        <div className="p-6 flex-1 overflow-y-auto">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">A</span>
@@ -109,7 +109,7 @@ export function AdminLayout() {
           </nav>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
           <NavLink
             to="/panel"
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
