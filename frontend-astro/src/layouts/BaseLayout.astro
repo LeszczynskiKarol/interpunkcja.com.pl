@@ -106,6 +106,39 @@ const ogUrl = canonical;
       } catch (e) {}
     </script>
 
+    <!-- Własna analityka (/api/events -> panel /admin/analityka). Bez cookies
+         i bez zapisu w przeglądarce, więc nie czeka na zgodę jak GA4.
+         window.__ipTrack używają też wyspy React i skrypty w artykułach. -->
+    <script is:inline>
+      (function () {
+        function track(name, props) {
+          try {
+            var headers = { "Content-Type": "application/json" };
+            var a = JSON.parse(localStorage.getItem("interpunkcja-auth") || "null");
+            if (a && a.state && a.state.token) headers.Authorization = "Bearer " + a.state.token;
+            fetch("/api/events", {
+              method: "POST",
+              keepalive: true,
+              headers: headers,
+              body: JSON.stringify({ name: name, source: "web", path: location.pathname, props: props || {} }),
+            }).catch(function () {});
+          } catch (e) {}
+        }
+        window.__ipTrack = track;
+
+        var props = {};
+        try {
+          var ref = document.referrer ? new URL(document.referrer).hostname : "";
+          if (ref && ref !== location.hostname) props.ref = ref.replace(/^www\./, "");
+          var q = new URLSearchParams(location.search);
+          ["utm_source", "utm_medium", "utm_campaign"].forEach(function (k) {
+            if (q.get(k)) props[k] = q.get(k).slice(0, 100);
+          });
+        } catch (e) {}
+        track("page_view", props);
+      })();
+    </script>
+
     <!-- Google Consent Mode v2 - MUST be before GTM -->
     <script is:inline>
       window.dataLayer = window.dataLayer || [];

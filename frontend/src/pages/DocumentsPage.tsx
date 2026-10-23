@@ -86,17 +86,21 @@ export function DocumentsPage() {
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
-    if (!/\.docx$/i.test(file.name)) {
-      toast.error("Wybierz plik Worda .docx");
-      return;
-    }
+    // Format sprawdza backend, nie przeglądarka - każda próba (także .pdf czy .odt)
+    // trafia wtedy do analityki z rozszerzeniem i powodem odrzucenia
+    const ext = /\.([a-z0-9]{1,8})$/i.exec(file.name)?.[1].toLowerCase() || "";
     setUploading(true);
     try {
       const doc = await uploadDocument(file);
-      trackEvent("document_quote", { pages: doc.pages, value: doc.amount / 100 });
+      trackEvent("document_quote", { pages: doc.pages, value: doc.amount / 100, ext });
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       toast.success(`Dokument ma ${doc.pages} str. - cena ${pln(doc.amount)}`);
     } catch (error: any) {
+      trackEvent(
+        "document_upload_rejected",
+        { ext, reason: error.response?.data?.error || "NETWORK" },
+        { gaOnly: true },
+      );
       toast.error(error.response?.data?.message || "Nie udało się wgrać pliku");
     } finally {
       setUploading(false);
@@ -199,7 +203,6 @@ export function DocumentsPage() {
           <input
             ref={fileInput}
             type="file"
-            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0])}
           />

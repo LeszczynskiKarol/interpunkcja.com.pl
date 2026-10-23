@@ -10,6 +10,7 @@ import {
   Bug,
   Activity,
   FileText,
+  LineChart,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -42,6 +43,11 @@ export function AdminLayout() {
       to: "/admin/zakupy",
       icon: CreditCard,
       label: "Zakupy TopUp",
+    },
+    {
+      to: "/admin/analityka",
+      icon: LineChart,
+      label: "Analityka",
     },
     {
       to: "/admin/statystyki",

@@ -8,6 +8,7 @@ import {
   guestEnabled,
   runGuestCheck,
 } from "../services/guestCheck";
+import { recordServerEvent } from "../services/analytics";
 
 const guestCheckSchema = z.object({
   text: z.string().min(1).max(GUEST_MAX_CHARS),
@@ -44,6 +45,7 @@ export async function guestCheckRoutes(fastify: FastifyInstance) {
         };
       } catch (error: any) {
         if (error instanceof GuestCheckRefused) {
+          recordServerEvent(request, "guest_check_refused", null, { reason: error.code, chars: text.length });
           const [status, message] = MESSAGES[error.code];
           return reply.status(status).send({ error: error.code, message });
         }

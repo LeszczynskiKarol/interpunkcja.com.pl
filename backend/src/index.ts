@@ -2,6 +2,7 @@
 import cron from "node-cron";
 import { runAbuseReport } from "./services/abuseMonitor";
 import { purgeOldCheckTexts } from "./services/textRetention";
+import { purgeOldEvents } from "./services/analytics";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
@@ -15,6 +16,8 @@ import { adminRoutes } from "./routes/admin";
 import { articleRoutes } from "./routes/articles";
 import { spellcheckRoutes } from "./routes/spellcheck";
 import { guestCheckRoutes } from "./routes/guestCheck";
+import { eventRoutes } from "./routes/events";
+import { adminInsightsRoutes } from "./routes/adminInsights";
 import { documentRoutes, MAX_UPLOAD_BYTES } from "./routes/documents";
 import { purgeDocumentFiles, runDocumentQueue } from "./services/documentJobs";
 import multipart from "@fastify/multipart";
@@ -122,11 +125,13 @@ async function start() {
   await fastify.register(authRoutes);
   await fastify.register(paymentRoutes);
   await fastify.register(adminRoutes);
+  await fastify.register(adminInsightsRoutes);
   await fastify.register(articleRoutes);
   await fastify.register(spellcheckRoutes);
   await fastify.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 } });
   await fastify.register(guestCheckRoutes);
   await fastify.register(documentRoutes);
+  await fastify.register(eventRoutes);
   await fastify.register(sitemapRoutes);
 
   // Health check
@@ -181,6 +186,19 @@ async function start() {
     },
   );
   console.log("✅ Daily report cron registered (daily 8:00 Europe/Warsaw)");
+
+  // Cron - codziennie o 3:50 kasowanie zdarzeń analitycznych starszych niż 13 mies.
+  cron.schedule(
+    "50 3 * * *",
+    () => {
+      purgeOldEvents().catch((err) =>
+        console.error("[Analytics] Purge error:", err),
+      );
+    },
+    {
+      timezone: "Europe/Warsaw",
+    },
+  );
 
   // Cron - codziennie o 3:45 kasowanie plików dokumentów starszych niż 30 dni
   cron.schedule(

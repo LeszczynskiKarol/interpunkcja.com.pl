@@ -217,15 +217,18 @@ function formatDate(iso: string) {
   }
   <script is:inline>
     // Kliknięcia w wezwania do działania w artykułach -> GA4 (send_to jak w SPA)
+    // i własna analityka (window.__ipTrack z BaseLayout.astro)
     document.addEventListener("click", function (e) {
       var a = e.target && e.target.closest && e.target.closest("[data-cta]");
       if (!a) return;
+      var placement = a.getAttribute("data-cta");
       window.dataLayer = window.dataLayer || [];
       (function () { window.dataLayer.push(arguments); })("event", "article_cta", {
-        placement: a.getAttribute("data-cta"),
+        placement: placement,
         article: location.pathname,
         send_to: "G-RYR505E30R",
       });
+      if (window.__ipTrack) window.__ipTrack("article_cta", { placement: placement });
     });
   </script>
 </BaseLayout>

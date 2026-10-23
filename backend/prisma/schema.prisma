@@ -55,6 +55,7 @@ model User {
   dailyUsage      DailyUsage[]
   creditPurchases CreditPurchase[]
   documents       Document[]
+  events          AnalyticsEvent[]
 
   @@index([registrationIp])
 }
@@ -217,4 +218,27 @@ enum DocumentStatus {
   PROCESSING
   DONE
   FAILED
+}
+
+// Własna analityka zdarzeń (bez cookies): wejścia na strony, akcje w panelu,
+// próby wgrania plików. Zamiast adresu IP zapisujemy jego skrót z solą
+// zmienianą codziennie - pozwala liczyć unikalne osoby w obrębie dnia,
+// ale nie łączy wizyt z różnych dni. Wiersze starsze niż 13 mies. kasuje cron.
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  name      String
+  // web (strony publiczne Astro) | app (panel SPA) | server (backend)
+  source    String
+  userId    String?
+  anonId    String?
+  path      String?
+  device    String?
+  props     Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([name, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }

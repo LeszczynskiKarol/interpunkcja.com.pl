@@ -3,10 +3,11 @@
 // wyłącznie część aplikacyjną: auth, panel, konto, historię, płatności i admin.
 // Strona główna, landingi SEO, cennik, blog i strony prawne żyją w Astro —
 // nginx kieruje je do serwera Astro, a linki do nich w SPA to zwykłe <a href>.
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { useEffect } from "react";
+import { trackPageView } from "./lib/analytics";
 import { AuthCallbackPage } from "./pages/auth/AuthCallbackPage";
 import { CookieBanner } from "./components/CookieBanner";
 import { Toaster } from "react-hot-toast";
@@ -35,6 +36,7 @@ import { AdminArticles } from "./pages/admin/AdminArticles";
 import { AdminPurchases } from "./pages/admin/AdminPurchases";
 import { AdminCorrectionDebug } from "./pages/admin/AdminCorrectionDebug";
 import { AdminAPIAnalytics } from "./pages/admin/AdminAPIAnalytics";
+import { AdminInsights } from "./pages/admin/AdminInsights";
 import { DocumentsPage } from "./pages/DocumentsPage";
 
 const queryClient = new QueryClient({
@@ -91,12 +93,22 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Własna analityka: wyświetlenie każdego ekranu SPA (pomijamy panel admina)
+function PageViewTracker() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (!pathname.startsWith("/admin")) trackPageView();
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
+            <PageViewTracker />
             <Routes>
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
@@ -181,6 +193,7 @@ function App() {
                 <Route path="uzytkownicy" element={<AdminUsers />} />
                 <Route path="sprawdzenia" element={<AdminChecks />} />
                 <Route path="zakupy" element={<AdminPurchases />} />
+                <Route path="analityka" element={<AdminInsights />} />
                 <Route path="statystyki" element={<AdminStats />} />
                 <Route path="analityka-api" element={<AdminAPIAnalytics />} />
                 <Route path="artykuly" element={<AdminArticles />} />

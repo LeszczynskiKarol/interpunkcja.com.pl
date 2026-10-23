@@ -8,6 +8,7 @@ import { prisma } from "../lib/prisma";
 import { TrackedDocx } from "../services/docx/trackedDocx";
 import { documentChars } from "../services/documentCorrector";
 import { createPreview, PreviewRefused } from "../services/documentPreview";
+import { fileExtension, recordServerEvent } from "../services/analytics";
 import {
   CHARS_PER_PAGE,
   DOCUMENT_PACKAGES,
@@ -88,9 +89,41 @@ export async function documentRoutes(fastify: FastifyInstance) {
       const userId = await requireUser(request, reply);
       if (!userId) return;
 
+      // Plik czytamy przed limitami, żeby każda próba (także odrzucona) trafiła
+      // do analityki z formatem i rozmiarem - stąd wiemy, jakich formatów brakuje
+      const file = await request.file();
+      if (!file) return reply.status(400).send({ error: "NO_FILE", message: "Nie wybrano pliku" });
+      const fileName = file.filename || "dokument.docx";
+      const ext = fileExtension(fileName);
+      let buffer: Buffer | null = null;
+
+      const reject = async (
+        status: number,
+        error: string,
+        message: string,
+        extra: Record<string, number> = {},
+        knownSize?: number,
+      ) => {
+        let size = knownSize ?? buffer?.length;
+        if (size === undefined) {
+          // Strumień trzeba doczytać do końca - przy okazji mierzymy rozmiar
+          size = 0;
+          for await (const chunk of file.file) size += chunk.length;
+        }
+        recordServerEvent(request, "document_upload", userId, {
+          result: "rejected",
+          reason: error,
+          ext,
+          size,
+          truncated: file.file.truncated || undefined,
+          ...extra,
+        });
+        return reply.status(status).send({ error, message, ...extra });
+      };
+
       const user = await prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } });
       if (!user?.emailVerified) {
-        return reply.status(403).send({ error: "EMAIL_NOT_VERIFIED", message: "Potwierdź adres e-mail, aby wgrać dokument" });
+        return reject(403, "EMAIL_NOT_VERIFIED", "Potwierdź adres e-mail, aby wgrać dokument");
       }
 
       // Limity chroniące dysk serwera przed zalewaniem nieopłaconymi plikami
@@ -99,27 +132,30 @@ export async function documentRoutes(fastify: FastifyInstance) {
         prisma.document.count({ where: { userId, createdAt: { gte: new Date(Date.now() - 86400000) } } }),
       ]);
       if (unpaid >= MAX_UNPAID_DOCUMENTS || today >= MAX_UPLOADS_PER_DAY) {
-        return reply.status(429).send({
-          error: "TOO_MANY_DOCUMENTS",
-          message:
-            unpaid >= MAX_UNPAID_DOCUMENTS
-              ? `Masz już ${unpaid} nieopłaconych dokumentów. Opłać któryś albo poczekaj - nieopłacone usuwamy po 2 dniach.`
-              : "Osiągnięto dzienny limit wgranych plików. Spróbuj jutro.",
-        });
+        return reject(
+          429,
+          "TOO_MANY_DOCUMENTS",
+          unpaid >= MAX_UNPAID_DOCUMENTS
+            ? `Masz już ${unpaid} nieopłaconych dokumentów. Opłać któryś albo poczekaj - nieopłacone usuwamy po 2 dniach.`
+            : "Osiągnięto dzienny limit wgranych plików. Spróbuj jutro.",
+        );
       }
 
-      const file = await request.file();
-      if (!file) return reply.status(400).send({ error: "NO_FILE", message: "Nie wybrano pliku" });
-      const fileName = file.filename || "dokument.docx";
-      if (!/\.docx$/i.test(fileName)) {
-        return reply.status(400).send({
-          error: "INVALID_FILE",
-          message: "Obsługujemy pliki Worda .docx. Plik .doc albo .pdf zapisz najpierw w Wordzie jako .docx.",
-        });
+      if (ext !== "docx") {
+        return reject(
+          400,
+          "UNSUPPORTED_FORMAT",
+          "Obsługujemy pliki Worda .docx. Plik .doc, .odt albo .pdf zapisz najpierw w Wordzie jako .docx.",
+        );
       }
-      const buffer = await file.toBuffer();
+      try {
+        buffer = await file.toBuffer();
+      } catch (error: any) {
+        if (error?.code !== "FST_REQ_FILE_TOO_LARGE") throw error;
+        return reject(413, "FILE_TOO_LARGE", "Plik jest większy niż 15 MB", {}, MAX_UPLOAD_BYTES);
+      }
       if (file.file.truncated) {
-        return reply.status(400).send({ error: "FILE_TOO_LARGE", message: "Plik jest większy niż 15 MB" });
+        return reject(400, "FILE_TOO_LARGE", "Plik jest większy niż 15 MB");
       }
 
       let chars: number;
@@ -127,21 +163,22 @@ export async function documentRoutes(fastify: FastifyInstance) {
         chars = documentChars(await TrackedDocx.load(buffer));
       } catch (error: any) {
         if (error?.message === "DOCX_TOO_LARGE") {
-          return reply.status(400).send({ error: "FILE_TOO_LARGE", message: "Dokument jest za duży do automatycznej korekty - napisz do nas." });
+          return reject(400, "FILE_TOO_LARGE", "Dokument jest za duży do automatycznej korekty - napisz do nas.");
         }
-        return reply.status(400).send({ error: "INVALID_FILE", message: "Nie udało się odczytać pliku .docx" });
+        return reject(400, "INVALID_FILE", "Nie udało się odczytać pliku .docx");
       }
       const pages = Math.max(1, Math.ceil(chars / CHARS_PER_PAGE));
       if (chars < 50) {
-        return reply.status(400).send({ error: "EMPTY_DOCUMENT", message: "Dokument nie zawiera tekstu do sprawdzenia" });
+        return reject(400, "EMPTY_DOCUMENT", "Dokument nie zawiera tekstu do sprawdzenia");
       }
       const pkg = packageForPages(pages);
       if (!pkg) {
-        return reply.status(400).send({
-          error: "TOO_LONG",
-          message: `Dokument ma ${pages} stron. Teksty powyżej 150 stron wyceniamy indywidualnie - napisz do nas.`,
-          pages,
-        });
+        return reject(
+          400,
+          "TOO_LONG",
+          `Dokument ma ${pages} stron. Teksty powyżej 150 stron wyceniamy indywidualnie - napisz do nas.`,
+          { pages },
+        );
       }
 
       const doc = await prisma.document.create({
@@ -149,6 +186,15 @@ export async function documentRoutes(fastify: FastifyInstance) {
       });
       fs.mkdirSync(documentDir(doc.id), { recursive: true });
       fs.writeFileSync(inputPath(doc.id), buffer);
+      recordServerEvent(request, "document_upload", userId, {
+        result: "accepted",
+        ext,
+        size: buffer.length,
+        pages,
+        chars,
+        package: pkg.id,
+        documentId: doc.id,
+      });
       return publicDocument(doc);
     },
   );
@@ -191,6 +237,7 @@ export async function documentRoutes(fastify: FastifyInstance) {
         return { preview: { paragraphs: preview.paragraphs, chars: preview.chars, corrections: preview.corrections } };
       } catch (error: any) {
         if (error instanceof PreviewRefused) {
+          recordServerEvent(request, "document_preview_refused", userId, { reason: error.code, pages: doc.pages });
           const [status, message] = PREVIEW_MESSAGES[error.code];
           return reply.status(status).send({ error: error.code, message });
         }

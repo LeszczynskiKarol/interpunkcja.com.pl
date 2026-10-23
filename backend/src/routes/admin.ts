@@ -5,7 +5,7 @@ import { prisma } from "../lib/prisma";
 import bcrypt from "bcrypt";
 
 // Middleware sprawdzający czy user jest adminem
-async function requireAdmin(request: any, reply: any) {
+export async function requireAdmin(request: any, reply: any) {
   try {
     await request.jwtVerify();
     const userId = request.user.userId;

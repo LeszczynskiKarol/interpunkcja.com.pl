@@ -8,7 +8,7 @@ const content = {
     title: "Polityka Prywatności",
     meta: "Polityka prywatności serwisu Interpunkcja.com.pl",
     lastUpdate: "Ostatnia aktualizacja",
-    updatedAt: "21 października 2026",
+    updatedAt: "23 października 2026",
     sections: [
       {
         title: "1. Administrator danych",
@@ -54,6 +54,11 @@ Dane te są pobierane jednorazowo podczas pierwszego logowania przez Google i pr
 - Typ i wersja przeglądarki
 - System operacyjny
 - Identyfikatory plików cookies (zgodnie z Polityką Cookies)
+
+**Własne statystyki serwisu (bez plików cookies):**
+- Odwiedzone podstrony, kliknięcia w przyciski, użycie narzędzi i próby wgrania plików (format i rozmiar pliku, bez jego treści)
+- Strona, z której przyszedłeś (sama domena), parametry kampanii (utm) i typ urządzenia
+- U zalogowanych - powiązanie z kontem; u pozostałych zamiast adresu IP zapisujemy jego jednokierunkowy skrót zmieniany codziennie, więc nie łączymy wizyt z różnych dni
 
 **Dane analityczne (za zgodą):**
 - Dane zbierane przez Google Analytics 4
@@ -151,6 +156,9 @@ W każdym przypadku zapewniamy odpowiedni poziom ochrony danych zgodny z wymogam
 
 **Dane analityczne (Google Analytics):**
 - 14 miesięcy od ostatniej aktywności
+
+**Własne statystyki serwisu:**
+- 13 miesięcy od zdarzenia, potem automatycznie usuwane
 
 **Logi serwerowe:**
 - 30 dni
@@ -273,7 +281,7 @@ Odpowiadamy na zapytania w terminie 30 dni. W przypadku skomplikowanych spraw te
     title: "Privacy Policy",
     meta: "Privacy Policy for Interpunkcja.com.pl",
     lastUpdate: "Last updated",
-    updatedAt: "October 21, 2026",
+    updatedAt: "October 23, 2026",
     sections: [
       {
         title: "1. Data Controller",
@@ -319,6 +327,11 @@ This data is fetched once during your first Google sign-in and stored in our dat
 - Browser type and version
 - Operating system
 - Cookie identifiers (in accordance with Cookie Policy)
+
+**Own Service Statistics (no cookies):**
+- Pages visited, button clicks, tool usage and file upload attempts (file format and size, never its content)
+- Referring site (domain only), campaign parameters (utm) and device type
+- For signed-in users - linked to the account; for others, instead of the IP address we store its one-way hash with a salt changed daily, so visits from different days are not linked
 
 **Analytics Data (with consent):**
 - Data collected by Google Analytics 4
@@ -416,6 +429,9 @@ In all cases, we ensure an adequate level of data protection in accordance with 
 
 **Analytics Data (Google Analytics):**
 - 14 months from last activity
+
+**Own Service Statistics:**
+- 13 months from the event, then deleted automatically
 
 **Server Logs:**
 - 30 days

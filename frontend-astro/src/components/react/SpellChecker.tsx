@@ -26,6 +26,9 @@ function trackEvent(name: string, params: Record<string, string | number> = {}) 
     (function gtag(..._args: any[]) {
       w.dataLayer.push(arguments);
     })("event", name, { ...params, send_to: "G-RYR505E30R" });
+    // Własna analityka - funkcja z BaseLayout.astro (guest_check_refused backend
+    // zapisuje sam, więc /api/events go zignoruje)
+    w.__ipTrack?.(name, params);
   } catch {
     // analityka nie może zepsuć narzędzia
   }
